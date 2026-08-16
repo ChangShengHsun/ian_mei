@@ -5,3 +5,6 @@ __pycache__/
 # Model weights: 22 MB and fully regenerable by re-running exp/train.py.
 # The CSV logs under exp/results/ are the results worth keeping.
 *.pt
+
+# STARE is fetched by exp/fetch_stare.py (19 MB from the Clemson mirror).
+data/STARE/
