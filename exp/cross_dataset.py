@@ -118,7 +118,15 @@ def load_topomortar(label_kind: str = "accurate") -> tuple[list[dict], list[dict
     return build(splits["train"], label_kind), build(splits["test"], "accurate")
 
 
-LOADERS = {"hrf": load_hrf, "topomortar": load_topomortar}
+def loader_for(dataset: str):
+    """`topomortar:noisy` trains on the noisy labels and still scores against
+    the accurate ones. That is E5: how fast does each loss degrade as the
+    training labels get worse, on labels somebody else designed rather than
+    noise we invented for ourselves."""
+    if dataset.startswith("topomortar"):
+        kind = dataset.partition(":")[2] or "accurate"
+        return lambda: load_topomortar(kind)
+    return load_hrf
 
 
 def median_width(items: list[dict]) -> float:
@@ -213,7 +221,7 @@ def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
 
 def main() -> None:
     dataset = sys.argv[1]
-    train_items, test_items = LOADERS[dataset]()
+    train_items, test_items = loader_for(dataset)()
     width = median_width(train_items)
     print(f"{dataset}: {len(train_items)} train / {len(test_items)} test, "
           f"median width {width:.2f} px, filter sweep "
