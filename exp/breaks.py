@@ -80,7 +80,8 @@ def main() -> None:
     inside = train_data["images"][train_data["fovs"]]
     mean, std = float(inside.mean()), float(inside.std())
 
-    runs = [f"{name}_s{seed}" for seed in (0, 1, 2) for name in train.CONFIGS]
+    runs = [f"{name}_s{seed}" for seed in (0, 1, 2) for name in train.CONFIGS
+            if (RESULTS / f"{name}_s{seed}" / "final.pt").exists()]
     collected = []
     for run_name in runs:
         collected += analyse(run_name, val, mean, std)

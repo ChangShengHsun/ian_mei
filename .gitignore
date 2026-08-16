@@ -8,3 +8,10 @@ __pycache__/
 
 # STARE is fetched by exp/fetch_stare.py (19 MB from the Clemson mirror).
 data/STARE/
+
+# HRF is fetched by exp/fetch_hrf.py (76 MB from the FAU mirror).
+data/HRF/
+
+# TopoMortar ships its dataset inside its own repo (170 MB, MIT):
+#   git clone --depth 1 https://github.com/jmlipman/TopoMortar.git data/TopoMortar
+data/TopoMortar/

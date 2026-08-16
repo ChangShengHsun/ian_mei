@@ -128,12 +128,76 @@ def soft_cl_dice(prob: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
     return 1 - (2 * precision * sensitivity / (precision + sensitivity)).mean()
 
 
+def _cb_weights(mask: torch.Tensor, skeleton: torch.Tensor,
+                soft_mask: torch.Tensor, soft_skel: torch.Tensor) -> tuple:
+    """The three radius weights of cbDice, ported from the authors' loss/.
+
+    Every weight is built from the Euclidean distance transform of the HARD
+    mask, so it carries no gradient; the gradient enters only through the soft
+    tensors it multiplies at the end. That is what the reference does too, and
+    it is why scipy can be used here inside no_grad.
+
+    Reference: github.com/PengchengShi1220/cbDice, loss/cbdice_loss.py.
+    """
+    with torch.no_grad():
+        binary = mask.detach().cpu().numpy() > 0.5
+        distances = torch.from_numpy(
+            np.stack([ndimage.distance_transform_edt(item)
+                      for item in binary[:, 0]])).float()[:, None]
+        distances = distances * (mask > 0.5)
+        radius = distances * (skeleton > 0.5)
+
+        # The reference takes the min over the whole radius map, which is 0
+        # everywhere off the skeleton, so this clamp makes r_min exactly 1.
+        # Kept as-is rather than "fixed": changing it changes the loss.
+        r_max = radius.amax((1, 2, 3), keepdim=True).clamp(min=1.0)
+        r_min = radius.amin((1, 2, 3), keepdim=True).clamp(min=1.0)
+
+        dist_norm = distances.clamp(max=float(r_max.max())) / r_max
+        skel_norm = radius / r_max
+        inverse = (r_max - radius + r_min) / r_max
+        inverse = inverse * (skeleton > 0.5)
+    return dist_norm * soft_mask, skel_norm * soft_mask, inverse * soft_skel
+
+
+def _combine(a: torch.Tensor, b: torch.Tensor, c: torch.Tensor) -> torch.Tensor:
+    """B*C, except where A is on and B is off, where it falls back to A*C."""
+    out = b * c
+    fallback = (a != 0) & (b == 0)
+    return torch.where(fallback, a * c, out)
+
+
+def soft_cb_dice(prob: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    """Centreline-boundary Dice (MICCAI 2024): clDice rebalanced by radius.
+
+    The authors' complaint is not that clDice ignores width but that clDice
+    *combined with* Dice ends up "favoring larger vessels": the distance-weighted
+    terms scale with diameter, so a thick vessel dominates the sum. cbDice
+    multiplies each centreline pixel by an inverse-radius weight so that thin
+    and thick vessels contribute comparably. It is the control stage_1 section
+    0.2 requires for any claim about vessel width.
+    """
+    with torch.no_grad():
+        hard = (prob > 0.5).float()
+        skel_pred_hard = soft_skeleton(hard)
+        skel_true = soft_skeleton(target)
+    skel_pred = skel_pred_hard * prob
+
+    q_vl, q_slvl, q_sl = _cb_weights(target, skel_true, target, skel_true)
+    q_vp, q_spvp, q_sp = _cb_weights(hard, skel_pred_hard, prob, skel_pred)
+
+    precision = ((q_sp * q_vl).sum() + 1.0) / (_combine(q_spvp, q_slvl, q_sp).sum() + 1.0)
+    sensitivity = ((q_sl * q_vp).sum() + 1.0) / (_combine(q_slvl, q_spvp, q_sl).sum() + 1.0)
+    return 1 - 2 * precision * sensitivity / (precision + sensitivity)
+
+
 CONFIGS = {
     # name -> (blurpool, extra loss term applied on top of BCE + soft Dice)
     "A_dice": (False, None),
     "B_cldice": (False, "cldice"),
     "C_boundary": (False, "boundary"),
     "D_blurpool": (True, None),
+    "E_cbdice": (False, "cbdice"),
 }
 
 
@@ -143,6 +207,10 @@ def compute_loss(logits, target, dist, extra):
     if extra == "cldice":
         # alpha = 0.5, the split used in the clDice paper (CVPR 2021).
         loss = loss + 0.5 * soft_dice(prob, target) + 0.5 * soft_cl_dice(prob, target)
+    elif extra == "cbdice":
+        # Same 0.5/0.5 split as clDice so the two are directly comparable; the
+        # only variable between B and E is whether the centreline is weighted.
+        loss = loss + 0.5 * soft_dice(prob, target) + 0.5 * soft_cb_dice(prob, target)
     elif extra == "boundary":
         # ponytail: fixed weight 0.1. Kervadec ramps alpha 0.01 -> 0.99 over
         # training; add the ramp if the fixed weight under- or over-shoots.

@@ -116,7 +116,12 @@ def main() -> None:
     for item in geometry:
         item["band"] = band_map(item["gt"], item["contrast"], edges)
 
-    runs = [f"{name}_s{seed}" for seed in (0, 1, 2) for name in train.CONFIGS]
+    # Skip configs that have not been trained yet: E_cbdice was added to
+    # CONFIGS ahead of its runs, and a missing checkpoint should cost a printed
+    # line rather than an exception halfway through the other eleven models.
+    runs = [f"{name}_s{seed}" for seed in (0, 1, 2) for name in train.CONFIGS
+            if (RESULTS / f"{name}_s{seed}" / "final.pt").exists()]
+    print(f"scoring {len(runs)} runs", flush=True)
     rows = []
     for run_name in runs:
         model = speckle.load_model(run_name)

@@ -16,8 +16,9 @@ import stratify
 import train
 
 RESULTS = Path(__file__).resolve().parent / "results"
-CONFIGS = list(train.CONFIGS)
 SEEDS = (0, 1, 2)
+CONFIGS: list[str] = []      # filled from the CSV, so an untrained config in
+                             # train.CONFIGS does not turn every cell into nan
 
 
 def load() -> list[dict]:
@@ -50,6 +51,8 @@ def cell(rows, config, band, min_size, key) -> tuple[float, float]:
 def main() -> None:
     rows = load()
     bands = list(stratify.BANDS)
+    CONFIGS[:] = [c for c in train.CONFIGS
+                  if any(r["config"] == c for r in rows)]
 
     print("=== 每個對比層有多少血管（A_dice、未過濾、平均每張圖）===")
     print(f"{'band':>14}{'血管像素':>12}{'中心線像素':>12}{'佔全部':>10}")
