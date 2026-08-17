@@ -41,3 +41,9 @@ STARE: 20 images, folds 0-9 / 10-19
 [ah_f0_s1] epoch  80 loss 0.2414 (45 min)
 [ah_f0_s1] epoch 100 loss 0.2392 (60 min)
 [ah_f0_s1] done in 60 min · dice vs ah 0.8024 · vs other 0.6875
+[vk_f0_s1] epoch  20 loss 0.4416 (15 min)
+[vk_f0_s1] epoch  40 loss 0.4166 (30 min)
+[vk_f0_s1] epoch  60 loss 0.3952 (44 min)
+[vk_f0_s1] epoch  80 loss 0.3775 (56 min)
+[vk_f0_s1] epoch 100 loss 0.3696 (67 min)
+[vk_f0_s1] done in 67 min · dice vs vk 0.7869 · vs other 0.7827
