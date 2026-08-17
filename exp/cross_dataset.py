@@ -63,7 +63,13 @@ DATA = Path(__file__).resolve().parent.parent / "data"
 RESULTS = Path(__file__).resolve().parent / "results" / "cross"
 LOSSES = ("A_dice", "B_cldice", "E_cbdice")
 SEEDS = (0, 1)
-EPOCHS, VAL_EVERY = 100, 20
+# 60 rather than the 100 used on DRIVE and STARE. Measured step cost on an
+# uncontended machine is 0.12 s for BCE+Dice, 0.18 for clDice and 0.19 for
+# cbDice, so 100 epochs x 24 runs is about 34 hours of CPU on a laptop that is
+# also Ivan's coursework machine. Every arm gets the identical budget, so the
+# within-dataset comparison E4 asks for is unaffected; what it costs is the
+# right to compare these absolute scores against the 100-epoch DRIVE numbers.
+EPOCHS, VAL_EVERY = 60, 20
 # The DRIVE sweep (0, 2, 5, 10, 20, 50, 100) px divided by DRIVE's w^2 = 9.6.
 # Every dataset is swept over the same multiples of its own w^2.
 WIDTH_MULTIPLES = (0.0, 0.21, 0.52, 1.04, 2.08, 5.21, 10.42)
@@ -222,7 +228,11 @@ def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
 def main() -> None:
     dataset = sys.argv[1]
     train_items, test_items = loader_for(dataset)()
-    width = median_width(train_items)
+    # From the TEST labels, never the training ones. E5 varies the training
+    # labels, and the noisy set is thinner (width 4.0 against 8.0), so a
+    # threshold derived from them would change between the very arms E5
+    # compares -- the filter would become a confound instead of a control.
+    width = median_width(test_items)
     print(f"{dataset}: {len(train_items)} train / {len(test_items)} test, "
           f"median width {width:.2f} px, filter sweep "
           f"{[int(round(m * width * width)) for m in WIDTH_MULTIPLES]} px",
