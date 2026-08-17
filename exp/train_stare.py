@@ -128,10 +128,14 @@ def train_one(run_name: str, items: list[dict]) -> None:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
-    own = np.mean([r["dice"] for r in rows if r["scored_against"] == target])
-    other = np.mean([r["dice"] for r in rows if r["scored_against"] != target])
+    # "soft" has no annotator of its own to be scored against, so report both
+    # columns for it rather than a nan for a target that is not in the file.
+    per_annotator = {a: np.mean([r["dice"] for r in rows
+                                 if r["scored_against"] == a])
+                     for a in TARGETS}
+    summary = " · ".join(f"vs {a} {v:.4f}" for a, v in per_annotator.items())
     print(f"[{run_name}] done in {(time.time() - started) / 60:.0f} min · "
-          f"dice vs {target} {own:.4f} · vs other {other:.4f}", flush=True)
+          f"{summary}", flush=True)
 
 
 def main() -> None:
