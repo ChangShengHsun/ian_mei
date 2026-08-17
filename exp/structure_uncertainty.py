@@ -84,12 +84,22 @@ def matched_blobs(skeleton: np.ndarray, labels: np.ndarray,
     return units
 
 
-def blob_values(units: list[np.ndarray], prob: np.ndarray,
-                item: dict) -> tuple[np.ndarray, ...]:
+def blob_values(units: list[np.ndarray], prob: np.ndarray, item: dict,
+                labels: np.ndarray) -> tuple[np.ndarray, ...]:
+    """Values over the matched units, plus how many actually left their branch.
+
+    That last number decides whether the control means anything. A unit that
+    stays inside its own branch IS the branch, so if the crossing rate is near
+    zero the control is vacuous and must be reported as such rather than as
+    evidence that structure does not matter.
+    """
     take = lambda field, unit: field[unit[:, 0], unit[:, 1]].mean()
+    crossed = np.array([len(np.unique(labels[u[:, 0], u[:, 1]])) > 1
+                        for u in units])
     return (np.array([take(prob, u) for u in units]),
             np.array([take(item["ah"].astype(float), u) for u in units]),
-            np.array([take(item["vk"].astype(float), u) for u in units]))
+            np.array([take(item["vk"].astype(float), u) for u in units]),
+            crossed)
 
 
 def structure_rows(prob: np.ndarray, item: dict, geo: dict,
@@ -110,9 +120,10 @@ def structure_rows(prob: np.ndarray, item: dict, geo: dict,
         lambda values: np.bincount(values, minlength=len(stratify.BANDS)).argmax(),
         int, 0))
 
+    crossed = np.zeros(count, dtype=bool)
     if CONTROL_BLOBS:
-        mean_prob, inside_ah, inside_vk = blob_values(
-            matched_blobs(skeleton, labels, index, sizes), prob, item)
+        mean_prob, inside_ah, inside_vk, crossed = blob_values(
+            matched_blobs(skeleton, labels, index, sizes), prob, item, labels)
 
     supported_ah, supported_vk = inside_ah >= SUPPORTED, inside_vk >= SUPPORTED
     population = supported_ah | supported_vk
@@ -132,6 +143,7 @@ def structure_rows(prob: np.ndarray, item: dict, geo: dict,
             "band": name, "n_structures": int(keep.sum()),
             "median_length": round(float(np.median(sizes[keep])), 1),
             "contested_frac": round(float(disputed.mean()), 5),
+            "crossed_frac": round(float(crossed[keep].mean()), 5),
             "auroc": round(stare_stratify.auroc(hesitation[keep], disputed), 5),
             "hesitation_contested": round(
                 float(hesitation[keep][disputed].mean()), 5)
@@ -192,7 +204,7 @@ def main() -> None:
 
     print("\n=== E6 結構層級 AUROC，對照 E1' 的逐像素結果 ===")
     print(f"{'band':>14}{'結構數':>9}{'中位長度':>10}{'爭議比例':>10}"
-          f"{'AUROC 中位':>12}{'<0.5':>10}")
+          f"{'AUROC 中位':>12}{'<0.5':>10}{'跨界比例':>10}")
     for band in stratify.BANDS:
         picked = [r for r in rows if r["band"] == band]
         scores = np.array([r["auroc"] for r in picked], dtype=float)
@@ -201,7 +213,8 @@ def main() -> None:
               f"{np.median([r['median_length'] for r in picked]):10.1f}"
               f"{100 * np.mean([r['contested_frac'] for r in picked]):9.1f}%"
               f"{np.median(scores):12.3f}"
-              f"{int((scores < 0.5).sum()):6d}/{len(scores):<4d}")
+              f"{int((scores < 0.5).sum()):6d}/{len(scores):<4d}"
+              f"{100 * np.mean([r['crossed_frac'] for r in picked]):9.1f}%")
 
 
 if __name__ == "__main__":
