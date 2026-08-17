@@ -49,7 +49,8 @@ def main() -> None:
                     ("breaks", "dice", "cldice", "tprec", "tsens"))
     hesitation = load("stare_hesitation.csv",
                       ("auroc", "contested_frac", "hesitation_contested",
-                       "hesitation_agreed", "n_px"))
+                       "hesitation_agreed", "prob_contested", "prob_agreed",
+                       "n_px"))
 
     print("=== E3' 每個對比層有多少爭議（union 內，兩位標註者不一致的比例）===")
     print(f"{'band':>14}{'爭議比例':>12}{'像素數':>12}")
@@ -112,16 +113,20 @@ def main() -> None:
                               if r["trained_on"] == target])
         print(f"{target:>12}{cells}{overall:12.3f}")
 
-    print("\n=== E1' 猶豫程度：有爭議的像素 vs 兩人同意的像素 ===")
-    print(f"{'trained_on':>12}{'band':>16}{'有爭議':>10}{'同意':>10}{'差':>10}")
+    print("\n=== E1' 猶豫程度與機率：有爭議 vs 兩人同意 ===")
+    print("  （猶豫 = 1-2|p-0.5|，1 代表剛好卡在 0.5；機率欄解釋方向）")
+    print(f"{'trained_on':>12}{'band':>16}{'猶豫:爭議':>11}{'猶豫:同意':>11}"
+          f"{'差':>9}{'p:爭議':>10}{'p:同意':>10}")
     for target in TARGETS:
         for band in BANDS:
-            contested, _, _ = cell(hesitation, band, "hesitation_contested",
-                                   trained_on=target)
-            agreed, _, _ = cell(hesitation, band, "hesitation_agreed",
-                                trained_on=target)
-            print(f"{target:>12}{band:>16}{contested:10.4f}{agreed:10.4f}"
-                  f"{contested - agreed:+10.4f}")
+            values = [cell(hesitation, band, key, trained_on=target)[0]
+                      for key in ("hesitation_contested", "hesitation_agreed",
+                                  "prob_contested", "prob_agreed")]
+            hesitate_contested, hesitate_agreed, p_contested, p_agreed = values
+            print(f"{target:>12}{band:>16}{hesitate_contested:11.4f}"
+                  f"{hesitate_agreed:11.4f}"
+                  f"{hesitate_contested - hesitate_agreed:+9.4f}"
+                  f"{p_contested:10.4f}{p_agreed:10.4f}")
 
 
 if __name__ == "__main__":

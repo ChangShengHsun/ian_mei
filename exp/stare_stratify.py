@@ -75,8 +75,11 @@ def auroc(scores: np.ndarray, positive: np.ndarray) -> float:
 
 def main() -> None:
     items = stare_agreement.load_stare()
-    runs = [f"{t}_f{f}_s{s}" for s in train_stare.SEEDS
-            for f in train_stare.FOLDS for t in train_stare.TRAIN_TARGETS]
+    # Naming runs on the command line scores just those, which is how a partial
+    # set gets analysed while the rest are still training.
+    runs = sys.argv[1:] or [f"{t}_f{f}_s{s}" for s in train_stare.SEEDS
+                            for f in train_stare.FOLDS
+                            for t in train_stare.TRAIN_TARGETS]
     missing = [r for r in runs if not (MODELS / r / "final.pt").exists()]
     if missing:
         raise SystemExit(f"missing weights for {len(missing)} runs: {missing}")
@@ -143,6 +146,15 @@ def main() -> None:
                     if contested.any() else float("nan"),
                     "hesitation_agreed": round(
                         float(hesitation[population][~contested].mean()), 5)
+                    if (~contested).any() else float("nan"),
+                    # The raw probabilities explain an AUROC away from 0.5 in
+                    # either direction: "confident" is not informative until
+                    # you know whether it is confidently yes or confidently no.
+                    "prob_contested": round(
+                        float(prob[population][contested].mean()), 5)
+                    if contested.any() else float("nan"),
+                    "prob_agreed": round(
+                        float(prob[population][~contested].mean()), 5)
                     if (~contested).any() else float("nan"),
                     "auroc": round(auroc(hesitation[population], contested), 5),
                 })
