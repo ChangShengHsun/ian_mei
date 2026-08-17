@@ -19,7 +19,15 @@ uncertainty. What is genuinely shared with the paper is the move being tested
 -- decide about a whole connected piece of curve at once instead of pixel by
 pixel -- and that is the move E6 is asking about.
 
-Writes results/structure_uncertainty.csv. ~5 min on the six STARE models.
+  python exp/structure_uncertainty.py [run ...]             # branches
+  python exp/structure_uncertainty.py [run ...] --control   # matched blobs
+
+--control runs the comparison that separates "a structure is the right unit"
+from "aggregating any N nearby pixels helps": it keeps each branch's size and
+location but drops the requirement that the pixels form one branch.
+
+Writes results/structure_uncertainty.csv (or structure_control.csv).
+~5 min on the six STARE models.
 """
 import csv
 import sys
@@ -27,6 +35,7 @@ from pathlib import Path
 
 import numpy as np
 from scipy import ndimage
+from scipy.spatial import cKDTree
 from skimage.morphology import skeletonize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
@@ -41,6 +50,9 @@ RESULTS = Path(__file__).resolve().parent / "results"
 CANDIDATE_THRESHOLD = 0.2   # permissive: a doubtful branch must still exist
 CONN8 = np.ones((3, 3), dtype=bool)
 SUPPORTED = 0.5             # a branch counts as supported if half of it is inside
+# Set by --control: swap every branch for a size- and location-matched set of
+# skeleton pixels that ignores junctions. See matched_blobs.
+CONTROL_BLOBS = False
 
 
 def branches(skeleton: np.ndarray) -> tuple[np.ndarray, int]:
@@ -48,6 +60,36 @@ def branches(skeleton: np.ndarray) -> tuple[np.ndarray, int]:
     neighbours = ndimage.convolve(skeleton.astype(np.uint8), CONN8.astype(np.uint8),
                                   mode="constant") - skeleton
     return ndimage.label(skeleton & (neighbours < 3), structure=CONN8)
+
+
+def matched_blobs(skeleton: np.ndarray, labels: np.ndarray,
+                  index: np.ndarray, sizes: np.ndarray) -> list[np.ndarray]:
+    """Size- and location-matched units that ignore junctions.
+
+    The control E6 needs. Each real branch is replaced by the same NUMBER of
+    skeleton pixels nearest its own centroid, chosen without regard to
+    connectivity, so a unit here happily crosses a junction into a different
+    vessel. Size and location are held fixed; only "is this one structure"
+    varies. If these score as well as the branches, the gain was aggregation
+    and locality, not structure.
+    """
+    points = np.argwhere(skeleton)
+    tree = cKDTree(points)
+    centroids = np.array(ndimage.center_of_mass(skeleton, labels, index))
+    units = []
+    for centroid, size in zip(centroids, sizes):
+        wanted = min(int(size), len(points))
+        _, chosen = tree.query(centroid, k=wanted)
+        units.append(points[np.atleast_1d(chosen)])
+    return units
+
+
+def blob_values(units: list[np.ndarray], prob: np.ndarray,
+                item: dict) -> tuple[np.ndarray, ...]:
+    take = lambda field, unit: field[unit[:, 0], unit[:, 1]].mean()
+    return (np.array([take(prob, u) for u in units]),
+            np.array([take(item["ah"].astype(float), u) for u in units]),
+            np.array([take(item["vk"].astype(float), u) for u in units]))
 
 
 def structure_rows(prob: np.ndarray, item: dict, geo: dict,
@@ -67,6 +109,10 @@ def structure_rows(prob: np.ndarray, item: dict, geo: dict,
         geo["band"], labels, index,
         lambda values: np.bincount(values, minlength=len(stratify.BANDS)).argmax(),
         int, 0))
+
+    if CONTROL_BLOBS:
+        mean_prob, inside_ah, inside_vk = blob_values(
+            matched_blobs(skeleton, labels, index, sizes), prob, item)
 
     supported_ah, supported_vk = inside_ah >= SUPPORTED, inside_vk >= SUPPORTED
     population = supported_ah | supported_vk
@@ -102,10 +148,14 @@ def structure_rows(prob: np.ndarray, item: dict, geo: dict,
 
 
 def main() -> None:
+    global CONTROL_BLOBS
+    CONTROL_BLOBS = "--control" in sys.argv
+    arguments = [a for a in sys.argv[1:] if a != "--control"]
+
     items = stare_agreement.load_stare()
-    runs = sys.argv[1:] or [f"{t}_f{f}_s{s}" for s in train_stare.SEEDS
-                            for f in train_stare.FOLDS
-                            for t in train_stare.TRAIN_TARGETS]
+    runs = arguments or [f"{t}_f{f}_s{s}" for s in train_stare.SEEDS
+                         for f in train_stare.FOLDS
+                         for t in train_stare.TRAIN_TARGETS]
     runs = [r for r in runs
             if (stare_stratify.MODELS / r / "final.pt").exists()]
     print(f"scoring {len(runs)} runs: {', '.join(runs)}", flush=True)
@@ -132,11 +182,13 @@ def main() -> None:
                                    run_name, target)
         print(f"{run_name} done", flush=True)
 
-    with (RESULTS / "structure_uncertainty.csv").open("w", newline="") as handle:
+    name = ("structure_control.csv" if CONTROL_BLOBS
+            else "structure_uncertainty.csv")
+    with (RESULTS / name).open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
-    print(f"wrote {RESULTS / 'structure_uncertainty.csv'} ({len(rows)} rows)")
+    print(f"wrote {RESULTS / name} ({len(rows)} rows)")
 
     print("\n=== E6 結構層級 AUROC，對照 E1' 的逐像素結果 ===")
     print(f"{'band':>14}{'結構數':>9}{'中位長度':>10}{'爭議比例':>10}"
