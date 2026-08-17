@@ -53,3 +53,9 @@ STARE: 20 images, folds 0-9 / 10-19
 [soft_f0_s1] epoch  80 loss 0.3936 (39 min)
 [soft_f0_s1] epoch 100 loss 0.3912 (53 min)
 [soft_f0_s1] done in 53 min · dice vs soft nan · vs other 0.8043
+[ah_f1_s1] epoch  20 loss 0.2920 (15 min)
+[ah_f1_s1] epoch  40 loss 0.2617 (30 min)
+[ah_f1_s1] epoch  60 loss 0.2413 (44 min)
+[ah_f1_s1] epoch  80 loss 0.2308 (59 min)
+[ah_f1_s1] epoch 100 loss 0.2197 (73 min)
+[ah_f1_s1] done in 73 min · dice vs ah 0.8060 · vs other 0.7290
