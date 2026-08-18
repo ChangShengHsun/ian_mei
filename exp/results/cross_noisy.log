@@ -1,0 +1,18 @@
+﻿topomortar:noisy: 50 train / 350 test, median width 6.00 px, filter sweep [0, 8, 19, 37, 75, 188, 375] px
+python : Traceback (most recent call last):
+位於 線路:1 字元:43
++ ... p\ian-mei'; python exp/cross_dataset.py topomortar:noisy *>&1 | Out-F ...
++                 ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "C:\Users\ivan_chang\Desktop\ian-mei\exp\cross_dataset.py", line 249, in <module>
+    main()
+  File "C:\Users\ivan_chang\Desktop\ian-mei\exp\cross_dataset.py", line 245, in main
+    train_one(dataset, run_name, data, test_items, width)
+  File "C:\Users\ivan_chang\Desktop\ian-mei\exp\cross_dataset.py", line 186, in train_one
+    out_dir.mkdir(parents=True, exist_ok=True)
+  File "C:\Users\ivan_chang\AppData\Local\Programs\Python\Python311\Lib\pathlib.py", line 1116, in mkdir
+    os.mkdir(self, mode)
+OSError: [WinError 123] 瑼??迂???蝔望?蝤??璅惜隤??航炊?? 'C:\\Users\\ivan_chang\\Desktop\\ian-mei\\exp\\results\\cross\\
+topomortar:noisy\\A_dice_s0'
