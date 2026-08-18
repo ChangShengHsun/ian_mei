@@ -179,10 +179,21 @@ def score(model, test_items: list[dict], mean: float, std: float,
     return rows
 
 
+def out_root(dataset: str) -> Path:
+    """Windows forbids ':' in a path, so `topomortar:noisy` needs sanitising.
+
+    Learned the hard way: the smoke test wrote `dataset.replace(":", "_")` at
+    the call site while main() passed the raw string, so the test diverged from
+    the real path at exactly the point that breaks. Do the substitution here,
+    where both go through it.
+    """
+    return RESULTS / dataset.replace(":", "_")
+
+
 def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
               width: float) -> None:
     config_name, seed_tag = run_name.rsplit("_s", 1)
-    out_dir = RESULTS / dataset / run_name
+    out_dir = out_root(dataset) / run_name
     out_dir.mkdir(parents=True, exist_ok=True)
     if (out_dir / "scores.csv").exists():
         print(f"[{dataset}/{run_name}] already finished, skipping", flush=True)
