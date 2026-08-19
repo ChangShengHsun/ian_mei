@@ -1,17 +1,57 @@
-.cache/
+# ---------------------------------------------------------------- python
 __pycache__/
-*.pyc
+*.py[cod]
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+venv/
+.venv/
+env/
 
-# Model weights: 22 MB and fully regenerable by re-running exp/train.py.
-# The CSV logs under exp/results/ are the results worth keeping.
+# ---------------------------------------------------------------- caches
+.cache/
+*.npy
+*.npz
+
+# ------------------------------------------------------- trained weights
+# Regenerable by re-running the training script, and 0.5-22 MB each. The CSV
+# logs under exp/results/ are the results worth keeping, not the checkpoints.
 *.pt
+*.pth
+*.ckpt
+*.onnx
+*.safetensors
 
-# STARE is fetched by exp/fetch_stare.py (19 MB from the Clemson mirror).
-data/STARE/
+# ---------------------------------------------------------------- datasets
+# Everything under data/ is fetched by a script, EXCEPT DRIVE which is small
+# enough to have been committed. Written as a wildcard so a new dataset is
+# ignored by default rather than accidentally committed at 100+ MB.
+#   STARE       exp/fetch_stare.py   (19 MB, Clemson mirror)
+#   HRF         exp/fetch_hrf.py     (76 MB, FAU mirror)
+#   TopoMortar  git clone --depth 1 https://github.com/jmlipman/TopoMortar.git data/TopoMortar
+data/*
+!data/DRIVE/
 
-# HRF is fetched by exp/fetch_hrf.py (76 MB from the FAU mirror).
-data/HRF/
+# Downloaded archives, wherever a fetch script leaves them.
+*.zip
+*.tar
+*.tar.gz
+*.tgz
 
-# TopoMortar ships its dataset inside its own repo (170 MB, MIT):
-#   git clone --depth 1 https://github.com/jmlipman/TopoMortar.git data/TopoMortar
-data/TopoMortar/
+# ------------------------------------------------------------ credentials
+# Nothing here should ever exist in this repo; the pattern is a backstop.
+.env
+*.pem
+*.key
+credentials.json
+token*.json
+
+# ------------------------------------------------------------------- junk
+Thumbs.db
+desktop.ini
+.DS_Store
+*.tmp
+scratch/
+tmp/

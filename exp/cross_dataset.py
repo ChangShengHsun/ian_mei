@@ -190,6 +190,13 @@ def out_root(dataset: str) -> Path:
     return RESULTS / dataset.replace(":", "_")
 
 
+def write_scores(out_dir: Path, rows: list[dict]) -> None:
+    with (out_dir / "scores.csv").open("w", newline="") as handle:
+        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
+        writer.writeheader()
+        writer.writerows(rows)
+
+
 def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
               width: float) -> None:
     config_name, seed_tag = run_name.rsplit("_s", 1)
@@ -200,6 +207,18 @@ def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
         return
 
     _, extra = train.CONFIGS[config_name]
+    # Scoring 350 images is the long tail after training and has twice been
+    # where an interrupted run died, throwing away weights that were already
+    # saved. If they are on disk, skip straight to scoring.
+    if (out_dir / "final.pt").exists():
+        state = torch.load(out_dir / "final.pt", weights_only=False)
+        model = train.TinyUNet()
+        model.load_state_dict(state["model"])
+        model.eval()
+        print(f"[{dataset}/{run_name}] weights found, scoring only", flush=True)
+        write_scores(out_dir, score(model, test_items, state["mean"],
+                                   state["std"], width))
+        return
     inside = data["images"][data["fovs"]]
     mean, std = float(inside.mean()), float(inside.std())
 
@@ -227,10 +246,7 @@ def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
     torch.save({"model": model.state_dict(), "mean": mean, "std": std},
                out_dir / "final.pt")
     rows = score(model, test_items, mean, std, width)
-    with (out_dir / "scores.csv").open("w", newline="") as handle:
-        writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
-        writer.writeheader()
-        writer.writerows(rows)
+    write_scores(out_dir, rows)
     baseline = np.mean([r["dice"] for r in rows if r["width_multiple"] == 0])
     print(f"[{dataset}/{run_name}] done in {(time.time() - started) / 60:.0f} "
           f"min · unfiltered dice {baseline:.4f}", flush=True)

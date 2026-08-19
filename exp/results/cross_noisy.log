@@ -1,1 +1,4 @@
 ﻿topomortar:noisy: 50 train / 350 test, median width 6.00 px, filter sweep [0, 8, 19, 37, 75, 188, 375] px
+[topomortar:noisy/A_dice_s0] epoch  20 loss 0.5030 (15 min)
+[topomortar:noisy/A_dice_s0] epoch  40 loss 0.4852 (30 min)
+[topomortar:noisy/A_dice_s0] epoch  60 loss 0.4806 (44 min)
