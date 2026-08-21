@@ -1,0 +1,54 @@
+[A_dice_s0] done
+[B_cldice_s0] done
+[C_boundary_s0] done
+[D_blurpool_s0] done
+[E_cbdice_s0] no checkpoint, skipping
+[F_gated_s0] no checkpoint, skipping
+[G_focal_s0] no checkpoint, skipping
+[A_dice_s1] done
+[B_cldice_s1] done
+[C_boundary_s1] done
+[D_blurpool_s1] done
+[E_cbdice_s1] no checkpoint, skipping
+[F_gated_s1] no checkpoint, skipping
+[G_focal_s1] no checkpoint, skipping
+[A_dice_s2] done
+[B_cldice_s2] done
+[C_boundary_s2] done
+[D_blurpool_s2] done
+[E_cbdice_s2] no checkpoint, skipping
+[F_gated_s2] no checkpoint, skipping
+[G_focal_s2] no checkpoint, skipping
+wrote 70035 breaks to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\break_lengths.csv
+
+median structure width 2.8 px, so the E9b radii are 2 px (near free) and 6 px (costly)
+breaks: n=70035, median 2 px, mean 6.5, p90 17
+  length <=  1 px:  39.0% of breaks
+  length <=  2 px:  54.3% of breaks
+  length <=  6 px:  75.6% of breaks
+  length <= 12 px:  85.5% of breaks
+
+config         breaks/img   median    mean    p90   <=2px   <=6px
+A_dice              295.2        2     6.3     17   54.5%   75.9%
+B_cldice            280.8        2     6.4     17   54.7%   75.8%
+C_boundary          287.8        2     6.5     18   54.3%   75.5%
+D_blurpool          303.4        2     6.7     18   53.7%   75.1%
+
+=== how many of these are actually disconnections? ===
+depth = furthest the run gets from ANY predicted foreground
+  <=1.0  misalignment      45220   64.6%
+  1.0-1.5  marginal         2935    4.2%
+  1.5-3.0  thin gap         4474    6.4%
+  >3.0  disconnection      17406   24.9%
+
+config         all breaks/img  disconnections/img
+A_dice                  295.2                72.0
+B_cldice                280.8                70.4
+C_boundary              287.8                72.7
+D_blurpool              303.4                75.0
+
+          band   breaks   share   median    mean    p90   <=6px   deep%
+    Q1_dimmest    56507   80.7%        2     7.2     20   72.7%   27.5%
+            Q2    12086   17.3%        1     3.4      8   87.7%   13.6%
+            Q3     1290    1.8%        1     3.4      9   86.8%   12.2%
+   Q4_clearest      152    0.2%        2     8.1     14   67.8%   28.9%

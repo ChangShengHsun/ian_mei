@@ -1,0 +1,18 @@
+hrf: 15 test images, width 4.00 px, component filter 33 px, closing radii [0, 1, 2, 3, 4, 6, 8] px
+[A_dice_s0] done
+[B_cldice_s0] done
+[E_cbdice_s0] done
+[A_dice_s1] done
+[B_cldice_s1] done
+[E_cbdice_s1] done
+wrote 1260 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\cross\hrf\bridge_sweep.csv
+
+=== hrf: closing on top of the component filter ===
+ radius w x    px    betti1   signed    betti0     dice   cldice
+       0.00     0      46.1    -40.7      69.6   0.8090   0.8296
+       0.25     1      46.6    -42.7      63.5   0.8087   0.8297
+       0.50     2      45.8    -41.1      53.2   0.8079   0.8292
+       0.75     3      45.6    -39.7      45.4   0.8061   0.8273
+       1.00     4      45.0    -38.6      40.4   0.8032   0.8252
+       1.50     6      44.0    -36.3      34.3   0.7921   0.8170
+       2.00     8      43.7    -34.8      29.7   0.7760   0.8061

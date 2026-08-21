@@ -38,7 +38,7 @@ def mean_of(kind: str, loss: str, key: str, multiple: float) -> float:
 
 def main() -> None:
     multiple = float(sys.argv[1]) if len(sys.argv) > 1 else OPERATING
-    print(f"過濾門檻 = {multiple} x w^2（0 代表不過濾）\n")
+    print(f"component filter = {multiple} x w^2 (0 means unfiltered)\n")
 
     for key in KEYS:
         print(f"--- {key} ---")
@@ -53,8 +53,8 @@ def main() -> None:
                   + f"{drop:16.4f}")
         print()
 
-    print("=== 主要對照：噪聲對誰傷害比較大 ===")
-    print("（正值 = 該 loss 被噪聲弄壞得比 BCE+Dice 更嚴重）")
+    print("=== the comparison this experiment exists for ===")
+    print("(positive = noise damages this loss MORE than it damages BCE+Dice)")
     print(f"{'metric':14}" + "".join(f"{l:>14}" for l in LOSSES[1:]))
     for key in KEYS:
         baseline = [mean_of(k, "A_dice", key, multiple) for k in KINDS]

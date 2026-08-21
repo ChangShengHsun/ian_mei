@@ -16,3 +16,28 @@ python : Traceback (most recent call last):
     os.mkdir(self, mode)
 OSError: [WinError 123] 瑼??迂???蝔望?蝤??璅惜隤??航炊?? 'C:\\Users\\ivan_chang\\Desktop\\ian-mei\\exp\\results\\cross\\
 topomortar:pseudo\\A_dice_s0'
+topomortar:pseudo: 50 train / 350 test, median width 6.00 px, filter sweep [0, 8, 19, 37, 75, 188, 375] px
+[topomortar:pseudo/A_dice_s0] epoch  20 loss 0.2173 (13 min)
+[topomortar:pseudo/A_dice_s0] epoch  40 loss 0.1958 (22 min)
+[topomortar:pseudo/A_dice_s0] epoch  60 loss 0.1850 (31 min)
+[topomortar:pseudo/A_dice_s0] done in 33 min 繚 unfiltered dice 0.6902
+[topomortar:pseudo/B_cldice_s0] epoch  20 loss 0.1996 (12 min)
+[topomortar:pseudo/B_cldice_s0] epoch  40 loss 0.1799 (25 min)
+[topomortar:pseudo/B_cldice_s0] epoch  60 loss 0.1703 (37 min)
+[topomortar:pseudo/B_cldice_s0] done in 39 min 繚 unfiltered dice 0.6988
+[topomortar:pseudo/E_cbdice_s0] epoch  20 loss 0.1846 (15 min)
+[topomortar:pseudo/E_cbdice_s0] epoch  40 loss 0.1673 (28 min)
+[topomortar:pseudo/E_cbdice_s0] epoch  60 loss 0.1574 (43 min)
+[topomortar:pseudo/E_cbdice_s0] done in 46 min 繚 unfiltered dice 0.6837
+[topomortar:pseudo/A_dice_s1] epoch  20 loss 0.2195 (15 min)
+[topomortar:pseudo/A_dice_s1] epoch  40 loss 0.1975 (31 min)
+[topomortar:pseudo/A_dice_s1] epoch  60 loss 0.1880 (46 min)
+[topomortar:pseudo/A_dice_s1] done in 49 min 繚 unfiltered dice 0.6971
+[topomortar:pseudo/B_cldice_s1] epoch  20 loss 0.2017 (20 min)
+[topomortar:pseudo/B_cldice_s1] epoch  40 loss 0.1823 (41 min)
+[topomortar:pseudo/B_cldice_s1] epoch  60 loss 0.1724 (61 min)
+[topomortar:pseudo/B_cldice_s1] done in 63 min 繚 unfiltered dice 0.6992
+[topomortar:pseudo/E_cbdice_s1] epoch  20 loss 0.1835 (18 min)
+[topomortar:pseudo/E_cbdice_s1] epoch  40 loss 0.1671 (32 min)
+[topomortar:pseudo/E_cbdice_s1] epoch  60 loss 0.1608 (49 min)
+[topomortar:pseudo/E_cbdice_s1] done in 51 min 繚 unfiltered dice 0.6916

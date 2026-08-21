@@ -1,0 +1,28 @@
+﻿topomortar:noisy: 350 test images, width 6.00 px, hole sweep [0, 8, 19, 37, 75, 188, 375] px
+[A_dice_s0] done
+[B_cldice_s0] done
+[E_cbdice_s0] done
+[A_dice_s1] done
+[B_cldice_s1] done
+[E_cbdice_s1] done
+wrote 29400 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\cross\topomortar_noisy\hole_sweep.csv
+
+=== topomortar:noisy, no component filter ===
+  hole w^2 x     px    betti1    betti0     dice
+        0.00      0      15.6      96.6   0.3655
+        0.21      8      15.9      96.6   0.3655
+        0.52     19      16.0      96.6   0.3655
+        1.04     37      16.0      96.6   0.3656
+        2.08     75      16.0      96.6   0.3657
+        5.21    188      16.0      96.6   0.3657
+       10.42    375      16.3      96.6   0.3645
+
+=== topomortar:noisy, component filter 2.08 w^2 ===
+  hole w^2 x     px    betti1    betti0     dice
+        0.00      0      15.7      24.3   0.3491
+        0.21      8      15.9      24.3   0.3491
+        0.52     19      16.0      24.3   0.3492
+        1.04     37      16.0      24.3   0.3492
+        2.08     75      16.0      24.3   0.3493
+        5.21    188      16.0      24.3   0.3493
+       10.42    375      16.3      24.3   0.3481

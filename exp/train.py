@@ -27,6 +27,7 @@ import metrics
 
 RESULTS = Path(__file__).resolve().parent / "results"
 PATCH, BATCH, PATCHES_PER_EPOCH, EPOCHS, VAL_EVERY = 48, 32, 10_000, 100, 10
+CKPT_EVERY = 5   # must divide VAL_EVERY; see the note in train_one
 DIST_CLIP = 20.0  # px; caps the boundary loss's reach into open background
 
 torch.set_num_threads(6)
@@ -66,8 +67,32 @@ class BlurPool(nn.Module):
                         groups=self.channels)
 
 
+def base_width(config_name: str) -> int:
+    """Base channel count, read off the config NAME.
+
+    Capacity lives in the name so that every script which loads a checkpoint
+    builds the matching architecture from the run name alone. Get this wrong
+    and load_state_dict fails loudly rather than silently scoring the wrong
+    model, but only if there is one place that decides -- hence build_model
+    below, which all the analysis scripts call.
+
+    `A_dice_w32` is 32 base channels; anything without the suffix is the
+    original 16.
+    """
+    head, sep, tail = config_name.rpartition("_w")
+    return int(tail) if sep and tail.isdigit() else 16
+
+
+def build_model(config_name: str) -> "TinyUNet":
+    """The only place architecture is derived from a config name."""
+    blurpool, _ = CONFIGS[config_name]
+    return TinyUNet(base=base_width(config_name), blurpool=blurpool)
+
+
 class TinyUNet(nn.Module):
-    """3-level U-Net, 16 base channels, 117k params -- sized for CPU."""
+    """3-level U-Net. 16 base channels is 117k params, sized for CPU; the
+    _w32 configs are 467k. Cost grows sub-quadratically with base: 4x the
+    width is 16x the parameters but 9x the measured step time."""
 
     def __init__(self, base: int = 16, blurpool: bool = False):
         super().__init__()
@@ -119,13 +144,92 @@ def soft_skeleton(mask: torch.Tensor, iterations: int = 5) -> torch.Tensor:
     return skeleton
 
 
-def soft_cl_dice(prob: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+def weighted_cl_dice(prob: torch.Tensor, target: torch.Tensor,
+                     weight: torch.Tensor | float = 1.0) -> torch.Tensor:
+    """clDice with a per-pixel weight on every term.
+
+    Every summand below is already masked by skel_pred, skel_true, prob or
+    target, so `weight` in empty background only reaches the loss where the
+    model hallucinates a skeleton there. That is what lets the weight be a
+    plain image-derived map with no structure mask of its own.
+
+    weight = 1.0 reproduces the CVPR 2021 loss exactly.
+    """
     skel_pred, skel_true = soft_skeleton(prob), soft_skeleton(target)
-    precision = ((skel_pred * target).sum((1, 2, 3)) + 1.0) / (
-        skel_pred.sum((1, 2, 3)) + 1.0)
-    sensitivity = ((skel_true * prob).sum((1, 2, 3)) + 1.0) / (
-        skel_true.sum((1, 2, 3)) + 1.0)
+    precision = ((weight * skel_pred * target).sum((1, 2, 3)) + 1.0) / (
+        (weight * skel_pred).sum((1, 2, 3)) + 1.0)
+    sensitivity = ((weight * skel_true * prob).sum((1, 2, 3)) + 1.0) / (
+        (weight * skel_true).sum((1, 2, 3)) + 1.0)
     return 1 - (2 * precision * sensitivity / (precision + sensitivity)).mean()
+
+
+def soft_cl_dice(prob: torch.Tensor, target: torch.Tensor) -> torch.Tensor:
+    return weighted_cl_dice(prob, target)
+
+
+GATE_GAMMA = 1.0  # weight range [1, 1 + gamma]; 1.0 = at most double
+
+
+def contrast_weight(image: torch.Tensor, size: int = 15,
+                    gamma: float = GATE_GAMMA) -> torch.Tensor:
+    """Per-pixel topology weight from local image contrast. Dim structure
+    weighs more.
+
+    The signal is the black top-hat (grey closing minus image), which is large
+    where a dark thin structure sits inside a brighter surround, i.e. where the
+    structure is easy to see. E2 measured that clDice's gain lives entirely in
+    the dimmest contrast quartile (+0.0213 Dice) while its cost lives in the
+    brightest (-0.0070), so the weight is 1 + gamma where the top-hat is low
+    and 1 where it is high: pay the topology price only where it buys something.
+
+    Carries no gradient by construction -- it is a property of the input, not
+    of the prediction. That is the whole point of the arm; see contrast_weight
+    against confidence_weight.
+
+    Known side-effect: flat background has no top-hat and so draws the maximum
+    weight (1.87 measured against 1.05 on the clearest vessels). It only bites
+    where the model hallucinates a skeleton in open background, so in practice
+    this is extra speckle pressure -- the thing E4 found post-filtering already
+    handles. Worth watching in the results, not worth a structure mask that
+    would make the weight depend on the labels.
+    """
+    with torch.no_grad():
+        pad = size // 2
+        # Grey closing = dilation then erosion; min-pool is erosion of x
+        # written as -maxpool(-x), the same identity soft_skeleton uses.
+        dilated = F.max_pool2d(image, size, 1, pad)
+        closed = -F.max_pool2d(-dilated, size, 1, pad)
+        tophat = closed - image
+        # Per-patch robust scale: the top-hat is in normalised-image units,
+        # which differ between datasets and between CLAHE settings. p99 rather
+        # than max so one specular highlight cannot flatten the map, and not
+        # p90: vessels are only ~9% of a DRIVE image, so p90 lands at the
+        # BOTTOM of the vessel distribution and every vessel pixel clamps to
+        # weight 1. Measured on three DRIVE images, p90 gives Q1..Q4 weights
+        # 1.26/1.00/1.00/1.00 -- a dead gate -- while p99 gives 1.75/1.54/
+        # 1.33/1.05, monotone in E2's contrast bands, which is the point.
+        scale = torch.quantile(tophat.flatten(1), 0.99, dim=1)
+        scale = scale.clamp(min=1e-3)[:, None, None, None]
+        visibility = (tophat / scale).clamp(0.0, 1.0)
+        return 1.0 + gamma * (1.0 - visibility)
+
+
+def confidence_weight(prob: torch.Tensor,
+                      gamma: float = GATE_GAMMA) -> torch.Tensor:
+    """The discriminating control: same weight range, model-derived signal.
+
+    Hesitation 1 - 2|p - 0.5| is the focal-loss family's notion of a hard pixel,
+    and it is exactly the quantity E1' scored against human disagreement: AUROC
+    0.881 in the brightest band but 0.373 in the dimmest, where 45.6% of the
+    disagreement actually lives. So this arm should help where it is not needed
+    and mislead where it is. If F_gated and G_focal come out equal, the claim
+    is "weighting helps" and not "the signal must come from the image".
+
+    Detached on purpose: an attached weight lets the model cut the loss by
+    growing confident rather than by being right, which is a different
+    experiment.
+    """
+    return 1.0 + gamma * (1.0 - 2 * (prob.detach() - 0.5).abs())
 
 
 def _cb_weights(mask: torch.Tensor, skeleton: torch.Tensor,
@@ -198,15 +302,34 @@ CONFIGS = {
     "C_boundary": (False, "boundary"),
     "D_blurpool": (True, None),
     "E_cbdice": (False, "cbdice"),
+    # F and G differ in one thing only: where the per-pixel weight on the
+    # clDice term comes from. F reads the image, G reads the model.
+    "F_gated": (False, "gated"),
+    "G_focal": (False, "focal"),
+    # E13. Same two losses at 4x the base width (467k params), to ask whether
+    # the +0.0213 dim-band gap between them grows, holds, or closes as the
+    # model stops being tiny. Every conclusion in this series so far was
+    # measured on 117k parameters against a field standard near 30M, so
+    # "the loss barely matters" is currently indistinguishable from
+    # "the model is too small for the loss to matter".
+    "A_dice_w32": (False, None),
+    "B_cldice_w32": (False, "cldice"),
 }
 
 
-def compute_loss(logits, target, dist, extra):
+def compute_loss(logits, target, dist, extra, image=None):
     prob = torch.sigmoid(logits)
     loss = F.binary_cross_entropy_with_logits(logits, target)
     if extra == "cldice":
         # alpha = 0.5, the split used in the clDice paper (CVPR 2021).
         loss = loss + 0.5 * soft_dice(prob, target) + 0.5 * soft_cl_dice(prob, target)
+    elif extra in ("gated", "focal"):
+        # Same 0.5/0.5 split as B_cldice, so B, F and G differ only in the
+        # weight map and any difference between them is attributable to it.
+        weight = (contrast_weight(image) if extra == "gated"
+                  else confidence_weight(prob))
+        loss = loss + 0.5 * soft_dice(prob, target) + 0.5 * weighted_cl_dice(
+            prob, target, weight)
     elif extra == "cbdice":
         # Same 0.5/0.5 split as clDice so the two are directly comparable; the
         # only variable between B and E is whether the centreline is weighted.
@@ -285,7 +408,7 @@ def validate(model, val, mean, std) -> tuple[dict, list[dict]]:
 
 def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     config_name, seed = run_name.rsplit("_s", 1)
-    blurpool, extra = CONFIGS[config_name]
+    _, extra = CONFIGS[config_name]  # build_model owns the architecture half
     out_dir = RESULTS / run_name
     out_dir.mkdir(parents=True, exist_ok=True)
     final_path, ckpt_path = out_dir / "final.pt", out_dir / "ckpt.pt"
@@ -296,7 +419,7 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
 
     torch.manual_seed(int(seed))
     rng = np.random.default_rng(int(seed))
-    model = TinyUNet(blurpool=blurpool)
+    model = build_model(config_name)
     optimiser = torch.optim.Adam(model.parameters(), lr=1e-3)
     start_epoch = 0
 
@@ -322,13 +445,22 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
         for _ in range(steps):
             images, labels, dists = sample_batch(train, rng, mean, std)
             optimiser.zero_grad()
-            loss = compute_loss(model(images), labels, dists, extra)
+            loss = compute_loss(model(images), labels, dists, extra, images)
             loss.backward()
             optimiser.step()
             running += loss.item()
         running /= steps
 
         last = (epoch + 1) == EPOCHS
+        # Checkpointing is decoupled from validation: validation costs a pass
+        # over 20 full images, saving 117k parameters costs nothing, and the
+        # thing we are insuring against is the machine sleeping mid-run, which
+        # it did twice on 2026-08-19. VAL_EVERY is a multiple of CKPT_EVERY, so
+        # a validated epoch is also a saved one.
+        if (epoch + 1) % CKPT_EVERY == 0 or last:
+            torch.save({"model": model.state_dict(), "epoch": epoch + 1,
+                        "optimiser": optimiser.state_dict(), "rng": rng},
+                       ckpt_path)
         if (epoch + 1) % VAL_EVERY == 0 or last:
             scores, rows = validate(model, val, mean, std)
             minutes = (time.time() - started) / 60
@@ -342,9 +474,6 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
                   f"dice {scores['dice']:.4f} clDice {scores['cldice']:.4f} "
                   f"b0err {scores['betti0_err']:.1f} "
                   f"95HD {scores['hd95']:.2f} ({minutes:.0f} min)", flush=True)
-            torch.save({"model": model.state_dict(), "epoch": epoch + 1,
-                        "optimiser": optimiser.state_dict(), "rng": rng},
-                       ckpt_path)
             if last:
                 with (out_dir / "val_final.csv").open("w", newline="") as handle:
                     writer = csv.DictWriter(handle, fieldnames=list(rows[0]))

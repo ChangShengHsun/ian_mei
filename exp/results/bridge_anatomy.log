@@ -1,0 +1,61 @@
+﻿drive: 20 images, width 2.83 px, component filter 17 px, radii [1, 2, 3, 6] px
+[A_dice_s0] done
+[B_cldice_s0] done
+[C_boundary_s0] done
+[D_blurpool_s0] done
+[E_cbdice_s0] no checkpoint, skipping
+[F_gated_s0] no checkpoint, skipping
+[G_focal_s0] no checkpoint, skipping
+[A_dice_s1] done
+[B_cldice_s1] done
+[C_boundary_s1] done
+[D_blurpool_s1] done
+[E_cbdice_s1] no checkpoint, skipping
+[F_gated_s1] no checkpoint, skipping
+[G_focal_s1] no checkpoint, skipping
+[A_dice_s2] done
+[B_cldice_s2] done
+[C_boundary_s2] done
+[D_blurpool_s2] done
+[E_cbdice_s2] no checkpoint, skipping
+[F_gated_s2] no checkpoint, skipping
+[G_focal_s2] no checkpoint, skipping
+wrote 36634 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\bridge_anatomy.csv
+
+=== P1: is bridging selective for severing breaks? ===
+      kind   breaks   share       r=1       r=2       r=3       r=6
+                                        resolved (no longer severs)
+    severs     4875    7.0%     12.4%     25.3%     34.4%     53.8%
+    intact    65043   92.9%    100.0%    100.0%    100.0%    100.0%
+    absent      117    0.2%    100.0%    100.0%    100.0%    100.0%
+
+=== P2: does that account for the betti-0 improvement? ===
+ radius  severs/img  resolved/img  betti0 raw  betti0 br   delta   ratio
+      1        20.3           2.5        22.1       19.6     2.5    0.99
+      2        20.3           5.1        22.1       16.7     5.5    0.94
+      3        20.3           7.0        22.1       14.6     7.5    0.93
+      6        20.3          10.9        22.1        9.9    12.2    0.89
+
+=== P3: what separates a resolved severance from a stuck one? ===
+at radius 6 px, among the 4875 breaks that severed before bridging:
+  by LENGTH (E9b's explanation)         n  resolved
+         1-1      312     74.0%
+         2-2      399     70.2%
+         3-6     1355     68.6%
+        7-12     1178     51.1%
+         13+     1631     35.7%
+  by THICKNESS (the selftest's)         n  resolved
+         <=2     1913     48.9%
+           3     1005     57.3%
+         4-5     1502     57.2%
+          6+      455     55.8%
+
+  spread across bins: length 38.3 points, thickness 8.4 points -> length separates better
+
+=== what the unreachable severing breaks look like ===
+  length    stuck    share        thick    stuck    share
+     1-1       81     3.6%         none        0     0.0%
+     2-2      119     5.3%          <=2      977    43.4%
+     3-6      426    18.9%            3      429    19.1%
+    7-12      576    25.6%          4-5      643    28.6%
+     13+     1048    46.6%           6+      201     8.9%

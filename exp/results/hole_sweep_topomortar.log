@@ -1,0 +1,28 @@
+﻿topomortar: 350 test images, width 6.00 px, hole sweep [0, 8, 19, 37, 75, 188, 375] px
+[A_dice_s0] done
+[B_cldice_s0] done
+[E_cbdice_s0] done
+[A_dice_s1] done
+[B_cldice_s1] done
+[E_cbdice_s1] done
+wrote 29400 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\cross\topomortar\hole_sweep.csv
+
+=== topomortar, no component filter ===
+  hole w^2 x     px    betti1    betti0     dice
+        0.00      0      23.5      89.6   0.7007
+        0.21      8      10.5      89.6   0.7009
+        0.52     19      10.2      89.6   0.7011
+        1.04     37      10.3      89.6   0.7013
+        2.08     75      10.4      89.5   0.7016
+        5.21    188      10.5      89.4   0.7014
+       10.42    375      10.9      89.2   0.6988
+
+=== topomortar, component filter 2.08 w^2 ===
+  hole w^2 x     px    betti1    betti0     dice
+        0.00      0      23.0      22.2   0.6998
+        0.21      8      10.5      22.2   0.7001
+        0.52     19      10.2      22.2   0.7003
+        1.04     37      10.3      22.2   0.7005
+        2.08     75      10.4      22.2   0.7008
+        5.21    188      10.5      22.2   0.7006
+       10.42    375      10.9      22.2   0.6980

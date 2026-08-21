@@ -50,6 +50,16 @@ New experiment → new `exp/<name>.py` + new `stage-report/<name>.md` + a row in
 
 - Launch detached with `Start-Process`, not the Bash tool's background mode —
   session teardown kills the latter but not the former.
+- **`Start-Process` does not survive system sleep.** On 2026-08-19 the machine
+  slept at 16:15 and killed a detached queue mid-run; nine hours passed with
+  nothing running. Two consequences, both now in the code: every training loop
+  writes `ckpt.pt` periodically and resumes from it, and a queue **never waits
+  on a PID** — `Wait-Process` on an already-dead PID returns instantly, so the
+  next job starts against a half-finished predecessor. Gate on "is the artifact
+  on disk", which is what the scripts check anyway.
+- A stale log will lie to you. `cross_pseudo.log` still held a traceback from
+  the previous day and read as a fresh crash; the give-away was that its line
+  numbers no longer matched the file. Check the log's mtime before believing it.
 - **This laptop is also Ivan's coursework machine.** Check for competing
   `python.exe` before launching; a run went from 62 to 231 minutes under
   contention. Never kill his processes. Lower our own priority instead if his

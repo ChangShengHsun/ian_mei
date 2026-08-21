@@ -1,0 +1,28 @@
+﻿hrf: 15 test images, width 4.00 px, hole sweep [0, 3, 8, 17, 33, 83, 167] px
+[A_dice_s0] done
+[B_cldice_s0] done
+[E_cbdice_s0] done
+[A_dice_s1] done
+[B_cldice_s1] done
+[E_cbdice_s1] done
+wrote 1260 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\cross\hrf\hole_sweep.csv
+
+=== hrf, no component filter ===
+  hole w^2 x     px    betti1    betti0     dice
+        0.00      0      46.1     205.4   0.8076
+        0.21      3      48.0     205.4   0.8076
+        0.52      8      50.2     205.4   0.8076
+        1.04     17      52.1     205.4   0.8077
+        2.08     33      53.3     205.4   0.8077
+        5.21     83      55.0     205.4   0.8076
+       10.42    167      56.3     205.3   0.8074
+
+=== hrf, component filter 2.08 w^2 ===
+  hole w^2 x     px    betti1    betti0     dice
+        0.00      0      46.1      69.6   0.8090
+        0.21      3      48.0      69.6   0.8090
+        0.52      8      50.2      69.6   0.8091
+        1.04     17      52.1      69.6   0.8091
+        2.08     33      53.3      69.6   0.8091
+        5.21     83      55.0      69.6   0.8091
+       10.42    167      56.3      69.6   0.8089

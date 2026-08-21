@@ -70,6 +70,12 @@ SEEDS = (0, 1)
 # within-dataset comparison E4 asks for is unaffected; what it costs is the
 # right to compare these absolute scores against the 100-epoch DRIVE numbers.
 EPOCHS, VAL_EVERY = 60, 20
+# Checkpoint far more often than we print. The machine sleeps whenever the lid
+# closes and that kills the detached queue: on 2026-08-19 it slept at 16:15 and
+# again at 23:18, two minutes after a relaunch, and both times the run had
+# nothing on disk yet. At 5 epochs a sleep costs ~2 minutes instead of a whole
+# run, and torch.save of a 117k-parameter model is not worth measuring.
+CKPT_EVERY = 5
 # The DRIVE sweep (0, 2, 5, 10, 20, 50, 100) px divided by DRIVE's w^2 = 9.6.
 # Every dataset is swept over the same multiples of its own w^2.
 WIDTH_MULTIPLES = (0.0, 0.21, 0.52, 1.04, 2.08, 5.21, 10.42)
@@ -226,18 +232,37 @@ def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
     rng = np.random.default_rng(int(seed_tag))
     model = train.TinyUNet()
     optimiser = torch.optim.Adam(model.parameters(), lr=1e-3)
+    start_epoch = 0
+
+    # Mid-run checkpointing, matching train.py. Added 2026-08-19 after the
+    # machine went to sleep mid-run and threw away 25 of B_cldice_s1's 28
+    # minutes: Start-Process survives session teardown but not system sleep,
+    # and a 60-epoch run with nothing on disk until the end is a 28-minute bet.
+    ckpt_path = out_dir / "ckpt.pt"
+    if ckpt_path.exists():
+        state = torch.load(ckpt_path, weights_only=False)
+        model.load_state_dict(state["model"])
+        optimiser.load_state_dict(state["optimiser"])
+        rng, start_epoch = state["rng"], state["epoch"]
+        print(f"[{dataset}/{run_name}] resuming from epoch {start_epoch}",
+              flush=True)
+
     steps = train.PATCHES_PER_EPOCH // train.BATCH
     started = time.time()
 
-    for epoch in range(EPOCHS):
+    for epoch in range(start_epoch, EPOCHS):
         running = 0.0
         for _ in range(steps):
             images, labels, dists = train.sample_batch(data, rng, mean, std)
             optimiser.zero_grad()
-            loss = train.compute_loss(model(images), labels, dists, extra)
+            loss = train.compute_loss(model(images), labels, dists, extra, images)
             loss.backward()
             optimiser.step()
             running += loss.item()
+        if (epoch + 1) % CKPT_EVERY == 0:
+            torch.save({"model": model.state_dict(),
+                        "optimiser": optimiser.state_dict(),
+                        "rng": rng, "epoch": epoch + 1}, ckpt_path)
         if (epoch + 1) % VAL_EVERY == 0:
             print(f"[{dataset}/{run_name}] epoch {epoch + 1:3d} "
                   f"loss {running / steps:.4f} "
