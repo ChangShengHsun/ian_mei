@@ -32,6 +32,20 @@ def main() -> None:
     assert train.base_width("X_weighted") == 16, train.base_width("X_weighted")
     print("  a non-numeric _w suffix falls back to 16, not an exception")
 
+    # A width variant must be its base arm at another width, nothing else.
+    # AUGMENTS is keyed on the full config name, so H_aug_w32 missing from it
+    # trains with no augmentation while still being called an augmentation
+    # arm: a silently different experiment, reported under the wrong name.
+    for name in train.CONFIGS:
+        base, sep, tail = name.rpartition("_w")
+        if not (sep and tail.isdigit() and base in train.CONFIGS):
+            continue
+        assert train.AUGMENTS.get(name, ()) == train.AUGMENTS.get(base, ()), (
+            name, train.AUGMENTS.get(name, ()), train.AUGMENTS.get(base, ()))
+        assert train.CONFIGS[name] == train.CONFIGS[base], name
+        print(f"  {name} matches {base}: loss {train.CONFIGS[base][1]}, "
+              f"augments {train.AUGMENTS.get(base, ()) or 'none'}")
+
     counts = {}
     for name in ("A_dice", "A_dice_w32"):
         model = train.build_model(name)

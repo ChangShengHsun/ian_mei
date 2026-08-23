@@ -347,6 +347,11 @@ CONFIGS = {
     # augmentation as a 63% cut in Betti error on this same dataset.
     "H_aug": (False, None),
     "I_coletra": (False, None),
+    # E13's third arm, added after E14 made it the interesting one: if
+    # augmentation is partly compensating for a model too small, its advantage
+    # should shrink at 4x the width. If it holds, the input side matters
+    # independently of capacity.
+    "H_aug_w32": (False, None),
     # E16. Identical to H_aug in loss and in augmentation; the only difference
     # is that the network is shown LIOT's four contrast-invariant channels
     # instead of grey. Every intervention so far tried to make the model care
@@ -369,6 +374,12 @@ AUGMENTS = {
     # assumption. Dropping it would confound the representation with the
     # augmentation set.
     "J_liot": ("dihedral", "jitter"),
+    # Must match H_aug exactly. AUGMENTS is keyed on the FULL config name, so
+    # a width variant that is not listed here trains with no augmentation at
+    # all and nothing complains -- it just quietly stops being the arm it is
+    # named after. test_capacity.py asserts every _w config agrees with its
+    # base, which is the check that would have caught this.
+    "H_aug_w32": ("dihedral", "jitter"),
 }
 
 
