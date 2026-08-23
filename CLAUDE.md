@@ -84,6 +84,20 @@ New experiment → new `exp/<name>.py` + new `stage-report/<name>.md` + a row in
   those runs exist; such scripts skip configs with no checkpoint.
 - Scripts take run names on the command line so a partial set can be analysed
   while the rest still trains.
+- Analysis scripts enumerate runs with `train.trained_runs()`, which globs the
+  results directory. Never write a seed range out by hand: E12 trained seeds
+  3-5, two scripts scored seeds 0-2, and the verdict file looked complete.
+- **Do not snapshot an analysis CSV before regenerating it.** The habit assumed
+  a rerun might differ. It does not: `stratify.py` and `break_lengths.py` are
+  deterministic given the checkpoints, and they only ever ADD runs. Verified
+  2026-08-23 on five snapshots spanning 12 to 24 runs — every row of every
+  snapshot appeared in the current file with the same multiplicity, 0
+  exceptions. `exp/results/*_12models.csv`, `*_18models.csv` and `*_e14.csv`
+  were 11 MB of copies of rows that were already there.
+  The exception, and the reason to read the code before deleting a lookalike:
+  `stare_cross/*/scores_rerun.csv` are byte-identical to their `scores.csv` on
+  purpose. `train_stare.py:126` writes them so stage 0's published numbers stay
+  auditable against a repeat; being identical is the finding, not redundancy.
 
 ## Never
 
