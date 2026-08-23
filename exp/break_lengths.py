@@ -181,8 +181,7 @@ def main() -> None:
     for geo in geometry:
         geo["band"] = stratify.band_map(geo["gt"], geo["contrast"], edges)
 
-    runs = sys.argv[1:] or [f"{name}_s{seed}" for seed in (0, 1, 2)
-                            for name in train.CONFIGS]
+    runs = sys.argv[1:] or train.trained_runs()
     rows = []
     for run_name in runs:
         weights = RESULTS / run_name / "final.pt"

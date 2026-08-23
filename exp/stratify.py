@@ -116,11 +116,10 @@ def main() -> None:
     for item in geometry:
         item["band"] = band_map(item["gt"], item["contrast"], edges)
 
-    # Skip configs that have not been trained yet: E_cbdice was added to
-    # CONFIGS ahead of its runs, and a missing checkpoint should cost a printed
-    # line rather than an exception halfway through the other eleven models.
-    runs = [f"{name}_s{seed}" for seed in (0, 1, 2) for name in train.CONFIGS
-            if (RESULTS / f"{name}_s{seed}" / "final.pt").exists()]
+    # Whatever has a finished checkpoint, at whatever seed. A config added to
+    # CONFIGS ahead of its runs costs nothing, and a seed trained after this
+    # script was written is picked up rather than silently dropped.
+    runs = sys.argv[1:] or train.trained_runs()
     print(f"scoring {len(runs)} runs", flush=True)
     rows = []
     for run_name in runs:

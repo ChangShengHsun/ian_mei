@@ -161,7 +161,7 @@ def setup_drive() -> tuple[list[dict], Path, list[str]]:
     """
     import drive
     test_items = drive.load_split("val")
-    runs = [f"{name}_s{seed}" for seed in (0, 1, 2) for name in train.CONFIGS]
+    runs = train.trained_runs()  # every seed on disk, not a hardcoded three
     return test_items, train.RESULTS, runs
 
 

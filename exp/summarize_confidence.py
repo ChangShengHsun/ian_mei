@@ -142,6 +142,12 @@ def main() -> None:
         print(f"seeds still missing for {TREATMENT}: {sorted(missing)} -- "
               f"rerun stratify.py and break_lengths.py once they exist")
 
+    # summarize_gated was written for E7's three seeds and caps per_seed() at
+    # (0, 1, 2). The paired t already reads every row in the CSV, so leaving
+    # this alone gives a mean over six seeds beside a seed gate over three --
+    # the gate silently protecting less than it appears to.
+    gated.SEEDS = tuple(sorted(present))
+
     print(f"=== E12 pre-registered verdict: {TREATMENT} vs {BASELINE} ===")
     print(f"    ({len(present)} seeds present of {len(SEEDS)})\n")
 

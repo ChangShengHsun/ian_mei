@@ -35,6 +35,18 @@ torch.set_num_threads(6)
 
 # --------------------------------------------------------------- model
 
+def trained_runs() -> list[str]:
+    """Every run directory that actually holds a finished checkpoint.
+
+    The seed range used to be written out as `(0, 1, 2)` in each analysis
+    script. E12 trained seeds 3-5, both scripts silently scored the old three,
+    and the verdict file they fed was WRONG while looking complete -- which
+    then opened the gate on the next queue. Enumerate the disk instead: adding
+    a seed must never require editing a script that reads the results.
+    """
+    return sorted(path.parent.name for path in RESULTS.glob("*_s*/final.pt"))
+
+
 def conv_block(in_channels: int, out_channels: int) -> nn.Sequential:
     return nn.Sequential(
         nn.Conv2d(in_channels, out_channels, 3, padding=1),
