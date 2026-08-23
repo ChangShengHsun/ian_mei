@@ -2,6 +2,9 @@
 [A_dice_s0] done
 [A_dice_s1] done
 [A_dice_s2] done
+[A_dice_s3] done
+[A_dice_s4] done
+[A_dice_s5] done
 [B_cldice_s0] done
 [B_cldice_s1] done
 [B_cldice_s2] done
@@ -26,32 +29,38 @@
 [H_aug_s0] done
 [H_aug_s1] done
 [H_aug_s2] done
+[H_aug_s3] done
+[H_aug_s4] done
+[H_aug_s5] done
 [I_coletra_s0] done
 [I_coletra_s1] done
 [I_coletra_s2] done
-wrote 600 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\erl.csv
+[I_coletra_s3] done
+[I_coletra_s4] done
+[I_coletra_s5] done
+wrote 780 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\erl.csv
 
 === expected run length over the whole skeleton, px ===
-A_dice           2315.2
+A_dice           2340.6
 B_cldice         2601.2
 C_boundary       2405.9
 D_blurpool       2179.5
 F_gated          2364.7
 G_focal          3135.2
-H_aug            2868.5
-I_coletra        2686.0
+H_aug            2803.9
+I_coletra        2686.1
 
 === share of the ACHIEVABLE run length, per contrast band ===
 (1.000 means a perfect prediction could not trace further either)
 config               Q1       Q2       Q3       Q4
-A_dice            0.172    0.846    0.987    0.985
+A_dice            0.172    0.840    0.987    0.986
 B_cldice          0.183    0.859    0.989    0.988
 C_boundary        0.179    0.850    0.987    0.997
 D_blurpool        0.155    0.819    0.985    0.977
 F_gated           0.182    0.852    0.989    0.978
 G_focal           0.238    0.889    0.991    0.979
-H_aug             0.193    0.892    0.993    0.998
-I_coletra         0.159    0.870    0.992    0.994
+H_aug             0.191    0.889    0.993    0.998
+I_coletra         0.155    0.867    0.991    0.997
 
           band  ceiling px   what a perfect prediction scores
     Q1_dimmest       14.71
