@@ -1,0 +1,11 @@
+=== E12 pre-registered verdict: G_focal vs B_cldice ===
+    (6 seeds present of 6)
+
+  [PASS] 1. G beats B on Dice in the dimmest band, filtered
+         +0.0184  t=10.93  n_seeds=6   per seed: +0.0043 +0.0070 +0.0297 +0.0246 +0.0222 +0.0225
+  [PASS] 2. G does not lose to B in the clearest band
+         -0.0015  t=-4.94  n_seeds=6   per seed: +0.0008 -0.0014 -0.0027 -0.0020 -0.0021 -0.0016
+  [FAIL] 3. G has FEWER severing breaks in the dimmest band (the topological claim, E10's metric)
+         +1.8500  t=4.50  n_seeds=6   per seed: +2.4000 -0.2500 +0.8000 +0.4500 +2.1000 +5.6000
+
+  -> partial: the Dice gain replicates but it is COVERAGE, not connectivity. Report it as centreline recall, not topology.
