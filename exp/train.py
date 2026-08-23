@@ -24,6 +24,7 @@ from scipy import ndimage
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import augment
 import drive
+import liot
 import metrics
 
 RESULTS = Path(__file__).resolve().parent / "results"
@@ -96,10 +97,22 @@ def base_width(config_name: str) -> int:
     return int(tail) if sep and tail.isdigit() else 16
 
 
+def uses_liot(config_name: str) -> bool:
+    """Whether this config feeds the network LIOT's 4 channels instead of grey.
+
+    Same principle as base_width: the input representation is encoded in the
+    name, so a script that only knows a run name still builds a model whose
+    first convolution matches the checkpoint.
+    """
+    return "liot" in config_name
+
+
 def build_model(config_name: str) -> "TinyUNet":
     """The only place architecture is derived from a config name."""
     blurpool, _ = CONFIGS[config_name]
-    return TinyUNet(base=base_width(config_name), blurpool=blurpool)
+    return TinyUNet(base=base_width(config_name), blurpool=blurpool,
+                    in_channels=len(liot.DIRECTIONS) if uses_liot(config_name)
+                    else 1)
 
 
 class TinyUNet(nn.Module):
@@ -107,9 +120,10 @@ class TinyUNet(nn.Module):
     _w32 configs are 467k. Cost grows sub-quadratically with base: 4x the
     width is 16x the parameters but 9x the measured step time."""
 
-    def __init__(self, base: int = 16, blurpool: bool = False):
+    def __init__(self, base: int = 16, blurpool: bool = False,
+                 in_channels: int = 1):
         super().__init__()
-        self.enc1 = conv_block(1, base)
+        self.enc1 = conv_block(in_channels, base)
         self.enc2 = conv_block(base, base * 2)
         self.enc3 = conv_block(base * 2, base * 4)
         self.down1 = BlurPool(base) if blurpool else nn.MaxPool2d(2)
@@ -333,6 +347,14 @@ CONFIGS = {
     # augmentation as a 63% cut in Betti error on this same dataset.
     "H_aug": (False, None),
     "I_coletra": (False, None),
+    # E16. Identical to H_aug in loss and in augmentation; the only difference
+    # is that the network is shown LIOT's four contrast-invariant channels
+    # instead of grey. Every intervention so far tried to make the model care
+    # more about dim vessels; this one deletes the difference between dim and
+    # bright before the model sees it. E15 measured 82% of the achievable run
+    # length still missing in the dimmest band and under 2% in the two
+    # brightest, so that band is the entire remaining budget.
+    "J_liot": (False, None),
 }
 
 # Which augmentations each config gets. Keeping this beside CONFIGS rather than
@@ -340,6 +362,13 @@ CONFIGS = {
 AUGMENTS = {
     "H_aug": ("dihedral", "jitter"),
     "I_coletra": ("dihedral", "jitter", "coletra"),
+    # Deliberately the same tuple as H_aug so the two arms differ in exactly
+    # one thing. Keeping jitter is not an oversight: LIOT is invariant to any
+    # increasing map of the intensities, so jitter is close to a no-op here,
+    # and how close is a measurement (test_liot_pipeline.py) rather than an
+    # assumption. Dropping it would confound the representation with the
+    # augmentation set.
+    "J_liot": ("dihedral", "jitter"),
 }
 
 
@@ -385,25 +414,50 @@ def stack_split(split: str) -> dict:
             "names": [item["name"] for item in items]}
 
 
-def sample_batch(data: dict, rng: np.random.Generator, mean: float, std: float,
-                 augments: tuple = (), inpainted: np.ndarray | None = None):
+def liot_stats(data: dict) -> tuple[np.ndarray, np.ndarray]:
+    """Per-channel mean and std of the LIOT code over the training aperture.
+
+    Per channel, not one number for all four: the four directions do not have
+    the same distribution on a retina, where vessels run predominantly out of
+    the disc. Statistics are taken inside the FOV only, for the same reason the
+    grey ones are -- the black surround is a third of the frame and would drag
+    both numbers toward a value no real pixel takes.
+    """
+    inside = np.concatenate(
+        [liot.liot(image)[:, fov] for image, fov
+         in zip(data["images"], data["fovs"])], axis=1).astype(np.float32)
+    return (inside.mean(1)[:, None, None], inside.std(1)[:, None, None])
+
+
+def sample_batch(data: dict, rng: np.random.Generator, mean, std,
+                 augments: tuple = (), inpainted: np.ndarray | None = None,
+                 use_liot: bool = False):
     """One batch of random crops, optionally augmented.
 
     Order matters. CoLeTra reads from the inpainted copy of the SAME crop, so
     it runs before any geometry is applied; the symmetry acts on image, label
     and distance map together; the photometric jitter is last because it is the
     only step that must not touch the label.
+
+    LIOT comes after all of them and needs a wider crop than it returns. Its
+    code at a pixel reads up to liot.MARGIN away, so computing it on a bare
+    48 px patch would give every patch a border of pixels whose rays were
+    clamped at the crop edge -- an artefact that only exists in training,
+    never at inference on a whole image. Crop wide, encode, then trim back.
     """
+    pad = liot.MARGIN if use_liot else 0
+    size = PATCH + 2 * pad
+    inner = slice(pad, pad + PATCH)
     height, width = data["images"].shape[1:]
     images, labels, dists = [], [], []
     while len(images) < BATCH:
         index = rng.integers(len(data["images"]))
-        top = rng.integers(height - PATCH)
-        left = rng.integers(width - PATCH)
-        window = (slice(top, top + PATCH), slice(left, left + PATCH))
+        top = rng.integers(height - size)
+        left = rng.integers(width - size)
+        window = (slice(top, top + size), slice(left, left + size))
         # Skip patches whose centre lies outside the aperture: they are pure
         # black corner and teach the network nothing.
-        if not data["fovs"][index][top + PATCH // 2, left + PATCH // 2]:
+        if not data["fovs"][index][top + size // 2, left + size // 2]:
             continue
         image = data["images"][index][window]
         label = data["labels"][index][window]
@@ -415,24 +469,43 @@ def sample_batch(data: dict, rng: np.random.Generator, mean: float, std: float,
             image, label, dist = augment.dihedral(rng, image, label, dist)
         if "jitter" in augments:
             image = augment.jitter(image, rng)
+        if use_liot:
+            image = liot.liot(image).astype(np.float32)[:, inner, inner]
+        else:
+            image = image[inner, inner]
         images.append(image)
-        labels.append(label)
-        dists.append(dist)
-    batch = (np.stack(images) - mean) / std
-    return (torch.from_numpy(batch)[:, None],
+        labels.append(label[inner, inner])
+        dists.append(dist[inner, inner])
+    batch = np.stack(images)
+    if batch.ndim == 3:
+        batch = batch[:, None]
+    # mean/std are scalars for grey input and shape (C, 1, 1) for LIOT, so the
+    # same expression normalises both.
+    batch = ((batch - mean) / std).astype(np.float32)
+    return (torch.from_numpy(batch),
             torch.from_numpy(np.stack(labels))[:, None],
             torch.from_numpy(np.stack(dists))[:, None])
 
 
 @torch.no_grad()
-def predict_full(model: nn.Module, image: np.ndarray, mean: float,
-                 std: float) -> np.ndarray:
-    """Whole-image inference; width 565 is padded to 568 for the two /2 levels."""
+def predict_full(model: nn.Module, image: np.ndarray, mean, std) -> np.ndarray:
+    """Whole-image inference; width 565 is padded to 568 for the two /2 levels.
+
+    Whether to encode is read off the model rather than passed in, because
+    every analysis script calls this with just a checkpoint and an image. A
+    LIOT model fed raw grey would not raise -- a 4-channel first convolution
+    given 1 channel does raise, which is the point of deciding here.
+    """
     model.eval()
     height, width = image.shape
+    if model.enc1[0].in_channels == len(liot.DIRECTIONS):
+        # On a whole image there is no crop border, so no margin is needed.
+        encoded = liot.liot(image).astype(np.float32)
+    else:
+        encoded = image[None]
     pad_h, pad_w = (-height) % 4, (-width) % 4
-    tensor = torch.from_numpy((image - mean) / std)[None, None]
-    tensor = F.pad(tensor, (0, pad_w, 0, pad_h), mode="reflect")
+    tensor = torch.from_numpy(((encoded - mean) / std).astype(np.float32))
+    tensor = F.pad(tensor[None], (0, pad_w, 0, pad_h), mode="reflect")
     prob = torch.sigmoid(model(tensor))[0, 0].numpy()
     model.train()
     return prob[:height, :width]
@@ -454,6 +527,11 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     config_name, seed = run_name.rsplit("_s", 1)
     _, extra = CONFIGS[config_name]  # build_model owns the architecture half
     augments = AUGMENTS.get(config_name, ())
+    use_liot = uses_liot(config_name)
+    if use_liot:
+        # The grey mean/std main() computed are meaningless for a byte-code
+        # input, so recompute here rather than making every caller know.
+        mean, std = liot_stats(train)
     # Inpaint the whole training split once rather than per crop: it is
     # deterministic, and grey_closing on 20 full images costs seconds
     # against 31,200 crops per run.
@@ -495,7 +573,7 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
         running = 0.0
         for _ in range(steps):
             images, labels, dists = sample_batch(
-                train, rng, mean, std, augments, inpainted)
+                train, rng, mean, std, augments, inpainted, use_liot)
             optimiser.zero_grad()
             loss = compute_loss(model(images), labels, dists, extra, images)
             loss.backward()
