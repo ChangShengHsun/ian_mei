@@ -1,0 +1,13 @@
+﻿=== E14 pre-registered verdict ===
+    (paired seeds: 0, 1, 2)
+
+  [FAIL] 1. augmentation beats the baseline in the dimmest band
+         +0.0228  t=6.06  n_seeds=3   per seed: +0.0166 -0.0021 +0.0540
+  [PASS] 2. augmentation cuts SEVERING breaks, not just breaks
+         -3.0000  t=-5.07  n_seeds=3   per seed: -3.4500 -2.0500 -3.5000
+  [PASS] 3. CoLeTra cuts severing breaks on top of augmentation
+         -3.6000  t=-7.64  n_seeds=3   per seed: -3.8000 -4.3000 -2.7000
+  [PASS] 4. augmentation does not lose the clearest band
+         -0.0022  t=-3.65  n_seeds=3   per seed: -0.0022 +0.0017 -0.0059
+
+  -> augmentation did not help the dim band. That contradicts the published DRIVE result, so suspect our setup before believing it -- check the augmentation actually reached the batches (exp/augment.py runs that check).

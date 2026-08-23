@@ -22,6 +22,7 @@ import torch.nn.functional as F
 from scipy import ndimage
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
+import augment
 import drive
 import metrics
 
@@ -326,6 +327,19 @@ CONFIGS = {
     # "the model is too small for the loss to matter".
     "A_dice_w32": (False, None),
     "B_cldice_w32": (False, "cldice"),
+    # E14. Both are BCE+Dice with the loss untouched; the only change is what
+    # the network is shown. Twenty experiments compared losses on a pipeline
+    # with no augmentation at all, while the CoLeTra paper measures plain
+    # augmentation as a 63% cut in Betti error on this same dataset.
+    "H_aug": (False, None),
+    "I_coletra": (False, None),
+}
+
+# Which augmentations each config gets. Keeping this beside CONFIGS rather than
+# inside it leaves the (blurpool, extra) shape that eleven call sites unpack.
+AUGMENTS = {
+    "H_aug": ("dihedral", "jitter"),
+    "I_coletra": ("dihedral", "jitter", "coletra"),
 }
 
 
@@ -371,7 +385,15 @@ def stack_split(split: str) -> dict:
             "names": [item["name"] for item in items]}
 
 
-def sample_batch(data: dict, rng: np.random.Generator, mean: float, std: float):
+def sample_batch(data: dict, rng: np.random.Generator, mean: float, std: float,
+                 augments: tuple = (), inpainted: np.ndarray | None = None):
+    """One batch of random crops, optionally augmented.
+
+    Order matters. CoLeTra reads from the inpainted copy of the SAME crop, so
+    it runs before any geometry is applied; the symmetry acts on image, label
+    and distance map together; the photometric jitter is last because it is the
+    only step that must not touch the label.
+    """
     height, width = data["images"].shape[1:]
     images, labels, dists = [], [], []
     while len(images) < BATCH:
@@ -383,9 +405,19 @@ def sample_batch(data: dict, rng: np.random.Generator, mean: float, std: float):
         # black corner and teach the network nothing.
         if not data["fovs"][index][top + PATCH // 2, left + PATCH // 2]:
             continue
-        images.append(data["images"][index][window])
-        labels.append(data["labels"][index][window])
-        dists.append(data["dists"][index][window])
+        image = data["images"][index][window]
+        label = data["labels"][index][window]
+        dist = data["dists"][index][window]
+        if "coletra" in augments:
+            image = augment.coletra(image, label, rng,
+                                    inpainted=inpainted[index][window])
+        if "dihedral" in augments:
+            image, label, dist = augment.dihedral(rng, image, label, dist)
+        if "jitter" in augments:
+            image = augment.jitter(image, rng)
+        images.append(image)
+        labels.append(label)
+        dists.append(dist)
     batch = (np.stack(images) - mean) / std
     return (torch.from_numpy(batch)[:, None],
             torch.from_numpy(np.stack(labels))[:, None],
@@ -421,6 +453,13 @@ def validate(model, val, mean, std) -> tuple[dict, list[dict]]:
 def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     config_name, seed = run_name.rsplit("_s", 1)
     _, extra = CONFIGS[config_name]  # build_model owns the architecture half
+    augments = AUGMENTS.get(config_name, ())
+    # Inpaint the whole training split once rather than per crop: it is
+    # deterministic, and grey_closing on 20 full images costs seconds
+    # against 31,200 crops per run.
+    inpainted = (np.stack([augment.remove_structures(image)
+                           for image in train["images"]])
+                 if "coletra" in augments else None)
     out_dir = RESULTS / run_name
     out_dir.mkdir(parents=True, exist_ok=True)
     final_path, ckpt_path = out_dir / "final.pt", out_dir / "ckpt.pt"
@@ -455,7 +494,8 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     for epoch in range(start_epoch, EPOCHS):
         running = 0.0
         for _ in range(steps):
-            images, labels, dists = sample_batch(train, rng, mean, std)
+            images, labels, dists = sample_batch(
+                train, rng, mean, std, augments, inpainted)
             optimiser.zero_grad()
             loss = compute_loss(model(images), labels, dists, extra, images)
             loss.backward()
