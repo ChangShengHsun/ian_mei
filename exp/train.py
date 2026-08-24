@@ -425,6 +425,25 @@ def stack_split(split: str) -> dict:
             "names": [item["name"] for item in items]}
 
 
+def normalisation(name: str, data: dict):
+    """The mean and std a run was trained with, chosen from its name.
+
+    This exists because splitting one decision across two places cost E16 a
+    whole verdict. predict_full inspects the model to decide whether to encode
+    the image as LIOT, but the constants stayed an argument, so stratify.py,
+    break_lengths.py and erl.py encoded correctly and then normalised 0-255
+    byte codes with grey statistics (mean 0.42, std 0.14). The inputs landed
+    some 800 standard deviations out, every LIOT model predicted nothing, and
+    the analysis reported Dice 0.0000 as though it were a result about LIOT.
+
+    So representation and constants are decided together, here, once.
+    """
+    if uses_liot(name.rsplit("_s", 1)[0]):
+        return liot_stats(data)
+    inside = data["images"][data["fovs"]]
+    return float(inside.mean()), float(inside.std())
+
+
 def liot_stats(data: dict) -> tuple[np.ndarray, np.ndarray]:
     """Per-channel mean and std of the LIOT code over the training aperture.
 
@@ -509,7 +528,18 @@ def predict_full(model: nn.Module, image: np.ndarray, mean, std) -> np.ndarray:
     """
     model.eval()
     height, width = image.shape
-    if model.enc1[0].in_channels == len(liot.DIRECTIONS):
+    channels = model.enc1[0].in_channels
+    # The constants must match the representation. Getting this wrong does not
+    # raise on its own -- it normalises byte codes with grey statistics and the
+    # model silently predicts nothing, which is how E16's first verdict came
+    # out as Dice 0.0000 and was very nearly published as a fact about LIOT.
+    if channels > 1 and np.ndim(mean) == 0:
+        raise ValueError(
+            f"a {channels}-channel model was given scalar normalisation "
+            f"constants; use train.normalisation(run_name, train_split)")
+    if channels == 1 and np.ndim(mean) != 0:
+        raise ValueError("a 1-channel model was given per-channel constants")
+    if channels == len(liot.DIRECTIONS):
         # On a whole image there is no crop border, so no margin is needed.
         encoded = liot.liot(image).astype(np.float32)
     else:

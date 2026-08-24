@@ -124,6 +124,9 @@ def main() -> None:
     rows = []
     for run_name in runs:
         model = speckle.load_model(run_name)
+        # Per run: a LIOT run needs its own constants, and predict_full
+        # raises rather than silently scoring if these disagree.
+        mean, std = train.normalisation(run_name, train_data)
         for index, image_name in enumerate(val["names"]):
             item = geometry[index]
             prob = train.predict_full(model, val["images"][index], mean, std)

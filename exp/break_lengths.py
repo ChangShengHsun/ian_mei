@@ -192,6 +192,7 @@ def main() -> None:
         model.load_state_dict(
             torch.load(weights, weights_only=False)["model"])
         model.eval()
+        mean, std = train.normalisation(run_name, stacked)
         for item, geo in zip(val, geometry):
             prob = train.predict_full(model, item["image"], mean, std)
             pred = speckle.drop_small((prob >= 0.5) & item["fov"], component_px)

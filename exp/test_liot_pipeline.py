@@ -131,6 +131,24 @@ def main() -> None:
         grey_batch.shape
     print("the 1-channel path is unchanged:", tuple(grey_batch.shape))
 
+    # The bug that cost E16 its first verdict: the representation was decided
+    # from the model, the constants were still passed in, and the two halves
+    # disagreed. Encoding to LIOT and then normalising byte codes with grey
+    # statistics does not raise -- it puts the input ~800 sigma out, the model
+    # predicts nothing, and the analysis reports Dice 0.0000 as a finding.
+    grey_mean, grey_std = train.normalisation("A_dice_s0", data)
+    liot_mean, liot_std = train.normalisation("J_liot_s0", data)
+    assert np.ndim(grey_mean) == 0 and np.shape(liot_mean) == (4, 1, 1)
+    for bad_model, bad_mean, bad_std, why in (
+            (model, grey_mean, grey_std, "4-channel model, scalar constants"),
+            (grey_model, liot_mean, liot_std, "1-channel model, per-channel")):
+        try:
+            train.predict_full(bad_model, data["images"][0], bad_mean, bad_std)
+        except ValueError:
+            print(f"  refused: {why}")
+        else:
+            raise AssertionError(f"scored silently with {why}")
+
     # A checkpoint round trip, because the name is the only record of how many
     # channels a run had.
     state = model.state_dict()

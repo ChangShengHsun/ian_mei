@@ -63,33 +63,18 @@ def load_targets(name: str) -> list[dict]:
     raise SystemExit(f"unknown dataset {name!r}")
 
 
-def constants(run_name: str, drive_train: dict) -> tuple:
-    """The normalisation the checkpoint was TRAINED with, not the target's.
-
-    This is the whole point of the word zero-shot. Recomputing mean and std on
-    STARE would hand the model a summary of the test set, and would also hide
-    the failure mode being measured: a grey model transfers badly precisely
-    because the target's intensities sit somewhere its normalisation does not
-    expect.
-    """
-    if train.uses_liot(run_name.rsplit("_s", 1)[0]):
-        return train.liot_stats(drive_train)
-    inside = drive_train["images"][drive_train["fovs"]]
-    return float(inside.mean()), float(inside.std())
-
-
 def selftest() -> None:
     """The one thing that can silently invalidate every number here."""
     drive_train = train.stack_split("train")
     inside = drive_train["images"][drive_train["fovs"]]
     grey = (float(inside.mean()), float(inside.std()))
 
-    got = constants("A_dice_s0", drive_train)
+    got = train.normalisation("A_dice_s0", drive_train)
     assert got == grey, got
     print(f"grey runs keep DRIVE's constants: mean {got[0]:.4f} "
           f"std {got[1]:.4f}")
 
-    mean, std = constants("J_liot_s0", drive_train)
+    mean, std = train.normalisation("J_liot_s0", drive_train)
     assert mean.shape == (4, 1, 1) and (std > 0).all(), mean.shape
     print(f"LIOT runs get 4-channel constants: "
           f"mean {np.round(mean.ravel(), 1)}")
@@ -161,7 +146,7 @@ def main() -> None:
             model.load_state_dict(
                 torch.load(weights, weights_only=False)["model"])
             model.eval()
-            mean, std = constants(run_name, drive_train)
+            mean, std = train.normalisation(run_name, drive_train)
             for item in items:
                 rows.append({"run": run_name,
                              "config": run_name.rsplit("_s", 1)[0],
