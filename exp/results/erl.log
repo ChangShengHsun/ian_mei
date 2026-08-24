@@ -38,7 +38,10 @@
 [I_coletra_s3] done
 [I_coletra_s4] done
 [I_coletra_s5] done
-wrote 780 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\erl.csv
+[J_liot_s0] done
+[J_liot_s1] done
+[J_liot_s2] done
+wrote 840 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\erl.csv
 
 === expected run length over the whole skeleton, px ===
 A_dice           2340.6
@@ -49,6 +52,7 @@ F_gated          2364.7
 G_focal          3135.2
 H_aug            2803.9
 I_coletra        2686.1
+J_liot              0.0
 
 === share of the ACHIEVABLE run length, per contrast band ===
 (1.000 means a perfect prediction could not trace further either)
@@ -61,6 +65,7 @@ F_gated           0.182    0.852    0.989    0.978
 G_focal           0.238    0.889    0.991    0.979
 H_aug             0.191    0.889    0.993    0.998
 I_coletra         0.155    0.867    0.991    0.997
+J_liot            0.000    0.000    0.000    0.000
 
           band  ceiling px   what a perfect prediction scores
     Q1_dimmest       14.71
