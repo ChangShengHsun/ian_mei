@@ -347,6 +347,14 @@ CONFIGS = {
     # augmentation as a 63% cut in Betti error on this same dataset.
     "H_aug": (False, None),
     "I_coletra": (False, None),
+    # E18. The two best arms in this series have never been run together.
+    # G_focal wins the dim band and PAYS 1.85 extra severing breaks (E12);
+    # H_aug removes 3.2 of them (E14); E15 puts them level on ERL. Opposite
+    # mechanisms at the same score is the definition of worth combining.
+    # Not a novelty claim: CoLeTra already crossed augmentation with six
+    # losses. What is untested is this gate, whose weight comes from the
+    # model's own hesitancy, together with augmentation.
+    "K_focal_aug": (False, "focal"),
     # E13's third arm, added after E14 made it the interesting one: if
     # augmentation is partly compensating for a model too small, its advantage
     # should shrink at 4x the width. If it holds, the input side matters
@@ -380,6 +388,9 @@ AUGMENTS = {
     # named after. test_capacity.py asserts every _w config agrees with its
     # base, which is the check that would have caught this.
     "H_aug_w32": ("dihedral", "jitter"),
+    # Exactly H_aug's tuple: K differs from H_aug only in the loss, and from
+    # G_focal only in the augmentation, so either comparison isolates one thing.
+    "K_focal_aug": ("dihedral", "jitter"),
 }
 
 

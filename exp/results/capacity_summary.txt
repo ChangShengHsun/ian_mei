@@ -1,0 +1,30 @@
+=== E13: does the gap between arms survive 4x the width? ===
+
+-- Q1_dimmest --
+  1. augmentation over the plain baseline
+    base=16   +0.0185  t=  7.56  6 seeds  fails gate  [+0.0166 -0.0021 +0.0540 +0.0027 +0.0320 +0.0075]
+    base=32   +0.0289  t=  5.04  1 seeds  only 1 seed, NOT gated  [+0.0289]
+    -> gap changes by +0.0104 at 4x width (grows)
+
+  2. the topology loss over the plain baseline
+    base=16   +0.0186  t= 12.55  6 seeds  HOLDS  [+0.0307 +0.0243 +0.0088 +0.0181 +0.0274 +0.0023]
+    base=32   +0.0019  t=  0.83  1 seeds  only 1 seed, NOT gated  [+0.0019]
+    -> gap changes by -0.0167 at 4x width (shrinks)
+
+  3. augmentation over the topology loss
+    base=16   -0.0002  t= -0.06  6 seeds  fails gate  [-0.0142 -0.0264 +0.0452 -0.0154 +0.0046 +0.0052]
+    base=32   +0.0270  t=  4.85  1 seeds  only 1 seed, NOT gated  [+0.0270]
+    -> gap changes by +0.0272 at 4x width (grows)
+
+-- Q4_clearest --
+  4. augmentation in the band with no headroom left
+    base=16   -0.0006  t= -1.67  6 seeds  fails gate  [-0.0022 +0.0017 -0.0059 +0.0023 -0.0001 +0.0004]
+    base=32   +0.0030  t=  3.64  1 seeds  only 1 seed, NOT gated  [+0.0030]
+    -> gap changes by +0.0037 at 4x width (grows)
+
+Reading it: if gap 1 holds at both widths, the input side matters
+independently of capacity. If it shrinks toward zero, augmentation
+was partly standing in for a model too small, and E14's ordering is
+a small-model result. Gap 2 is E13's original question, which E14
+demoted: whether the loss starts to matter once there is capacity
+for it to matter.

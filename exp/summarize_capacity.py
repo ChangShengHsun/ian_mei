@@ -75,8 +75,15 @@ def compare_widths(rows, better: str, worse: str, band: str,
         holds = (result["mean"] > 0 and result["t"] > 2
                  and all(d > 0 for d in per))
         verdicts[width] = (result["mean"], holds)
+        # A sign gate over one seed is not a gate: one seed cannot disagree
+        # with itself, so it would print HOLDS for anything positive. Say so
+        # rather than letting a partial queue read as evidence.
+        if len(per) < 3:
+            label = f"only {len(per)} seed, NOT gated"
+        else:
+            label = "HOLDS" if holds else "fails gate"
         print(f"    {width:9} {result['mean']:+.4f}  t={result['t']:6.2f}  "
-              f"{len(per)} seeds  {'HOLDS' if holds else 'fails gate'}  "
+              f"{len(per)} seeds  {label}  "
               f"[{' '.join(f'{d:+.4f}' for d in per)}]")
     left, right = verdicts["base=16"], verdicts["base=32"]
     if left and right:
