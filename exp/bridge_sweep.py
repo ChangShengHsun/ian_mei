@@ -190,7 +190,12 @@ def main() -> None:
         model = train.build_model(run_name.rsplit("_s", 1)[0])
         model.load_state_dict(state["model"])
         model.eval()
-        mean, std = norm or (state["mean"], state["std"])
+        # `norm` is the DRIVE grey pair passed in by the caller; it predates
+        # LIOT and would silently mis-normalise a 4-channel run, so derive it
+        # from the run name instead. Cross-dataset checkpoints keep carrying
+        # their own constants, which is why the state branch stays.
+        mean, std = (train.normalisation(run_name, stacked) if norm
+                     else (state["mean"], state["std"]))
         rows += score_run(model, test_items, mean, std, width, run_name,
                           component_px)
         print(f"[{run_name}] done", flush=True)

@@ -83,6 +83,9 @@ def main() -> None:
     runs = train.trained_runs()
     collected = []
     for run_name in runs:
+        # Per run, because a LIOT run needs its own constants; see
+        # train.normalisation. predict_full raises if they disagree.
+        mean, std = train.normalisation(run_name, train_data)
         collected += analyse(run_name, val, mean, std)
         print(f"{run_name} done", flush=True)
 

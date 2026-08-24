@@ -241,6 +241,9 @@ def main() -> None:
 
     rows = []
     for run_name in runs:
+        # Per run, because a LIOT run needs its own constants; see
+        # train.normalisation. predict_full raises if they disagree.
+        mean, std = train.normalisation(run_name, stacked)
         weights = out_dir / run_name / "final.pt"
         if not weights.exists():
             print(f"[{run_name}] no checkpoint, skipping", flush=True)
