@@ -1,0 +1,49 @@
+﻿
+=== stare: zero-shot from DRIVE ===
+config            dice  clDice    b0err  severs  ERL/ceiling
+A_dice          0.7175  0.7659    145.0    17.7        0.302
+B_cldice        0.7248  0.7799    113.2    16.4        0.341
+C_boundary      0.7167  0.7670    138.2    18.3        0.311
+D_blurpool      0.7173  0.7623    133.4    17.4        0.277
+F_gated         0.7289  0.7854    112.3    16.7        0.327
+G_focal         0.7109  0.7847    106.0    18.5        0.341
+H_aug           0.7651  0.8259     79.3    11.0        0.497
+I_coletra       0.7470  0.8142     81.1    13.5        0.415
+J_liot          0.7646  0.8250    100.2     9.1        0.493
+
+=== hrf: zero-shot from DRIVE ===
+config            dice  clDice    b0err  severs  ERL/ceiling
+A_dice          0.6536  0.6861    599.7   139.2        0.012
+B_cldice        0.6696  0.7105    496.7   128.9        0.018
+C_boundary      0.6618  0.7023    553.4   135.9        0.017
+D_blurpool      0.6543  0.6807    487.2   124.4        0.016
+F_gated         0.6683  0.7087    463.8   130.4        0.017
+G_focal         0.6688  0.7205    445.7   137.9        0.021
+H_aug           0.7215  0.7630    384.9   104.1        0.039
+I_coletra       0.6928  0.7232    382.6   119.5        0.021
+J_liot          0.7279  0.7743    526.9    91.0        0.056
+
+=== E17 criteria ===
+
+-- stare --
+  [PASS] A. augmentation beats the baseline under transfer
+         +0.0476  t=12.46  n_seeds=6  per seed: +0.0407 +0.0521 +0.0347 +0.0629 +0.0550 +0.0405
+         [NOT pre-registered (seed 0 seen)]
+  [FAIL] B. LIOT beats grey under transfer (LIOT's published claim)
+         +0.0045  t=0.80  n_seeds=3  per seed: +0.0086 -0.0137 +0.0185
+         [pre-registered]
+  [PASS] C. LIOT cuts severing breaks under transfer
+         -1.9500  t=-3.35  n_seeds=3  per seed: -2.4500 -0.3000 -3.1000
+         [pre-registered]
+
+-- hrf --
+  [PASS] A. augmentation beats the baseline under transfer
+         +0.0678  t=22.41  n_seeds=6  per seed: +0.0555 +0.0784 +0.0714 +0.0761 +0.0868 +0.0389
+         [NOT pre-registered (seed 0 seen)]
+  [FAIL] B. LIOT beats grey under transfer (LIOT's published claim)
+         +0.0121  t=3.02  n_seeds=3  per seed: +0.0252 -0.0170 +0.0281
+         [pre-registered]
+  [FAIL] C. LIOT cuts severing breaks under transfer
+         -14.5778  t=-4.13  n_seeds=3  per seed: -22.8667 +3.4667 -24.3333
+         [pre-registered]
+
