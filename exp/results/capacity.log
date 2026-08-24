@@ -32,3 +32,7 @@
 [H_aug_w32_s0] epoch  90 loss 0.4202 dice 0.8232 clDice 0.8318 b0err 60.8 95HD 3.68 (187 min)
 [H_aug_w32_s0] epoch 100 loss 0.4181 dice 0.8242 clDice 0.8338 b0err 51.4 95HD 3.66 (209 min)
 [H_aug_w32_s0] done in 209 min
+train norm mean 0.4177 std 0.1442
+[A_dice_w32_s0] already finished, skipping
+[B_cldice_w32_s0] already finished, skipping
+[H_aug_w32_s0] already finished, skipping
