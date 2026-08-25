@@ -12,11 +12,11 @@ one thing this project has never had, and it is the reason this file exists.
 
 In order. Do not skip ahead; task 0 gates everything after it.
 
-1. **Set the machine up** — section 5. Ends with `torch.cuda.is_available()`
+1. **Set the machine up** — section 6. Ends with `torch.cuda.is_available()`
    printing `True` and every `--selftest` passing.
 2. **Make the code use the GPU** — section 3. It currently does not, at all.
    Ends with one training run reproducing an existing `log.csv`.
-3. **Train the core five configs on a real ~30M U-Net** — section 4, task 1.
+3. **Train the core five configs on a real ~30M U-Net** — section 5, task 1.
    This is the actual reason for moving machines.
 
 If you only get through step 3, the trip was worth it. Tasks 2 to 5 are the
@@ -112,7 +112,112 @@ Dice 0.0000 as a finding.
 existing `exp/results/A_dice_s0/log.csv` within noise on GPU, and every
 `exp/test_*.py` still passes. Do not start task 1 until this holds.
 
-## 4. Tasks, in priority order
+## 4. Budget, architecture, and the number to measure first
+
+### 4.1 What a run costs today
+
+One run is fixed at **31,200 steps** (`PATCHES_PER_EPOCH 10_000 // BATCH 32`
+= 312 steps x `EPOCHS 100`). Measured on the laptop, 6 CPU threads, batch 32 at
+48x48, on 2026-08-25:
+
+| base | params | CPU ms/step | vs base=16 |
+|---|---|---|---|
+| 16 | 117k | 135 | 1.0x |
+| 32 | 467k | 405 | 3.0x |
+| 64 | 1.86M | 1,174 | 2.9x |
+| 128 | 7.45M | 3,651 | 3.1x |
+| 256 | 29.8M | ~11,000 (extrapolated) | ~81x |
+
+**Doubling `base` costs 4x the parameters and about 3x the step time.**
+
+Also measured: `sample_batch` costs **1.0 ms** without augmentation and
+**5.1 ms** with it, against 135-3,651 ms of compute. The data pipeline is 1-2%
+of a step, so **do not rewrite it as a DataLoader with workers** when porting
+to GPU. It is not the bottleneck and never was.
+
+At base=256 a single run is ~95 hours on this laptop. That is the whole reason
+for the move.
+
+### 4.2 Do not just widen the 3-level net
+
+`TinyUNet` is **3 levels**. Reaching 30M parameters with it means `base=256`,
+which is an extremely wide, extremely shallow network — and every parameter
+sits at full 48x48 resolution, so it is the most expensive possible way to
+spend 30M parameters.
+
+The standard U-Net reaches ~31M with **5 levels at base=64**, where the extra
+capacity lives at 6x6 and 3x3 and costs almost nothing per parameter.
+
+**Use a 5-level base=64 U-Net, not a widened 3-level one.** It is cheaper per
+run, and it is the architecture a reviewer expects. Two consequences:
+
+- `base_width()` reads capacity off the run name (`_w32` -> 32). A depth change
+  needs the same treatment, or checkpoints will load into the wrong shape. One
+  place decides, as `build_model` already does — see the E16 lesson in §3.
+- 48x48 patches through 5 levels is 48/24/12/6/3, which works but is tight.
+  128x128 is the conventional choice. **Patch area drives cost linearly**: going
+  48 -> 128 is 7x the pixels and therefore roughly 7x the step time. This single
+  decision moves the budget more than the choice of GPU does.
+
+### 4.3 Measure before you queue anything
+
+Every hour figure below is **extrapolated from CPU measurements, not measured on
+a GPU**. Before committing to a queue:
+
+```python
+# exp/bench_step.py -- time one training step at the real batch and patch size.
+import sys, time, torch
+sys.path.insert(0, "exp"); import train
+
+model = train.TinyUNet(base=64).to(train.DEVICE)      # swap in the 5-level net
+opt = torch.optim.Adam(model.parameters())
+img = torch.randn(train.BATCH, 1, train.PATCH, train.PATCH, device=train.DEVICE)
+lab = (torch.rand_like(img) > 0.9).float()
+dist = torch.rand_like(img)
+
+for _ in range(5):                                     # warm up cuDNN autotune
+    opt.zero_grad(); train.compute_loss(model(img), lab, dist, None, img).backward(); opt.step()
+torch.cuda.synchronize()
+start = time.time()
+for _ in range(50):
+    opt.zero_grad(); train.compute_loss(model(img), lab, dist, None, img).backward(); opt.step()
+torch.cuda.synchronize()
+ms = 1000 * (time.time() - start) / 50
+steps = (train.PATCHES_PER_EPOCH // train.BATCH) * train.EPOCHS
+print(f"{ms:.0f} ms/step -> {ms * steps / 3_600_000:.1f} h per run, "
+      f"{sum(p.numel() for p in model.parameters()):,} params")
+```
+
+`torch.cuda.synchronize()` is not optional: CUDA calls are asynchronous, so
+timing without it measures how fast Python queued the work, not how fast the
+GPU did it. That mistake reports a 20x speedup that is not there.
+
+Five minutes of timing replaces the whole table below with real numbers. Do it
+first and rescale.
+
+### 4.4 The schedule, at ~1 h per 30M run
+
+An RTX 4070 Ti at 30M, batch 32, 48x48 is estimated at 75-150 ms/step, so
+**~40-80 minutes per run**; a 5-level base=64 net should land at the fast end,
+128x128 patches at the slow end or beyond.
+
+| Work | runs | GPU hours |
+|---|---|---|
+| **E13 three-point capacity curve @30M** (3 arms x 5 seeds) | 15 | **15** |
+| Task 1: five configs x 5 seeds @30M | 25 | 25 |
+| Transfer @30M (inference only, no training) | — | ~1 |
+| Task 3: published topology losses @30M | 15 | 15 |
+| Task 5: CHASE_DB1 @30M | 25 | 25 |
+
+**~80 GPU hours if everything moves to 30M.** Three and a half days continuous,
+realistically one to two weeks of overnight queues.
+
+**The first row is the best value on the page.** E13 currently has two points
+(117k, 467k). A third at 30M directly answers the question a reviewer will ask
+first — does "the topology loss advantage vanishes with capacity" survive at
+real scale — and it needs no new code, only another width. Fifteen hours.
+
+## 5. Tasks, in priority order
 
 ### Task 1 — put the core comparison on a real architecture
 
@@ -120,14 +225,22 @@ existing `exp/results/A_dice_s0/log.csv` within noise on GPU, and every
 baseline any reviewer accepts, and finding 1 above is precisely the reason to
 doubt ourselves at scale: we proved capacity changes conclusions.
 
-Train `A_dice`, `B_cldice`, `H_aug`, `G_focal`, `K_focal_aug` on a standard
-U-Net (~30M params), ideally with an ImageNet-pretrained encoder. Keep every
-loss, augmentation, and evaluation path identical; change only the backbone.
+Train `A_dice`, `B_cldice`, `H_aug`, `G_focal`, `K_focal_aug` on a 5-level
+base=64 U-Net (~31M params, see §4.2), ideally with an ImageNet-pretrained
+encoder. Keep every loss, augmentation, and evaluation path identical; change
+only the backbone.
+
+Do the three E13 arms (`A_dice`, `B_cldice`, `H_aug`) **first**: they complete
+the capacity curve and are the highest-value 15 hours available.
 
 Note before you start: DRIVE has **20 training images**. 30M parameters on 20
 images is badly overparameterised, which is why the field pretrains. Expect
 augmentation to matter *more* here, not less, which is itself the prediction
 finding 1 makes.
+
+**Before queueing 25 runs**, train `A_dice` and `H_aug` at one seed each (~1-2 h)
+and check the baseline Dice lands inside the published DRIVE range. If the
+baseline is not credible, the other 23 runs are wasted.
 
 **Acceptance:** the three gaps in `exp/summarize_capacity.py` recomputed at the
 new width, with the same seed gate. The readable claim is "the trend continues"
@@ -180,9 +293,9 @@ Separating them needs a dataset between DRIVE and HRF in difficulty.
 CHASE_DB1 is the field's usual fourth dataset and would serve both this and
 task 3.
 
-## 5. Setup on the new machine
+## 6. Setup on the new machine
 
-### 5.1 Check what the box actually has
+### 6.1 Check what the box actually has
 
 ```
 nvidia-smi
@@ -200,7 +313,7 @@ python --version
 This project was developed on **Python 3.11**. 3.10-3.12 are all fine; avoid
 3.13+ until you have checked that the torch build you want exists for it.
 
-### 5.2 Clone and isolate
+### 6.2 Clone and isolate
 
 ```
 git clone https://github.com/ChangShengHsun/ian_mei.git
@@ -214,7 +327,7 @@ Use a venv even if the machine "already has torch". A shared lab box usually
 has a torch pinned to someone else's project, and `.venv/` is already in
 `.gitignore`.
 
-### 5.3 Install torch — the one step that has to match the machine
+### 6.3 Install torch — the one step that has to match the machine
 
 **Do not `pip install torch` on its own.** The default wheel on many indexes is
 the CPU build, which is exactly the state this repo is currently in
@@ -232,7 +345,7 @@ pip install torch --index-url https://download.pytorch.org/whl/cu124
 A CUDA build newer than the driver will install cleanly and then fail at
 runtime. When unsure, pick one step lower; the driver is backward compatible.
 
-### 5.4 Everything else
+### 6.4 Everything else
 
 ```
 pip install numpy scipy scikit-image opencv-python pyyaml
@@ -249,14 +362,14 @@ If `opencv-python` fails to import with a libGL error on a headless box:
 pip install opencv-python-headless
 ```
 
-### 5.5 Verify before writing any code
+### 6.5 Verify before writing any code
 
 ```
 python -c "import torch; print(torch.__version__, torch.cuda.is_available())"
 ```
 
 **Must print a version without `+cpu`, and `True`.** If it prints `False`, the
-torch build and the driver disagree — go back to 5.3. Nothing after this point
+torch build and the driver disagree — go back to 6.3. Nothing after this point
 is worth doing until this line is right.
 
 ```
@@ -265,7 +378,7 @@ python -c "import torch; print(torch.zeros(1).cuda())"
 
 Confirms the GPU is actually reachable, not just detected.
 
-### 5.6 Data
+### 6.6 Data
 
 ```
 python exp/fetch_stare.py      # 19 MB
@@ -277,7 +390,7 @@ DRIVE is committed to the repo and needs no fetching. The other three are
 gitignored. Skip TopoMortar if you are only doing tasks 1-3; it is used by the
 cross-dataset scripts, not the retinal ones.
 
-### 5.7 Confirm the port did not break anything
+### 6.7 Confirm the port did not break anything
 
 Every `exp/*.py` with non-trivial logic carries a `--selftest` that asserts the
 mechanism rather than the output.
@@ -308,7 +421,7 @@ that does not exist yet, or move the existing directory aside first and compare
 the new `log.csv` against `exp/results/A_dice_s0/log.csv`. **Move it, do not
 delete it** — deleting results is against the repo rules in `CLAUDE.md`.
 
-## 6. Rules that carry over, and one that does not
+## 7. Rules that carry over, and one that does not
 
 From `CLAUDE.md`, still true on any machine:
 
@@ -334,7 +447,7 @@ resume on it, and check for competing processes before launching — a shared la
 GPU has other people's jobs on it, which is a stronger version of the same
 problem this laptop had.
 
-## 7. What not to redo
+## 8. What not to redo
 
 These are settled and re-running them wastes GPU time that tasks 1-5 need:
 
