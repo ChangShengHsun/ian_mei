@@ -36,3 +36,73 @@ train norm mean 0.4177 std 0.1442
 [A_dice_w32_s0] already finished, skipping
 [B_cldice_w32_s0] already finished, skipping
 [H_aug_w32_s0] already finished, skipping
+train norm mean 0.4177 std 0.1442
+[A_dice_w32_s1] epoch  10 loss 0.4191 dice 0.8162 clDice 0.8235 b0err 81.3 95HD 4.41 (14 min)
+[A_dice_w32_s1] epoch  20 loss 0.3833 dice 0.8183 clDice 0.8256 b0err 66.7 95HD 4.24 (27 min)
+[A_dice_w32_s1] epoch  30 loss 0.3569 dice 0.8123 clDice 0.8130 b0err 88.8 95HD 4.31 (41 min)
+[A_dice_w32_s1] epoch  40 loss 0.3336 dice 0.8118 clDice 0.8123 b0err 82.8 95HD 4.41 (54 min)
+[A_dice_w32_s1] epoch  50 loss 0.3213 dice 0.8082 clDice 0.8059 b0err 85.0 95HD 4.27 (68 min)
+[A_dice_w32_s1] epoch  60 loss 0.3053 dice 0.8064 clDice 0.8049 b0err 94.2 95HD 4.40 (82 min)
+[A_dice_w32_s1] epoch  70 loss 0.2939 dice 0.8038 clDice 0.7993 b0err 94.6 95HD 4.39 (95 min)
+[A_dice_w32_s1] epoch  80 loss 0.2841 dice 0.8041 clDice 0.8051 b0err 101.2 95HD 4.50 (109 min)
+[A_dice_w32_s1] epoch  90 loss 0.2743 dice 0.8021 clDice 0.7995 b0err 91.2 95HD 4.45 (122 min)
+[A_dice_w32_s1] epoch 100 loss 0.2725 dice 0.8007 clDice 0.7988 b0err 111.0 95HD 4.73 (136 min)
+[A_dice_w32_s1] done in 136 min
+[B_cldice_w32_s1] epoch  10 loss 0.4001 dice 0.8188 clDice 0.8286 b0err 60.5 95HD 4.07 (16 min)
+[B_cldice_w32_s1] epoch  20 loss 0.3701 dice 0.8147 clDice 0.8299 b0err 57.5 95HD 4.32 (41 min)
+[B_cldice_w32_s1] epoch  30 loss 0.3459 dice 0.8113 clDice 0.8159 b0err 64.4 95HD 4.56 (63 min)
+[B_cldice_w32_s1] epoch  40 loss 0.3221 dice 0.8110 clDice 0.8173 b0err 67.5 95HD 4.36 (87 min)
+[B_cldice_w32_s1] epoch  50 loss 0.3109 dice 0.8112 clDice 0.8109 b0err 77.3 95HD 4.39 (111 min)
+[B_cldice_w32_s1] epoch  60 loss 0.2950 dice 0.8064 clDice 0.8017 b0err 78.5 95HD 4.36 (135 min)
+[B_cldice_w32_s1] epoch  70 loss 0.2837 dice 0.8027 clDice 0.7974 b0err 94.3 95HD 4.44 (158 min)
+[B_cldice_w32_s1] epoch  80 loss 0.2731 dice 0.8060 clDice 0.8011 b0err 86.1 95HD 4.52 (183 min)
+[B_cldice_w32_s1] epoch  90 loss 0.2643 dice 0.8054 clDice 0.8012 b0err 79.5 95HD 4.37 (203 min)
+[B_cldice_w32_s1] epoch 100 loss 0.2602 dice 0.8031 clDice 0.7976 b0err 100.5 95HD 4.52 (219 min)
+[B_cldice_w32_s1] done in 219 min
+[H_aug_w32_s1] epoch  10 loss 0.4572 dice 0.8174 clDice 0.8273 b0err 79.0 95HD 4.00 (14 min)
+[H_aug_w32_s1] epoch  20 loss 0.4458 dice 0.8236 clDice 0.8333 b0err 53.9 95HD 3.83 (28 min)
+[H_aug_w32_s1] epoch  30 loss 0.4365 dice 0.8229 clDice 0.8300 b0err 66.5 95HD 3.59 (41 min)
+[H_aug_w32_s1] epoch  40 loss 0.4294 dice 0.8256 clDice 0.8341 b0err 48.7 95HD 4.01 (55 min)
+[H_aug_w32_s1] epoch  50 loss 0.4306 dice 0.8221 clDice 0.8316 b0err 59.0 95HD 3.61 (69 min)
+[H_aug_w32_s1] epoch  60 loss 0.4222 dice 0.8255 clDice 0.8334 b0err 49.0 95HD 3.93 (83 min)
+[H_aug_w32_s1] epoch  70 loss 0.4218 dice 0.8251 clDice 0.8370 b0err 51.5 95HD 3.60 (97 min)
+[H_aug_w32_s1] epoch  80 loss 0.4231 dice 0.8226 clDice 0.8322 b0err 52.8 95HD 3.73 (111 min)
+[H_aug_w32_s1] epoch  90 loss 0.4191 dice 0.8234 clDice 0.8315 b0err 54.8 95HD 3.70 (124 min)
+[H_aug_w32_s1] epoch 100 loss 0.4148 dice 0.8244 clDice 0.8338 b0err 58.5 95HD 3.49 (138 min)
+[H_aug_w32_s1] done in 138 min
+train norm mean 0.4177 std 0.1442
+[A_dice_w32_s2] epoch  10 loss 0.4107 dice 0.8205 clDice 0.8276 b0err 64.8 95HD 4.27 (14 min)
+[A_dice_w32_s2] epoch  20 loss 0.3837 dice 0.8147 clDice 0.8185 b0err 79.5 95HD 4.26 (27 min)
+[A_dice_w32_s2] epoch  30 loss 0.3600 dice 0.8143 clDice 0.8175 b0err 76.5 95HD 4.29 (41 min)
+[A_dice_w32_s2] epoch  40 loss 0.3397 dice 0.8101 clDice 0.8107 b0err 80.5 95HD 4.45 (54 min)
+[A_dice_w32_s2] epoch  50 loss 0.3164 dice 0.8091 clDice 0.8090 b0err 90.1 95HD 4.51 (68 min)
+[A_dice_w32_s2] epoch  60 loss 0.3077 dice 0.8054 clDice 0.7995 b0err 97.9 95HD 4.55 (82 min)
+[A_dice_w32_s2] epoch  70 loss 0.2984 dice 0.8075 clDice 0.8057 b0err 87.2 95HD 4.39 (95 min)
+[A_dice_w32_s2] epoch  80 loss 0.2850 dice 0.8062 clDice 0.8081 b0err 83.3 95HD 4.55 (109 min)
+[A_dice_w32_s2] epoch  90 loss 0.2782 dice 0.7999 clDice 0.7972 b0err 101.8 95HD 4.36 (122 min)
+[A_dice_w32_s2] epoch 100 loss 0.2720 dice 0.8002 clDice 0.7956 b0err 108.5 95HD 4.70 (136 min)
+[A_dice_w32_s2] done in 136 min
+[B_cldice_w32_s2] epoch  10 loss 0.3961 dice 0.8174 clDice 0.8319 b0err 59.9 95HD 4.25 (16 min)
+[B_cldice_w32_s2] epoch  20 loss 0.3707 dice 0.8152 clDice 0.8239 b0err 63.5 95HD 4.05 (31 min)
+[B_cldice_w32_s2] epoch  30 loss 0.3463 dice 0.8154 clDice 0.8241 b0err 59.4 95HD 4.28 (47 min)
+[B_cldice_w32_s2] epoch  40 loss 0.3286 dice 0.8128 clDice 0.8168 b0err 67.4 95HD 4.22 (62 min)
+[B_cldice_w32_s2] epoch  50 loss 0.3089 dice 0.8092 clDice 0.8113 b0err 77.8 95HD 4.36 (78 min)
+[B_cldice_w32_s2] epoch  60 loss 0.3002 dice 0.8084 clDice 0.8030 b0err 77.6 95HD 4.49 (93 min)
+[B_cldice_w32_s2] epoch  70 loss 0.2875 dice 0.8083 clDice 0.8042 b0err 77.3 95HD 4.34 (109 min)
+[B_cldice_w32_s2] epoch  80 loss 0.2758 dice 0.8065 clDice 0.8046 b0err 77.9 95HD 4.52 (124 min)
+[B_cldice_w32_s2] epoch  90 loss 0.2693 dice 0.8037 clDice 0.7996 b0err 90.8 95HD 4.41 (140 min)
+[B_cldice_w32_s2] epoch 100 loss 0.2627 dice 0.8022 clDice 0.7963 b0err 89.2 95HD 4.52 (156 min)
+[B_cldice_w32_s2] done in 156 min
+[H_aug_w32_s2] epoch  10 loss 0.4557 dice 0.8215 clDice 0.8333 b0err 61.0 95HD 4.08 (18 min)
+[H_aug_w32_s2] epoch  20 loss 0.4405 dice 0.8201 clDice 0.8293 b0err 57.6 95HD 4.06 (40 min)
+[H_aug_w32_s2] epoch  30 loss 0.4340 dice 0.8237 clDice 0.8314 b0err 67.8 95HD 3.52 (60 min)
+train norm mean 0.4177 std 0.1442
+[H_aug_w32_s2] resuming from epoch 30
+[H_aug_w32_s2] epoch  40 loss 0.4275 dice 0.8223 clDice 0.8323 b0err 58.0 95HD 3.63 (14 min)
+[H_aug_w32_s2] epoch  50 loss 0.4325 dice 0.8221 clDice 0.8318 b0err 64.8 95HD 3.56 (28 min)
+[H_aug_w32_s2] epoch  60 loss 0.4220 dice 0.8250 clDice 0.8361 b0err 52.9 95HD 3.54 (42 min)
+[H_aug_w32_s2] epoch  70 loss 0.4193 dice 0.8251 clDice 0.8355 b0err 55.5 95HD 3.58 (56 min)
+[H_aug_w32_s2] epoch  80 loss 0.4160 dice 0.8231 clDice 0.8321 b0err 56.8 95HD 3.40 (70 min)
+[H_aug_w32_s2] epoch  90 loss 0.4165 dice 0.8241 clDice 0.8337 b0err 53.5 95HD 3.58 (84 min)
+[H_aug_w32_s2] epoch 100 loss 0.4120 dice 0.8236 clDice 0.8357 b0err 57.2 95HD 3.66 (98 min)
+[H_aug_w32_s2] done in 98 min

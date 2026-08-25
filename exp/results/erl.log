@@ -6,6 +6,8 @@
 [A_dice_s4] done
 [A_dice_s5] done
 [A_dice_w32_s0] done
+[A_dice_w32_s1] done
+[A_dice_w32_s2] done
 [B_cldice_s0] done
 [B_cldice_s1] done
 [B_cldice_s2] done
@@ -13,6 +15,8 @@
 [B_cldice_s4] done
 [B_cldice_s5] done
 [B_cldice_w32_s0] done
+[B_cldice_w32_s1] done
+[B_cldice_w32_s2] done
 [C_boundary_s0] done
 [C_boundary_s1] done
 [C_boundary_s2] done
@@ -35,6 +39,8 @@
 [H_aug_s4] done
 [H_aug_s5] done
 [H_aug_w32_s0] done
+[H_aug_w32_s1] done
+[H_aug_w32_s2] done
 [I_coletra_s0] done
 [I_coletra_s1] done
 [I_coletra_s2] done
@@ -47,19 +53,19 @@
 [K_focal_aug_s0] done
 [K_focal_aug_s1] done
 [K_focal_aug_s2] done
-wrote 960 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\erl.csv
+wrote 1080 rows to C:\Users\ivan_chang\Desktop\ian-mei\exp\results\erl.csv
 
 === expected run length over the whole skeleton, px ===
 A_dice           2340.6
-A_dice_w32       1995.5
+A_dice_w32       1987.1
 B_cldice         2601.2
-B_cldice_w32     2072.8
+B_cldice_w32     2040.6
 C_boundary       2405.9
 D_blurpool       2179.5
 F_gated          2364.7
 G_focal          3135.2
 H_aug            2803.9
-H_aug_w32        2607.3
+H_aug_w32        2860.8
 I_coletra        2686.1
 J_liot           2668.2
 K_focal_aug      3968.4
@@ -68,15 +74,15 @@ K_focal_aug      3968.4
 (1.000 means a perfect prediction could not trace further either)
 config               Q1       Q2       Q3       Q4
 A_dice            0.172    0.840    0.987    0.986
-A_dice_w32        0.146    0.766    0.982    0.982
+A_dice_w32        0.148    0.786    0.982    0.982
 B_cldice          0.183    0.859    0.989    0.988
-B_cldice_w32      0.142    0.782    0.981    0.973
+B_cldice_w32      0.141    0.787    0.982    0.981
 C_boundary        0.179    0.850    0.987    0.997
 D_blurpool        0.155    0.819    0.985    0.977
 F_gated           0.182    0.852    0.989    0.978
 G_focal           0.238    0.889    0.991    0.979
 H_aug             0.191    0.889    0.993    0.998
-H_aug_w32         0.186    0.874    0.993    0.995
+H_aug_w32         0.198    0.888    0.994    0.996
 I_coletra         0.155    0.867    0.991    0.997
 J_liot            0.186    0.876    0.988    0.957
 K_focal_aug       0.309    0.927    0.993    0.997
