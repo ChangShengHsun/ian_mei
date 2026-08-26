@@ -1,3 +1,15 @@
 === 2026-08-27 00:41:53 night queue starting ===
 /dev/nvme0n1p2  916G  745G  125G  86% /
 === 2026-08-27 00:41:53 waiting for task C to drain ===
+=== 2026-08-27 00:45:54 night queue starting ===
+/dev/nvme0n1p2  916G  745G  125G  86% /
+=== 2026-08-27 00:45:54 waiting for task C to drain ===
+=== 2026-08-27 00:45:54 C1.0 ceiling ===
+4 arm(s), 20 images, weights = (iv) best clDice, component filter 17 px, closing radii [1, 2, 3, 4, 6] px
+  A_dice_s0 epoch 30 done (closing radius 6 px)
+  A_dice_s1 epoch 20 done (closing radius 6 px)
+  A_dice_s2 epoch 30 done (closing radius 6 px)
+  A_dice_s3 epoch 10 done (closing radius 6 px)
+  A_dice_s4 epoch 10 done (closing radius 6 px)
+  A_dice_s5 epoch 10 done (closing radius 6 px)
+  H_aug_s0 epoch 30 done (closing radius 6 px)

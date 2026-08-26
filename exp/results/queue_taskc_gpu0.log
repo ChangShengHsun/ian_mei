@@ -202,3 +202,4 @@ train norm mean 0.4177 std 0.1442
 00:27:51 gpu0 2531MB free, need 3500; waiting
 00:32:51 gpu0 2531MB free, need 3500; waiting
 00:37:51 gpu0 2531MB free, need 3500; waiting
+00:42:51 gpu0 2531MB free, need 3500; waiting

@@ -34,40 +34,50 @@ step () {   # step <name> <output-file> <script> [args...]
 say "night queue starting"
 df -h / | tail -1 | tee -a "$LOG"
 
-# ---------------------------------------------------------------- 0. task C
-# Both cards are still finishing seeds 6-11. Wait for the QUEUE to empty
-# rather than for a process, so an interrupted task C is simply resumed by
-# whoever restarts it and this script still opens at the right moment.
+# ------------------------------------------------ 1. the CPU work, at once
+# These depend on NOTHING the GPUs are doing: every checkpoint they read is
+# already on disk. They are started first, in the background, because the
+# cards on this box belong to everyone -- on the night this was written both
+# were held by another user's jobs, and an earlier version of this script had
+# the CPU analyses gated behind the GPU queue, so a busy card would have
+# meant a night with nothing done at all. Never make work wait on a resource
+# it does not use.
+(
+    # C1.0 leads: it is the one result that can retire weeks of planned work
+    # before a line of it is written.
+    step "C1.0 ceiling" "$SWEEP/link_ceiling.csv" exp/link_ceiling.py
+    cpu exp/summarize_ceiling.py > exp/results/ceiling_summary.txt 2>&1
+    cat exp/results/ceiling_summary.txt | tee -a "$LOG"
+
+    step "A1/A2/A3 scoring" "$SWEEP/variant_scores.csv" exp/score_variants.py
+    cpu exp/summarize_variants.py > exp/results/variants_summary.txt 2>&1
+    cat exp/results/variants_summary.txt | tee -a "$LOG"
+) & CPUWORK=$!
+
+# ------------------------------------------------------------- 2. the cards
+# Task C's last runs first -- they were queued before this script existed and
+# finish the third batch of six seeds e13b section 3 needs. Wait for the
+# QUEUE to empty rather than for a process, so an interrupted task C is
+# simply resumed by whoever restarts it.
 say "waiting for task C to drain"
 while [ "$("$PY" exp/gpu_queue.py taskc --pending | wc -l)" -gt 0 ]; do
     sleep 300
 done
 say "task C drained"
 
-# ------------------------------------------------------------ 1. D1 on GPU
+# ------------------------------------------------------------ 3. D1 on GPU
 # Twelve 117k runs, ~10 min each, into the selection sweep's results root
 # with every validated epoch kept, so rule (iv) picks a checkpoint for the
 # _dir arms exactly as it does for the arms they are compared against.
 # run_task.sh waits for free VRAM before each run; if a card stays busy all
-# night with someone else's job, this simply takes longer.
+# night with someone else's job, this simply takes longer. It never kills
+# anything.
 say "D1: training the tangent-direction arms on both cards"
 bash exp/run_task.sh d1 0 0 2 "$SWEEP" 1 & D1A=$!
 bash exp/run_task.sh d1 1 1 2 "$SWEEP" 1 & D1B=$!
-
-# ------------------------------------------ 2. C1.0 on CPU, while D1 trains
-# FIRST among the analyses because it is the one that can retire weeks of
-# planned work before a line of it is written.
-step "C1.0 ceiling" "$SWEEP/link_ceiling.csv" exp/link_ceiling.py
-cpu exp/summarize_ceiling.py > exp/results/ceiling_summary.txt 2>&1
-cat exp/results/ceiling_summary.txt | tee -a "$LOG"
-
-# ------------------------------------------- 3. A1/A2/A3 on CPU, still going
-step "A1/A2/A3 scoring" "$SWEEP/variant_scores.csv" exp/score_variants.py
-cpu exp/summarize_variants.py > exp/results/variants_summary.txt 2>&1
-cat exp/results/variants_summary.txt | tee -a "$LOG"
+wait "$D1A"; wait "$D1B"
 
 # --------------------------------------------------------------- 4. D1 done
-wait "$D1A"; wait "$D1B"
 DONE=$(ls -d "$SWEEP"/*_dir_s*/final.pt 2>/dev/null | wc -l)
 say "D1 training finished: $DONE of 12 runs have final.pt"
 
@@ -76,6 +86,10 @@ say "D1 training finished: $DONE of 12 runs have final.pt"
 # it is called with NO arguments: an explicit subset would silently shrink
 # the file to that subset, which cost 54 runs' rows on 2026-08-26. The copy
 # is kept so a failed rescore does not leave the morning with neither.
+say "waiting for the CPU analyses before the rescore overwrites their input"
+wait "$CPUWORK"
+say "CPU analyses finished"
+
 if [ "$DONE" -gt 0 ]; then
     say "rescoring the sweep (all arms, including _dir)"
     cp "$SWEEP/checkpoint_scores.csv" "$SWEEP/checkpoint_scores.pre_d1.csv"
