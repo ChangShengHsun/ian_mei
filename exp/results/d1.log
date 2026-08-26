@@ -30,3 +30,4 @@ all checks passed
 === 2026-08-27 04:21:12 sweeping (4 arms x 6 seeds x 20 images, ~2h on CPU) ===
 4 arm(s), width 2.83 px, component filter 17 px
   K_focal_aug_s0 epoch 50 done
+  K_focal_aug_s1 epoch 100 done
