@@ -167,13 +167,35 @@ def main() -> None:
             mask = geo["skel"] & (geo["band"] == index)
             geo[f"ceiling_{band}"] = expected_run_length(mask, geo["gt"])
 
-    runs = sys.argv[1:] or default_runs
-    print(f"drive: {len(test_items)} images, component filter {component_px} px",
-          flush=True)
+    # Same protocol switch as stratify.py, and named the same way on purpose:
+    # E15's rule is that ERL arbitrates when Dice and the topology metrics
+    # disagree, so ERL has to be available under whichever protocol the
+    # disagreement was seen in. Output file is named after the checkpoint so
+    # the two protocols can never end up in one CSV.
+    checkpoint = "final.pt"
+    argv = list(sys.argv[1:])
+    if "--checkpoint" in argv:
+        index = argv.index("--checkpoint")
+        checkpoint = argv[index + 1]
+        del argv[index:index + 2]
+    out_name = ("erl.csv" if checkpoint == "final.pt"
+                else f"erl_{Path(checkpoint).stem}.csv")
+
+    runs = argv or default_runs
+    missing = [name for name in runs
+               if not (out_dir / name / checkpoint).exists()]
+    if missing:
+        # Loud, never a silent skip: a run dropping out of an ERL comparison
+        # without a word is how a three-seed headline keeps looking like a
+        # six-seed one.
+        print(f"WARNING: {len(missing)} run(s) have no {checkpoint} and are "
+              f"NOT in {out_name}: {', '.join(missing)}", flush=True)
+    print(f"drive: {len(test_items)} images, component filter {component_px} px,"
+          f" checkpoint {checkpoint} -> {out_name}", flush=True)
 
     rows = []
     for run_name in runs:
-        weights = out_dir / run_name / "final.pt"
+        weights = out_dir / run_name / checkpoint
         if not weights.exists():
             print(f"[{run_name}] no checkpoint, skipping", flush=True)
             continue
@@ -206,7 +228,7 @@ def main() -> None:
 
     if not rows:
         raise SystemExit("no checkpoints found")
-    out = RESULTS / "erl.csv"
+    out = RESULTS / out_name
     with out.open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
