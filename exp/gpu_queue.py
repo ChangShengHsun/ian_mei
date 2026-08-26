@@ -166,15 +166,20 @@ def shard(runs: tuple[str, ...], index: int, total: int) -> tuple[str, ...]:
     return tuple(runs[index::total])
 
 
-def pending(runs: tuple[str, ...]) -> tuple[str, ...]:
-    """Drop runs whose final.pt is already on disk.
+def pending(runs: tuple[str, ...], root: Path = RESULTS) -> tuple[str, ...]:
+    """Drop runs whose final.pt is already on disk under `root`.
 
     Gate on the artifact, never on a PID: CLAUDE.md's long-running-jobs note
     is that Wait-Process on a dead PID returns instantly and starts the next
     job against a half-finished predecessor.
+
+    `root` is a parameter because not every stage writes to exp/results. D1
+    and task B train into their own results roots, and asking about the
+    default one would report every run of theirs as pending forever -- a
+    retry loop reading that would never see its own work finish.
     """
     return tuple(name for name in runs
-                 if not (RESULTS / name / "final.pt").exists())
+                 if not (root / name / "final.pt").exists())
 
 
 def selftest() -> None:
@@ -306,6 +311,19 @@ def selftest() -> None:
         assert len(captured.getvalue().splitlines()) == len(sample), sample
     print("  an empty queue prints zero lines, not one blank one")
 
+    # pending() must answer about the root the runs are actually written to.
+    import tempfile
+    with tempfile.TemporaryDirectory() as raw:
+        root = Path(raw)
+        (root / d1[0]).mkdir(parents=True)
+        (root / d1[0] / "final.pt").write_bytes(b"")
+        assert pending(d1, root) == d1[1:], pending(d1, root)
+        # And the default root knows nothing about them: D1 trains into the
+        # sweep, so asking about exp/results would call all 12 pending for
+        # ever and a retry loop would never see its own work land.
+        assert pending(d1) == d1, "d1 must not be found under RESULTS"
+    print("  pending() answers about the root it is given, not a fixed one")
+
     print(f"gate {len(GATE)} runs, e13 {len(e13)} runs, "
           f"task1 {len(task1)} runs, recover {len(recover)} runs "
           f"({len(curve)} of them E13's narrow arms, first)")
@@ -323,7 +341,10 @@ def main() -> None:
         index, total = sys.argv[sys.argv.index("--shard") + 1].split("/")
         runs = shard(runs, int(index), int(total))
     if "--pending" in sys.argv:
-        runs = pending(runs)
+        root = RESULTS
+        if "--results" in sys.argv:
+            root = Path(sys.argv[sys.argv.index("--results") + 1])
+        runs = pending(runs, root)
     # Only when there is something to print. "\n".join(()) is the empty
     # string, and print() still emits a newline, so an empty queue came out as
     # one blank line and `... | wc -l` answered 1. Both gates that wait for a

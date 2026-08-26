@@ -59,11 +59,28 @@ df -h / | tail -1 | tee -a "$LOG"
 # finish the third batch of six seeds e13b section 3 needs. Wait for the
 # QUEUE to empty rather than for a process, so an interrupted task C is
 # simply resumed by whoever restarts it.
-say "waiting for task C to drain"
+# BOUNDED. The first version looped until pending hit zero with no way out.
+# Task C's remaining runs belong to one runner; if that runner dies, or its
+# runs fail for a reason retrying will not fix, pending never reaches zero
+# and D1 -- the work this night is actually for -- never starts. A wait with
+# no exit is a deadlock wearing a progress bar.
+say "waiting for task C to drain (up to 2h, then D1 goes first anyway)"
+WAITED=0
 while [ "$("$PY" exp/gpu_queue.py taskc --pending | wc -l)" -gt 0 ]; do
+    if [ "$WAITED" -ge 7200 ]; then
+        say "task C still has runs pending after 2h; starting D1 regardless"
+        break
+    fi
+    # If nothing is left to run them, restart the runner rather than waiting
+    # on a process that no longer exists.
+    if ! pgrep -f "[r]un_task.sh taskc" > /dev/null; then
+        say "no task C runner alive with runs pending; restarting its shard"
+        bash exp/run_task.sh taskc 0 0 2 exp/results 0 &
+    fi
     sleep 300
+    WAITED=$((WAITED + 300))
 done
-say "task C drained"
+say "task C: $("$PY" exp/gpu_queue.py taskc --pending | wc -l) still pending"
 
 # ------------------------------------------------------------ 3. D1 on GPU
 # Twelve 117k runs, ~10 min each, into the selection sweep's results root
@@ -72,10 +89,23 @@ say "task C drained"
 # run_task.sh waits for free VRAM before each run; if a card stays busy all
 # night with someone else's job, this simply takes longer. It never kills
 # anything.
-say "D1: training the tangent-direction arms on both cards"
-bash exp/run_task.sh d1 0 0 2 "$SWEEP" 1 & D1A=$!
-bash exp/run_task.sh d1 1 1 2 "$SWEEP" 1 & D1B=$!
-wait "$D1A"; wait "$D1B"
+# THREE PASSES, not one. run_task.sh waits for free VRAM before each run,
+# but the card can be taken in the moment between the check and the
+# allocation -- this box is shared, and another user's job appearing there is
+# normal, not exceptional. On that failure train.py exits, run_task.sh logs
+# it and moves on, and the run is lost for the night. A pass costs nothing
+# when there is nothing left to do: every run whose final.pt exists is
+# skipped, so a second pass over a finished queue is a few seconds of file
+# checks.
+for PASS in 1 2 3; do
+    LEFT=$("$PY" exp/gpu_queue.py d1 --pending --results "$SWEEP" | wc -l)
+    [ "$LEFT" -eq 0 ] && { say "D1: nothing pending, skipping pass $PASS"; \
+        break; }
+    say "D1 pass $PASS: $LEFT run(s) pending, on both cards"
+    bash exp/run_task.sh d1 0 0 2 "$SWEEP" 1 & D1A=$!
+    bash exp/run_task.sh d1 1 1 2 "$SWEEP" 1 & D1B=$!
+    wait "$D1A"; wait "$D1B"
+done
 
 # --------------------------------------------------------------- 4. D1 done
 DONE=$(ls -d "$SWEEP"/*_dir_s*/final.pt 2>/dev/null | wc -l)

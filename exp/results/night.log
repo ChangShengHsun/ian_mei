@@ -13,3 +13,67 @@
   A_dice_s4 epoch 10 done (closing radius 6 px)
   A_dice_s5 epoch 10 done (closing radius 6 px)
   H_aug_s0 epoch 30 done (closing radius 6 px)
+  H_aug_s1 epoch 70 done (closing radius 6 px)
+  H_aug_s2 epoch 70 done (closing radius 6 px)
+  H_aug_s3 epoch 70 done (closing radius 6 px)
+  H_aug_s4 epoch 90 done (closing radius 6 px)
+  H_aug_s5 epoch 100 done (closing radius 6 px)
+  G_focal_s0 epoch 30 done (closing radius 6 px)
+  G_focal_s1 epoch 40 done (closing radius 6 px)
+  G_focal_s2 epoch 30 done (closing radius 6 px)
+  G_focal_s3 epoch 20 done (closing radius 6 px)
+  G_focal_s4 epoch 40 done (closing radius 6 px)
+  G_focal_s5 epoch 30 done (closing radius 6 px)
+  K_focal_aug_s0 epoch 50 done (closing radius 6 px)
+  K_focal_aug_s1 epoch 100 done (closing radius 6 px)
+  K_focal_aug_s2 epoch 70 done (closing radius 6 px)
+  K_focal_aug_s3 epoch 80 done (closing radius 6 px)
+  K_focal_aug_s4 epoch 90 done (closing radius 6 px)
+  K_focal_aug_s5 epoch 60 done (closing radius 6 px)
+
+wrote 1920 rows to /home/ivanchang/ian_mei/exp/results/selection_sweep/link_ceiling.csv
+=== 2026-08-27 00:48:44 C1.0 ceiling OK ===
+=== C1.0: the ceiling on severs-guided linking ===
+traced fraction of the ground-truth tree, report half, weights chosen by 10 (rule iv); closing radii used [6] px
+
+  arm                raw  closing   oracle     all  headroom  unclaimed   verdict
+  -------------------------------------------------------------------------------
+  A_dice          32.4%   46.0%   36.1%  97.8%    +3.7%     -9.9%   NOT WORTH BUILDING
+  H_aug           34.3%   45.6%   37.2%  97.8%    +2.9%     -8.3%   NOT WORTH BUILDING
+  G_focal         39.9%   54.2%   44.7%  97.8%    +4.7%     -9.5%   NOT WORTH BUILDING
+  K_focal_aug     47.4%   62.0%   52.4%  97.8%    +5.1%     -9.6%   NOT WORTH BUILDING
+
+headroom  = oracle_sever - raw: everything a perfect linker adds.
+unclaimed = oracle_sever - closing: what is left after E9b's blind
+            closing already took what it can. C1's real budget.
+oracle_all is the bound for ANY post-processing: the distance from
+oracle_sever to it is tree that no linker can reach, because
+nothing was predicted near it. That part is D1's and B1's problem,
+not C1's.
+
+Both oracle columns use ground truth by construction. They are
+upper bounds, not methods, and nothing here is a claim about a
+model. The one decision they support is where the next weeks go.
+=== 2026-08-27 00:48:45 A1/A2/A3 scoring ===
+4 arm(s), 20 images, component filter 17 px, SWA over epochs (60, 70, 80, 90, 100)
+  A_dice_s0 rule_i done
+  A_dice_s0 rule_iv done
+  A_dice_s0 tta_i done
+  A_dice_s0 tta_iv done
+  A_dice_s0 swa done
+  A_dice_s0 swa_tta done
+  A_dice_s1 rule_i done
+  A_dice_s1 rule_iv done
+  A_dice_s1 tta_i done
+  A_dice_s1 tta_iv done
+=== 2026-08-27 00:52:17 night queue starting ===
+/dev/nvme0n1p2  916G  745G  125G  86% /
+=== 2026-08-27 00:52:17 waiting for task C to drain (up to 2h, then D1 goes first anyway) ===
+=== 2026-08-27 00:52:17 C1.0 ceiling ===
+4 arm(s), 20 images, weights = (iv) best clDice, component filter 17 px, closing radii [1, 2, 3, 4, 6] px
+  A_dice_s0 epoch 30 done (closing radius 6 px free, 1 px at the oracle's Dice cost)
+  A_dice_s1 epoch 20 done (closing radius 6 px free, 1 px at the oracle's Dice cost)
+  A_dice_s2 epoch 30 done (closing radius 6 px free, 1 px at the oracle's Dice cost)
+  A_dice_s3 epoch 10 done (closing radius 6 px free, 1 px at the oracle's Dice cost)
+  A_dice_s4 epoch 10 done (closing radius 6 px free, 1 px at the oracle's Dice cost)
+  A_dice_s5 epoch 10 done (closing radius 6 px free, 1 px at the oracle's Dice cost)
