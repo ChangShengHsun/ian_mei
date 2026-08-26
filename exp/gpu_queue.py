@@ -137,6 +137,15 @@ def stage(name: str) -> tuple[str, ...]:
     if name == "taskc":
         arms = ("A_dice", "B_cldice", "H_aug", "G_focal", "K_focal_aug")
         return tuple(f"{arm}_s{seed}" for seed in range(6, 12) for arm in arms)
+    # D1: the tangent-direction head, six seeds of each of the two arms it
+    # can be compared against. Trained into the selection sweep's results
+    # root with every validated epoch kept, so the SAME selection rule that
+    # picks a checkpoint for A_dice and H_aug picks one for A_dice_dir and
+    # H_aug_dir -- comparing a new arm under one protocol against a baseline
+    # under another is the confound e13b R.3 already paid for.
+    if name == "d1":
+        return tuple(f"{arm}_s{seed}" for seed in range(6)
+                     for arm in ("A_dice_dir", "H_aug_dir"))
     if name == "curve":
         return tuple(run for run in stage("recover") if is_curve_arm(run))
     if name == "recover_rest":
@@ -224,15 +233,52 @@ def selftest() -> None:
         config = run_name.rsplit("_s", 1)[0]
         assert train.net_depth(config) == 3 and train.base_width(config) == 16
         assert int(run_name.rsplit("_s", 1)[1]) >= 6, run_name
-    # Task C must not collide with runs that already exist, or it would
-    # retrain over published weights.
-    assert not (set(taskc) & set(existing_runs())), \
-        sorted(set(taskc) & set(existing_runs()))
+    # Task C must not collide with the runs that were already PUBLISHED, or
+    # it would retrain over the weights every earlier verdict was measured
+    # from. Those are seeds 0-5; task C is 6-11 by construction.
+    #
+    # Written first as "must not collide with existing_runs()", which passed
+    # until task C started and then failed on task C's own directories -- a
+    # self-check that goes red the moment the thing it checks starts working
+    # is a check on the wrong quantity. The quantity is the seed number.
+    published = {run for run in existing_runs()
+                 if int(run.rsplit("_s", 1)[1]) < 6}
+    assert not (set(taskc) & published), sorted(set(taskc) & published)
+    assert all(int(run.rsplit("_s", 1)[1]) >= 6 for run in taskc)
     print(f"  taskb {len(taskb)} runs @31M, taskc {len(taskc)} runs @117k "
           f"seeds 6-11")
 
+    d1 = stage("d1")
+    assert len(d1) == 12, len(d1)
+    assert len(set(d1)) == len(d1), "duplicate run in d1"
+    for run_name in d1:
+        config = run_name.rsplit("_s", 1)[0]
+        assert config in train.CONFIGS, config
+        assert train.uses_direction(config), config
+        assert train.net_depth(config) == 3 and train.base_width(config) == 16
+        # The trap E13 paid for, in its D1 shape: AUGMENTS is keyed on the
+        # FULL config name, so H_aug_dir missing from it would train with no
+        # augmentation at all and still answer to H_aug's name.
+        base = config[:-len("_dir")]
+        assert train.AUGMENTS.get(config, ()) == train.AUGMENTS.get(base, ()),\
+            f"{config} does not carry {base}'s augmentation tuple"
+        # And it must not collide with a run that already exists under a
+        # different protocol.
+        assert run_name not in taskc and run_name not in existing_runs()
+    print(f"  d1 {len(d1)} runs: {d1[0]} .. {d1[-1]}, each carrying its "
+          f"namesake's augmentation")
+
     curve, rest = stage("curve"), stage("recover_rest")
-    assert len(curve) == 27, len(curve)
+    # The 27 published runs of E13's narrow arms are what turn a one-column
+    # capacity table into a three-column one, so they must all be here and
+    # must lead. Not "== 27": that was true until task C added seeds 6-11 of
+    # the same arms, and a count is the wrong thing to pin -- what matters is
+    # that nothing published is missing.
+    assert len(curve) >= 27, len(curve)
+    assert {run for run in curve
+            if int(run.rsplit("_s", 1)[1]) < 6} >= {
+        run for run in existing_runs()
+        if is_curve_arm(run) and int(run.rsplit("_s", 1)[1]) < 6}
     assert recover[:len(curve)] == curve, "the curve arms must lead recover"
     assert set(curve) | set(rest) == set(recover), "curve + rest != recover"
     assert not set(curve) & set(rest), "a run is in both curve and rest"

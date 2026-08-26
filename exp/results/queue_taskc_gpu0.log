@@ -199,3 +199,6 @@ train norm mean 0.4177 std 0.1442
 [K_focal_aug_s10] epoch 100 loss 0.4146 dice 0.7998 clDice 0.8543 b0err 37.8 95HD 4.01 (12 min)
 [K_focal_aug_s10] done in 12 min; best dice 0.8087
 00:22:51 gpu0 2531MB free, need 3500; waiting
+00:27:51 gpu0 2531MB free, need 3500; waiting
+00:32:51 gpu0 2531MB free, need 3500; waiting
+00:37:51 gpu0 2531MB free, need 3500; waiting

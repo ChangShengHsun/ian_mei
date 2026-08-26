@@ -23,6 +23,7 @@ from scipy import ndimage
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import augment
+import direction
 import drive
 import liot
 import metrics
@@ -213,12 +214,31 @@ def uses_liot(config_name: str) -> bool:
     return "liot" in config_name
 
 
+# D1's auxiliary loss weight. The same 0.5 the clDice arms give their second
+# term, so it is a weight this repo already uses rather than a new number
+# tuned on a result. PRE-REGISTERED 2026-08-27, before the first _dir run.
+DIRECTION_WEIGHT = 0.5
+
+
+def uses_direction(config_name: str) -> bool:
+    """Whether this config carries D1's auxiliary tangent-direction head.
+
+    Encoded in the name for the same reason width and depth are: an analysis
+    script holding only a run name has to build the architecture the
+    checkpoint was saved from. `_dir` adds a second 1x1 head and changes
+    nothing else -- same backbone, same segmentation loss, same augmentation
+    as the arm it is named after.
+    """
+    return "dir" in config_name.split("_")
+
+
 def build_model(config_name: str) -> "TinyUNet":
     """The only place architecture is derived from a config name."""
     blurpool, _ = CONFIGS[config_name]
     return TinyUNet(base=base_width(config_name), blurpool=blurpool,
                     in_channels=len(liot.DIRECTIONS) if uses_liot(config_name)
-                    else 1, depth=net_depth(config_name)).to(DEVICE)
+                    else 1, depth=net_depth(config_name),
+                    direction=uses_direction(config_name)).to(DEVICE)
 
 
 class TinyUNet(nn.Module):
@@ -236,7 +256,8 @@ class TinyUNet(nn.Module):
     """
 
     def __init__(self, base: int = 16, blurpool: bool = False,
-                 in_channels: int = 1, depth: int = 3):
+                 in_channels: int = 1, depth: int = 3,
+                 direction: bool = False):
         super().__init__()
         self.depth = depth
         channels = [base * 2 ** level for level in range(depth)]
@@ -253,8 +274,13 @@ class TinyUNet(nn.Module):
                     nn.ConvTranspose2d(wide, narrow, 2, 2))
             setattr(self, f"dec{level}", conv_block(narrow * 2, narrow))
         self.head = nn.Conv2d(base, 1, 1)
+        # D1. Two channels, not one: the target is (sin 2theta, cos 2theta),
+        # because a vessel tangent is an axis and a single angle tears at the
+        # wrap-around. See exp/direction.py for why, and for the test.
+        self.dir_head = nn.Conv2d(base, 2, 1) if direction else None
 
-    def forward(self, x: torch.Tensor) -> torch.Tensor:
+    def features(self, x: torch.Tensor) -> torch.Tensor:
+        """Everything up to the 1x1 heads. Shared by both of them."""
         skips = []
         for level in range(1, self.depth):
             skips.append(getattr(self, f"enc{level}")(x))
@@ -263,7 +289,24 @@ class TinyUNet(nn.Module):
         for level in range(self.depth - 1, 0, -1):
             x = getattr(self, f"dec{level}")(torch.cat(
                 [getattr(self, f"up{level}")(x), skips[level - 1]], 1))
-        return self.head(x)
+        return x
+
+    def forward(self, x: torch.Tensor) -> torch.Tensor:
+        """Segmentation logits, and nothing else.
+
+        Deliberately unchanged in shape by D1: twenty analysis scripts call
+        model(image) and index [0, 0]. A _dir model reached through forward()
+        is exactly the segmentation model it would have been, so every
+        existing script scores it correctly with no edit.
+        """
+        return self.head(self.features(x))
+
+    def forward_direction(self, x: torch.Tensor) -> tuple:
+        """(segmentation logits, tangent field). Training and D1 only."""
+        if self.dir_head is None:
+            raise ValueError("this model was built without a direction head")
+        shared = self.features(x)
+        return self.head(shared), self.dir_head(shared)
 
 
 # --------------------------------------------------------------- losses
@@ -503,6 +546,15 @@ CONFIGS = {
     "H_aug_w64_d5": (False, None),
     "G_focal_w64_d5": (False, "focal"),
     "K_focal_aug_w64_d5": (False, "focal"),
+    # D1 (2026-08-27). Identical to the arm each is named after -- same
+    # backbone, same segmentation loss, same augmentation tuple -- plus a
+    # 2-channel 1x1 head predicting the vessel tangent axis. 34 extra
+    # parameters out of 117,393, so a difference is the auxiliary TASK and
+    # not capacity. Two questions: does predicting direction improve
+    # segmentation, and is the predicted field a better cost map for C1's
+    # linker than 1-p.
+    "A_dice_dir": (False, None),
+    "H_aug_dir": (False, None),
 }
 
 # Which augmentations each config gets. Keeping this beside CONFIGS rather than
@@ -529,7 +581,28 @@ AUGMENTS = {
     # Must match their narrow namesakes exactly; test_capacity.py asserts it.
     "H_aug_w64_d5": ("dihedral", "jitter"),
     "K_focal_aug_w64_d5": ("dihedral", "jitter"),
+    # Must match H_aug exactly; test_capacity.py asserts every variant does.
+    "H_aug_dir": ("dihedral", "jitter"),
 }
+
+
+def direction_loss(field, target) -> torch.Tensor:
+    """Coherence-weighted MSE on (sin 2theta, cos 2theta), on vessel pixels.
+
+    Weighted, not plain: a junction has no single tangent, and coherence is
+    near zero exactly there, so the head is not charged for failing to invent
+    one. Restricted to the vessel because the tangent of a background pixel
+    is not a quantity -- charging it would spend most of the loss on the 88%
+    of the frame that has no direction at all.
+
+    The head is NOT asked to produce a unit vector. Its magnitude is free to
+    fall where the target's coherence is low, which is the same information
+    the weight carries and costs nothing to allow.
+    """
+    weight = target[:, 2:3]
+    error = (field - target[:, :2]) ** 2
+    total = weight.sum() * 2 + 1e-6
+    return (error * weight).sum() / total
 
 
 def compute_loss(logits, target, dist, extra, image=None):
@@ -570,7 +643,15 @@ def stack_split(split: str) -> dict:
         ndimage.distance_transform_edt(~item["label"])
         - ndimage.distance_transform_edt(item["label"]) for item in items])
     dists = np.clip(dists, -DIST_CLIP, DIST_CLIP).astype(np.float32) / DIST_CLIP
+    # D1's target: the tangent axis at every pixel, in double-angle form,
+    # with the coherence that says where it means anything. Built here rather
+    # than per crop because it is deterministic and three gaussian filters on
+    # 20 full images cost seconds against 1M crops per run.
+    fields = [direction.tangent_field(item["label"] > 0.5) for item in items]
     return {"images": images, "labels": labels, "fovs": fovs, "dists": dists,
+            "dir_sin": np.stack([f[0] for f in fields]),
+            "dir_cos": np.stack([f[1] for f in fields]),
+            "dir_weight": np.stack([f[2] for f in fields]),
             "names": [item["name"] for item in items]}
 
 
@@ -610,7 +691,7 @@ def liot_stats(data: dict) -> tuple[np.ndarray, np.ndarray]:
 
 def sample_batch(data: dict, rng: np.random.Generator, mean, std,
                  augments: tuple = (), inpainted: np.ndarray | None = None,
-                 use_liot: bool = False):
+                 use_liot: bool = False, use_direction: bool = False):
     """One batch of random crops, optionally augmented.
 
     Order matters. CoLeTra reads from the inpainted copy of the SAME crop, so
@@ -629,6 +710,7 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
     inner = slice(pad, pad + PATCH)
     height, width = data["images"].shape[1:]
     images, labels, dists = [], [], []
+    sines, cosines, weights = [], [], []
     while len(images) < BATCH:
         index = rng.integers(len(data["images"]))
         top = rng.integers(height - size)
@@ -641,11 +723,29 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
         image = data["images"][index][window]
         label = data["labels"][index][window]
         dist = data["dists"][index][window]
+        # Read only when wanted: cross_dataset, train_stare, bench_step and
+        # the LIOT tests each build their own data dict, and none of them
+        # carries these planes. An unconditional read makes D1's target a
+        # requirement of every caller instead of of the one that asked.
+        sine = cosine = weight = None
+        if use_direction:
+            sine = data["dir_sin"][index][window]
+            cosine = data["dir_cos"][index][window]
+            weight = data["dir_weight"][index][window]
         if "coletra" in augments:
             image = augment.coletra(image, label, rng,
                                     inpainted=inpainted[index][window])
         if "dihedral" in augments:
-            image, label, dist = augment.dihedral(rng, image, label, dist)
+            # The tangent field's VALUES move too, not just its pixels. Moving
+            # the planes alone leaves a field a quarter turn off the vessel it
+            # is drawn on, which trains to a plausible-looking nothing; the
+            # transform and the test that catches it are in direction.py.
+            turns, flip = augment.dihedral_choice(rng)
+            image, label, dist = augment.apply_dihedral(
+                turns, flip, image, label, dist)
+            if use_direction:
+                weight, = augment.apply_dihedral(turns, flip, weight)
+                sine, cosine = direction.dihedral(turns, flip, sine, cosine)
         if "jitter" in augments:
             image = augment.jitter(image, rng)
         if use_liot:
@@ -655,15 +755,32 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
         images.append(image)
         labels.append(label[inner, inner])
         dists.append(dist[inner, inner])
+        if use_direction:
+            sines.append(sine[inner, inner])
+            cosines.append(cosine[inner, inner])
+            weights.append(weight[inner, inner])
     batch = np.stack(images)
     if batch.ndim == 3:
         batch = batch[:, None]
     # mean/std are scalars for grey input and shape (C, 1, 1) for LIOT, so the
     # same expression normalises both.
     batch = ((batch - mean) / std).astype(np.float32)
-    return (torch.from_numpy(batch).to(DEVICE),
-            torch.from_numpy(np.stack(labels))[:, None].to(DEVICE),
-            torch.from_numpy(np.stack(dists))[:, None].to(DEVICE))
+    out = (torch.from_numpy(batch).to(DEVICE),
+           torch.from_numpy(np.stack(labels))[:, None].to(DEVICE),
+           torch.from_numpy(np.stack(dists))[:, None].to(DEVICE))
+    # Three values unless a direction target was ASKED for. Six call sites in
+    # this repo unpack exactly three, and a fourth slot appearing under them
+    # would break every one of them at import time -- for a target five of
+    # the six have no use for. The arity follows the argument, and
+    # test_direction.py pins both shapes.
+    if not use_direction:
+        return out
+    # (sin 2theta, cos 2theta, coherence) stacked into one 3-channel tensor,
+    # so the loss receives its target and its weight together and cannot be
+    # handed one without the other.
+    field = np.stack([np.stack(sines), np.stack(cosines)], axis=1)
+    return out + (torch.from_numpy(np.concatenate(
+        [field, np.stack(weights)[:, None]], axis=1)).to(DEVICE),)
 
 
 @torch.no_grad()
@@ -778,6 +895,7 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     _, extra = CONFIGS[config_name]  # build_model owns the architecture half
     augments = AUGMENTS.get(config_name, ())
     use_liot = uses_liot(config_name)
+    use_direction = uses_direction(config_name)
     if use_liot:
         # The grey mean/std main() computed are meaningless for a byte-code
         # input, so recompute here rather than making every caller know.
@@ -856,10 +974,20 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     for epoch in range(start_epoch, EPOCHS):
         running = 0.0
         for _ in range(steps):
-            images, labels, dists = sample_batch(
-                train, rng, mean, std, augments, inpainted, use_liot)
             optimiser.zero_grad()
-            loss = compute_loss(model(images), labels, dists, extra, images)
+            if use_direction:
+                images, labels, dists, field = sample_batch(
+                    train, rng, mean, std, augments, inpainted, use_liot,
+                    True)
+                logits, predicted = model.forward_direction(images)
+                loss = compute_loss(logits, labels, dists, extra, images)
+                loss = loss + DIRECTION_WEIGHT * direction_loss(predicted,
+                                                               field)
+            else:
+                images, labels, dists = sample_batch(
+                    train, rng, mean, std, augments, inpainted, use_liot)
+                loss = compute_loss(model(images), labels, dists, extra,
+                                    images)
             loss.backward()
             optimiser.step()
             running += loss.item()

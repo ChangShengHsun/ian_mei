@@ -211,3 +211,18 @@ train norm mean 0.4177 std 0.1442
 00:11:55 gpu1 2541MB free, need 3500; waiting
 00:16:55 gpu1 2541MB free, need 3500; waiting
 00:21:55 gpu1 2123MB free, need 3500; waiting
+--- 2026-08-27 00:26:55 K_focal_aug_s11 ---
+results -> /home/ivanchang/ian_mei/exp/results
+train norm mean 0.4177 std 0.1442
+[K_focal_aug_s11] epoch  10 loss 0.4569 dice 0.8040 clDice 0.8437 b0err 54.7 95HD 4.33 (1 min)
+[K_focal_aug_s11] epoch  20 loss 0.4443 dice 0.8018 clDice 0.8429 b0err 41.5 95HD 4.71 (3 min)
+[K_focal_aug_s11] epoch  30 loss 0.4363 dice 0.8014 clDice 0.8504 b0err 46.0 95HD 4.00 (4 min)
+[K_focal_aug_s11] epoch  40 loss 0.4330 dice 0.7994 clDice 0.8516 b0err 38.2 95HD 4.07 (5 min)
+[K_focal_aug_s11] epoch  50 loss 0.4267 dice 0.8005 clDice 0.8544 b0err 40.9 95HD 3.95 (6 min)
+[K_focal_aug_s11] epoch  60 loss 0.4248 dice 0.8010 clDice 0.8544 b0err 39.0 95HD 4.02 (7 min)
+[K_focal_aug_s11] epoch  70 loss 0.4243 dice 0.7980 clDice 0.8514 b0err 44.0 95HD 4.11 (9 min)
+[K_focal_aug_s11] epoch  80 loss 0.4220 dice 0.7985 clDice 0.8539 b0err 41.0 95HD 3.96 (10 min)
+[K_focal_aug_s11] epoch  90 loss 0.4225 dice 0.7977 clDice 0.8548 b0err 40.5 95HD 3.87 (11 min)
+[K_focal_aug_s11] epoch 100 loss 0.4197 dice 0.7982 clDice 0.8550 b0err 37.5 95HD 4.03 (12 min)
+[K_focal_aug_s11] done in 12 min; best dice 0.8040
+=== 2026-08-27 00:39:16 taskc gpu=1 done ===

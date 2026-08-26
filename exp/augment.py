@@ -46,19 +46,37 @@ COLETRA_PATCHES = 2
 COLETRA_SIGMA = COLETRA_PATCH / 4.0
 
 
-def dihedral(rng, *planes: np.ndarray) -> tuple:
-    """One of the eight symmetries of the square, applied to every plane.
+def dihedral_choice(rng) -> tuple[int, bool]:
+    """Draw one element of the group: (quarter turns, whether to mirror).
 
-    Image, label and distance map must receive the SAME element or the batch
-    silently teaches the network a mirrored target, which no loss would flag.
+    Split out from dihedral() so a caller carrying a plane that is not a
+    scalar field -- D1's tangent field, whose VALUES also have to move -- can
+    apply the same element. The two draws are in the same order dihedral()
+    has always made them, so a run's rng stream is unchanged by this split.
     """
-    turns = int(rng.integers(4))
-    flip = rng.random() < 0.5
+    return int(rng.integers(4)), bool(rng.random() < 0.5)
+
+
+def apply_dihedral(turns: int, flip: bool, *planes: np.ndarray) -> tuple:
+    """Move planes through a given element of the group."""
     out = []
     for plane in planes:
         moved = np.rot90(plane, turns)
         out.append(np.ascontiguousarray(np.fliplr(moved) if flip else moved))
     return tuple(out)
+
+
+def dihedral(rng, *planes: np.ndarray) -> tuple:
+    """One of the eight symmetries of the square, applied to every plane.
+
+    Image, label and distance map must receive the SAME element or the batch
+    silently teaches the network a mirrored target, which no loss would flag.
+
+    Scalar fields only. A field whose values are directions needs
+    direction.dihedral on top of this, or it comes out pointing across the
+    vessel it is drawn on; see that module for the transform and its test.
+    """
+    return apply_dihedral(*dihedral_choice(rng), *planes)
 
 
 def jitter(image: np.ndarray, rng, gamma=(0.7, 1.4), gain=(0.85, 1.15),
