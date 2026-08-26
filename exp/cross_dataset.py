@@ -217,8 +217,8 @@ def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
     # where an interrupted run died, throwing away weights that were already
     # saved. If they are on disk, skip straight to scoring.
     if (out_dir / "final.pt").exists():
-        state = torch.load(out_dir / "final.pt", weights_only=False)
-        model = train.TinyUNet()
+        state = train.load_checkpoint(out_dir / "final.pt")
+        model = train.TinyUNet().to(train.DEVICE)
         model.load_state_dict(state["model"])
         model.eval()
         print(f"[{dataset}/{run_name}] weights found, scoring only", flush=True)
@@ -230,7 +230,7 @@ def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
 
     torch.manual_seed(int(seed_tag))
     rng = np.random.default_rng(int(seed_tag))
-    model = train.TinyUNet()
+    model = train.TinyUNet().to(train.DEVICE)
     optimiser = torch.optim.Adam(model.parameters(), lr=1e-3)
     start_epoch = 0
 
@@ -240,7 +240,7 @@ def train_one(dataset: str, run_name: str, data: dict, test_items: list[dict],
     # and a 60-epoch run with nothing on disk until the end is a 28-minute bet.
     ckpt_path = out_dir / "ckpt.pt"
     if ckpt_path.exists():
-        state = torch.load(ckpt_path, weights_only=False)
+        state = train.load_checkpoint(ckpt_path)
         model.load_state_dict(state["model"])
         optimiser.load_state_dict(state["optimiser"])
         rng, start_epoch = state["rng"], state["epoch"]

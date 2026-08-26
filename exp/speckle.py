@@ -35,7 +35,7 @@ CONN8 = np.ones((3, 3), dtype=bool)
 def load_model(run_name: str) -> torch.nn.Module:
     config_name = run_name.rsplit("_s", 1)[0]
     model = train.build_model(config_name)
-    state = torch.load(RESULTS / run_name / "final.pt", weights_only=False)
+    state = train.load_checkpoint(RESULTS / run_name / "final.pt")
     model.load_state_dict(state["model"])
     model.eval()
     return model

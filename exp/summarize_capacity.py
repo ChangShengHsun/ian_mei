@@ -33,6 +33,14 @@ DIM, CLEAR = "Q1_dimmest", "Q4_clearest"
 MIN_SIZE = gated.PRIMARY_MIN_SIZE
 NARROW = ("A_dice", "B_cldice", "H_aug")
 WIDE = tuple(f"{name}_w32" for name in NARROW)
+# E13's third point, pre-registered 2026-08-26 before its first training step.
+# 117k and 467k are both far below the field standard, so "the loss advantage
+# is a small-model artifact" is currently a claim about two small models. The
+# third point is 31M in the shape a reviewer expects -- 5 levels at base 64,
+# not this net widened to base 256, which would spend every parameter at full
+# patch resolution. Suffix order matches train.CONFIGS.
+POINTS = (("base=16", ""), ("base=32", "_w32"), ("31M/d5", "_w64_d5"))
+DEEP = tuple(f"{name}_w64_d5" for name in NARROW)
 
 
 def paired_seeds(*arms: str) -> tuple[str, ...]:
@@ -63,7 +71,7 @@ def compare_widths(rows, better: str, worse: str, band: str,
     """
     print(f"  {label}")
     verdicts = {}
-    for width, suffix in (("base=16", ""), ("base=32", "_w32")):
+    for width, suffix in POINTS:
         seeds = paired_seeds(better + suffix, worse + suffix)
         if not seeds:
             print(f"    {width:9} not trained yet")
@@ -85,29 +93,48 @@ def compare_widths(rows, better: str, worse: str, band: str,
         print(f"    {width:9} {result['mean']:+.4f}  t={result['t']:6.2f}  "
               f"{len(per)} seeds  {label}  "
               f"[{' '.join(f'{d:+.4f}' for d in per)}]")
-    left, right = verdicts["base=16"], verdicts["base=32"]
-    if left and right:
-        change = right[0] - left[0]
-        print(f"    -> gap changes by {change:+.4f} at 4x width "
-              f"({'grows' if change > 0 else 'shrinks'})")
+    # Report every consecutive step of the curve rather than only its ends:
+    # "shrinks then shrinks again" and "shrinks then rebounds" are different
+    # findings and a single first-to-last delta cannot tell them apart.
+    for (left_name, _), (right_name, _) in zip(POINTS, POINTS[1:]):
+        left, right = verdicts[left_name], verdicts[right_name]
+        if left and right:
+            change = right[0] - left[0]
+            print(f"    -> gap changes by {change:+.4f} from {left_name} to "
+                  f"{right_name} ({'grows' if change > 0 else 'shrinks'})")
     print()
 
 
 def selftest() -> None:
     import train
-    for name in NARROW + WIDE:
+    for name in NARROW + WIDE + DEEP:
         assert name in train.CONFIGS, name
     for narrow, wide in zip(NARROW, WIDE):
         assert train.CONFIGS[narrow] == train.CONFIGS[wide], narrow
         assert train.AUGMENTS.get(narrow, ()) == train.AUGMENTS.get(wide, ()), \
             f"{wide} is not {narrow} at another width"
         assert train.base_width(wide) == 4 * train.base_width(narrow) // 2, wide
+    # The third point must be the same three arms again and nothing else: an
+    # arm that quietly loses its augmentation tuple at a new suffix is E13's
+    # H_aug_w32 bug, which is why AUGMENTS is checked and not just CONFIGS.
+    for narrow, deep in zip(NARROW, DEEP):
+        assert train.CONFIGS[narrow] == train.CONFIGS[deep], narrow
+        assert train.AUGMENTS.get(narrow, ()) == train.AUGMENTS.get(deep, ()), \
+            f"{deep} is not {narrow} at another capacity"
+        assert train.base_width(deep) == 64 and train.net_depth(deep) == 5, deep
+    # Every suffix in POINTS has to name real configs, or a point silently
+    # reads "not trained yet" forever.
+    for _, suffix in POINTS:
+        for arm in NARROW:
+            assert arm + suffix in train.CONFIGS, arm + suffix
     counts = {n: sum(p.numel() for p in train.build_model(n).parameters())
-              for n in (NARROW[0], WIDE[0])}
+              for n in (NARROW[0], WIDE[0], DEEP[0])}
     ratio = counts[WIDE[0]] / counts[NARROW[0]]
     assert 3.5 < ratio < 4.0, counts
-    print(f"three arms, each present at both widths; "
-          f"{counts[NARROW[0]]:,} -> {counts[WIDE[0]]:,} params ({ratio:.1f}x)")
+    assert 25e6 < counts[DEEP[0]] < 40e6, counts
+    print(f"three arms, each present at all {len(POINTS)} capacities; "
+          f"{counts[NARROW[0]]:,} -> {counts[WIDE[0]]:,} -> "
+          f"{counts[DEEP[0]]:,} params")
     print("all checks passed")
 
 

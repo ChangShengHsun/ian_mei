@@ -1,0 +1,16 @@
+=== 2026-08-26 05:00:39 stage=gate shard=1/2 gpu=1 ===
+1 runs on this card
+--- 2026-08-26 05:00:41 H_aug_w64_d5_s0 ---
+train norm mean 0.4177 std 0.1442
+[H_aug_w64_d5_s0] epoch  10 loss 0.4521 dice 0.8080 clDice 0.8143 b0err 56.0 95HD 5.82 (2 min)
+[H_aug_w64_d5_s0] epoch  20 loss 0.4371 dice 0.8150 clDice 0.8187 b0err 46.6 95HD 6.11 (3 min)
+[H_aug_w64_d5_s0] epoch  30 loss 0.4295 dice 0.8180 clDice 0.8206 b0err 48.0 95HD 5.85 (4 min)
+[H_aug_w64_d5_s0] epoch  40 loss 0.4212 dice 0.8241 clDice 0.8237 b0err 48.8 95HD 5.01 (6 min)
+[H_aug_w64_d5_s0] epoch  50 loss 0.4205 dice 0.8282 clDice 0.8379 b0err 46.7 95HD 3.88 (7 min)
+[H_aug_w64_d5_s0] epoch  60 loss 0.4176 dice 0.8274 clDice 0.8330 b0err 53.6 95HD 3.74 (9 min)
+[H_aug_w64_d5_s0] epoch  70 loss 0.4199 dice 0.8269 clDice 0.8285 b0err 52.2 95HD 3.89 (10 min)
+[H_aug_w64_d5_s0] epoch  80 loss 0.4127 dice 0.8271 clDice 0.8327 b0err 59.9 95HD 3.58 (12 min)
+[H_aug_w64_d5_s0] epoch  90 loss 0.4093 dice 0.8280 clDice 0.8330 b0err 56.0 95HD 3.55 (13 min)
+[H_aug_w64_d5_s0] epoch 100 loss 0.4066 dice 0.8276 clDice 0.8353 b0err 54.1 95HD 3.38 (14 min)
+[H_aug_w64_d5_s0] done in 14 min
+=== 2026-08-26 05:15:14 stage=gate gpu=1 done, 0 failed ===

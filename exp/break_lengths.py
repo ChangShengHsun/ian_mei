@@ -190,7 +190,7 @@ def main() -> None:
             continue
         model = train.build_model(run_name.rsplit("_s", 1)[0])
         model.load_state_dict(
-            torch.load(weights, weights_only=False)["model"])
+            train.load_checkpoint(weights)["model"])
         model.eval()
         mean, std = train.normalisation(run_name, stacked)
         for item, geo in zip(val, geometry):

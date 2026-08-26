@@ -207,7 +207,8 @@ def _checks() -> None:
         images, labels, _ = train.sample_batch(
             data, np.random.default_rng(1), 0.0, 1.0, geometry,
             inpainted=marker[None] if "coletra" in geometry else None)
-        assert np.allclose(images.numpy(), labels.numpy(), atol=1e-5), name
+        assert np.allclose(images.cpu().numpy(), labels.cpu().numpy(),
+                       atol=1e-5), name
         print(f"  {name}: image and label stay aligned through {geometry}")
 
     # And the augmentation must actually change something, or the arm is a
@@ -215,7 +216,8 @@ def _checks() -> None:
     plain, _, _ = train.sample_batch(data, np.random.default_rng(1), 0.0, 1.0)
     moved, _, _ = train.sample_batch(data, np.random.default_rng(1), 0.0, 1.0,
                                      ("dihedral", "jitter"))
-    assert not np.allclose(plain.numpy(), moved.numpy()), "augmentation is a no-op"
+    assert not np.allclose(plain.cpu().numpy(), moved.cpu().numpy()), \
+        "augmentation is a no-op"
     print("  augmented batches differ from unaugmented ones")
     print("all checks passed")
 

@@ -67,7 +67,7 @@ def main() -> None:
     per_channel = images.mean(dim=(0, 2, 3))
     assert per_channel.abs().max() < 1.5, per_channel
     print(f"normalised per-channel means: "
-          f"{np.round(per_channel.numpy(), 2)}")
+          f"{np.round(per_channel.cpu().numpy(), 2)}")
 
     # The crop margin actually did something: a batch taken with use_liot must
     # not contain the clamped-ray border. Encode a patch the naive way (crop

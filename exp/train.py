@@ -34,6 +34,25 @@ DIST_CLIP = 20.0  # px; caps the boundary loss's reach into open background
 
 torch.set_num_threads(6)
 
+# One module-level decision, imported by the analysis scripts rather than
+# re-derived at each call site. That is E16's lesson (stage-report/README.md,
+# lesson seven): half a decision moved is how a script once encoded LIOT
+# correctly, normalised it with grey constants, and published Dice 0.0000.
+# WHICH card is not decided here -- CUDA_VISIBLE_DEVICES does that, so the
+# queue can pin one job per GPU without the code knowing there are two.
+DEVICE = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+
+
+def load_checkpoint(path):
+    """Every checkpoint read goes through here, so map_location is set once.
+
+    Checkpoints written on the CPU laptop have to load on this box and back
+    again. Without map_location torch.load restores each tensor to the device
+    it was saved from, which inside a GPU script is a silently-CPU model that
+    still runs -- at laptop speed, with no error to notice.
+    """
+    return torch.load(path, map_location=DEVICE, weights_only=False)
+
 
 # --------------------------------------------------------------- model
 
@@ -81,6 +100,67 @@ class BlurPool(nn.Module):
                         groups=self.channels)
 
 
+class ShapeNameError(ValueError):
+    """A run name carries an architecture suffix that cannot be parsed."""
+
+
+def _shape_suffix(config_name: str, letter: str, default: int) -> int:
+    """Read one architecture number out of a run name, e.g. `w64` -> 64.
+
+    Tokenised rather than rpartitioned so a name can carry more than one
+    suffix and the order between them does not matter: `A_dice_w64_d5` and
+    `A_dice_d5_w64` are the same architecture.
+
+    THE FAILURE MODE THIS RAISES FOR. The original parser returned the
+    default whenever the suffix did not parse. Name a 31M config
+    `A_dice_w64d5` and `64d5` is not a digit string, so it answered 16: a
+    117k model trains for fifteen hours, saves under a 30M name, and every
+    number on the capacity curve is wrong with nothing printed anywhere. That
+    is the shape of the two bugs this repo has already paid for -- E12's
+    hand-written seed range and E16's split normalisation constants -- and
+    both were silent in exactly this way.
+
+    So the three cases are kept apart deliberately:
+
+      `w64`       a suffix that parses            -> 64
+      `w64d5`     a suffix that does NOT parse    -> raise
+      `weighted`  not a suffix at all             -> keep looking
+
+    The third is why the test cannot simply be "starts with the letter":
+    `X_weighted` is a legitimate config name and has always meant base 16.
+    The discriminator is a digit -- a token carrying digits after the letter
+    was meant to be read as a number, and failing to read it is an error, not
+    a default. A repeated suffix (`A_dice_w32_w64`) is the same kind of
+    ambiguity and raises for the same reason.
+    """
+    found = None
+    for token in config_name.split("_"):
+        if not token.startswith(letter):
+            continue
+        if token == letter:
+            # `B_cldice_w_64`: the marker and its number split by a stray
+            # underscore. Nothing downstream would ever see the 64, so this
+            # is the same fifteen-hour bug wearing a different typo.
+            raise ShapeNameError(
+                f"{config_name!r} has a bare {letter!r} token with no number "
+                f"attached; write it as {letter}<digits>.")
+        rest = token[len(letter):]
+        if not any(character.isdigit() for character in rest):
+            continue                      # a word, not a number: `weighted`
+        if not rest.isdigit():
+            raise ShapeNameError(
+                f"{config_name!r} carries {token!r}, which is not "
+                f"{letter!r} followed by digits. Returning the default "
+                f"{default} here would train the wrong architecture under "
+                f"the right name; rename the config instead.")
+        if found is not None:
+            raise ShapeNameError(
+                f"{config_name!r} sets {letter!r} more than once "
+                f"({found} and {rest}); one name must mean one architecture.")
+        found = rest
+    return int(found) if found is not None else default
+
+
 def base_width(config_name: str) -> int:
     """Base channel count, read off the config NAME.
 
@@ -91,10 +171,22 @@ def base_width(config_name: str) -> int:
     below, which all the analysis scripts call.
 
     `A_dice_w32` is 32 base channels; anything without the suffix is the
-    original 16.
+    original 16. A suffix that is present but unparseable raises
+    ShapeNameError rather than quietly falling back -- see _shape_suffix.
     """
-    head, sep, tail = config_name.rpartition("_w")
-    return int(tail) if sep and tail.isdigit() else 16
+    return _shape_suffix(config_name, "w", 16)
+
+
+def net_depth(config_name: str) -> int:
+    """Number of U-Net levels, read off the config NAME. Default 3.
+
+    Same mechanism as base_width and for the same reason. Depth changes the
+    module list itself, so getting it from anywhere other than the name means
+    a checkpoint can load into a net with the wrong number of levels -- or,
+    worse, into one where the names happen to line up and only some tensors
+    are restored. Unparseable suffixes raise here too.
+    """
+    return _shape_suffix(config_name, "d", 3)
 
 
 def uses_liot(config_name: str) -> bool:
@@ -112,34 +204,51 @@ def build_model(config_name: str) -> "TinyUNet":
     blurpool, _ = CONFIGS[config_name]
     return TinyUNet(base=base_width(config_name), blurpool=blurpool,
                     in_channels=len(liot.DIRECTIONS) if uses_liot(config_name)
-                    else 1)
+                    else 1, depth=net_depth(config_name)).to(DEVICE)
 
 
 class TinyUNet(nn.Module):
-    """3-level U-Net. 16 base channels is 117k params, sized for CPU; the
-    _w32 configs are 467k. Cost grows sub-quadratically with base: 4x the
-    width is 16x the parameters but 9x the measured step time."""
+    """U-Net of `depth` levels. 3 levels at 16 base channels is 117k params,
+    the size everything up to E18 was measured at; the _w32 configs are 467k.
+
+    Depth 5 at base=64 is ~31M, the field-standard shape. It is not the same
+    31M as widening this net to base=256: at depth 5 the extra capacity sits
+    at 6x6 and 3x3, where a parameter costs almost no compute, instead of at
+    full patch resolution where every one of them is paid for on every pixel.
+
+    Module names are built to match the hand-written 3-level version exactly
+    (enc1..encN, down1.., up1.., dec1.., head), so a checkpoint from before
+    this generalisation still loads.
+    """
 
     def __init__(self, base: int = 16, blurpool: bool = False,
-                 in_channels: int = 1):
+                 in_channels: int = 1, depth: int = 3):
         super().__init__()
-        self.enc1 = conv_block(in_channels, base)
-        self.enc2 = conv_block(base, base * 2)
-        self.enc3 = conv_block(base * 2, base * 4)
-        self.down1 = BlurPool(base) if blurpool else nn.MaxPool2d(2)
-        self.down2 = BlurPool(base * 2) if blurpool else nn.MaxPool2d(2)
-        self.up2 = nn.ConvTranspose2d(base * 4, base * 2, 2, 2)
-        self.dec2 = conv_block(base * 4, base * 2)
-        self.up1 = nn.ConvTranspose2d(base * 2, base, 2, 2)
-        self.dec1 = conv_block(base * 2, base)
+        self.depth = depth
+        channels = [base * 2 ** level for level in range(depth)]
+        previous = in_channels
+        for level, width in enumerate(channels, start=1):
+            setattr(self, f"enc{level}", conv_block(previous, width))
+            previous = width
+        for level, width in enumerate(channels[:-1], start=1):
+            setattr(self, f"down{level}",
+                    BlurPool(width) if blurpool else nn.MaxPool2d(2))
+        for level in range(depth - 1, 0, -1):
+            wide, narrow = channels[level], channels[level - 1]
+            setattr(self, f"up{level}",
+                    nn.ConvTranspose2d(wide, narrow, 2, 2))
+            setattr(self, f"dec{level}", conv_block(narrow * 2, narrow))
         self.head = nn.Conv2d(base, 1, 1)
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        skip1 = self.enc1(x)
-        skip2 = self.enc2(self.down1(skip1))
-        bottom = self.enc3(self.down2(skip2))
-        x = self.dec2(torch.cat([self.up2(bottom), skip2], 1))
-        x = self.dec1(torch.cat([self.up1(x), skip1], 1))
+        skips = []
+        for level in range(1, self.depth):
+            skips.append(getattr(self, f"enc{level}")(x))
+            x = getattr(self, f"down{level}")(skips[-1])
+        x = getattr(self, f"enc{self.depth}")(x)
+        for level in range(self.depth - 1, 0, -1):
+            x = getattr(self, f"dec{level}")(torch.cat(
+                [getattr(self, f"up{level}")(x), skips[level - 1]], 1))
         return self.head(x)
 
 
@@ -274,7 +383,8 @@ def _cb_weights(mask: torch.Tensor, skeleton: torch.Tensor,
         binary = mask.detach().cpu().numpy() > 0.5
         distances = torch.from_numpy(
             np.stack([ndimage.distance_transform_edt(item)
-                      for item in binary[:, 0]])).float()[:, None]
+                      for item in binary[:, 0]])).float()[:, None].to(
+            mask.device)
         distances = distances * (mask > 0.5)
         radius = distances * (skeleton > 0.5)
 
@@ -368,6 +478,17 @@ CONFIGS = {
     # length still missing in the dimmest band and under 2% in the two
     # brightest, so that band is the entire remaining budget.
     "J_liot": (False, None),
+    # Task 1 of prompt.md: the five arms that carry the series' conclusions,
+    # re-run on a 5-level base=64 U-Net (~31M params) instead of the 117k one
+    # every earlier number was measured on. Nothing but the backbone changes;
+    # the losses and augmentation tuples below are the same objects the
+    # narrow arms use, so any difference is attributable to capacity.
+    # A_dice/B_cldice/H_aug at this width are also E13's third point.
+    "A_dice_w64_d5": (False, None),
+    "B_cldice_w64_d5": (False, "cldice"),
+    "H_aug_w64_d5": (False, None),
+    "G_focal_w64_d5": (False, "focal"),
+    "K_focal_aug_w64_d5": (False, "focal"),
 }
 
 # Which augmentations each config gets. Keeping this beside CONFIGS rather than
@@ -391,6 +512,9 @@ AUGMENTS = {
     # Exactly H_aug's tuple: K differs from H_aug only in the loss, and from
     # G_focal only in the augmentation, so either comparison isolates one thing.
     "K_focal_aug": ("dihedral", "jitter"),
+    # Must match their narrow namesakes exactly; test_capacity.py asserts it.
+    "H_aug_w64_d5": ("dihedral", "jitter"),
+    "K_focal_aug_w64_d5": ("dihedral", "jitter"),
 }
 
 
@@ -523,14 +647,18 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
     # mean/std are scalars for grey input and shape (C, 1, 1) for LIOT, so the
     # same expression normalises both.
     batch = ((batch - mean) / std).astype(np.float32)
-    return (torch.from_numpy(batch),
-            torch.from_numpy(np.stack(labels))[:, None],
-            torch.from_numpy(np.stack(dists))[:, None])
+    return (torch.from_numpy(batch).to(DEVICE),
+            torch.from_numpy(np.stack(labels))[:, None].to(DEVICE),
+            torch.from_numpy(np.stack(dists))[:, None].to(DEVICE))
 
 
 @torch.no_grad()
 def predict_full(model: nn.Module, image: np.ndarray, mean, std) -> np.ndarray:
-    """Whole-image inference; width 565 is padded to 568 for the two /2 levels.
+    """Whole-image inference; the frame is padded up to the net's stride.
+
+    565 pads to 568 for a 3-level net and to 576 for a 5-level one. The stride
+    is read off the model for the same reason the channel count is: every
+    analysis script calls this with a checkpoint and an image and nothing else.
 
     Whether to encode is read off the model rather than passed in, because
     every analysis script calls this with just a checkpoint and an image. A
@@ -555,10 +683,11 @@ def predict_full(model: nn.Module, image: np.ndarray, mean, std) -> np.ndarray:
         encoded = liot.liot(image).astype(np.float32)
     else:
         encoded = image[None]
-    pad_h, pad_w = (-height) % 4, (-width) % 4
+    stride = 2 ** (getattr(model, "depth", 3) - 1)
+    pad_h, pad_w = (-height) % stride, (-width) % stride
     tensor = torch.from_numpy(((encoded - mean) / std).astype(np.float32))
     tensor = F.pad(tensor[None], (0, pad_w, 0, pad_h), mode="reflect")
-    prob = torch.sigmoid(model(tensor))[0, 0].numpy()
+    prob = torch.sigmoid(model(tensor.to(DEVICE)))[0, 0].cpu().numpy()
     model.train()
     return prob[:height, :width]
 
@@ -574,6 +703,61 @@ def validate(model, val, mean, std) -> tuple[dict, list[dict]]:
 
 
 # --------------------------------------------------------------- run
+
+def standing_best(out_dir: Path) -> float:
+    """The best validation Dice already on disk for this run, else -1.0.
+
+    Read from best.pt itself rather than carried along in ckpt.pt. The
+    checkpoint is written BEFORE the epoch's validation runs, so its idea of
+    the best is always one validation stale: resume from it and a later,
+    WORSE epoch can clear the bar and overwrite a better best.pt that is
+    sitting right there on disk. CLAUDE.md's rule covers this exactly -- gate
+    on the artifact, not on a bookkeeping value that can drift from it.
+
+    Found by test_best_checkpoint.py on the first run of the mechanism, not
+    by reading it.
+    """
+    path = out_dir / "best.pt"
+    return float(load_checkpoint(path)["dice"]) if path.exists() else -1.0
+
+
+def rerun_path(out_dir: Path, name: str) -> Path:
+    """Where this run writes `name`, moved aside if a finished one is there.
+
+    Checkpoints are gitignored and the CSVs are not, so a fresh clone of this
+    repo holds 54 runs' worth of published measurements and zero weights.
+    Recovering the weights means retraining runs whose log.csv is already
+    complete -- and train_one APPENDS, which would leave one file holding ten
+    rows from the laptop and ten from this box with nothing to tell them
+    apart, silently rewriting a published result.
+
+    A half-finished log is a different case and must still be appended to:
+    that is a resume, not a rerun, and it is the reason this checks the last
+    epoch rather than mere existence.
+
+    The search walks log.csv -> log_rerun.csv -> log_rerun2.csv rather than
+    stopping at the first rerun name. A_dice_s0 already had both a published
+    laptop log and a finished GPU rerun beside it when a third training was
+    queued; returning log_rerun.csv there would have appended twenty rows from
+    two different runs into one file -- the very failure this function exists
+    to prevent, one level up from where it was being prevented.
+
+    Precedent is train_stare.py:126, which writes scores_rerun.csv beside
+    scores.csv so stage 0's published numbers stay auditable against the
+    repeat. Being able to diff the two IS the finding; overwriting is not.
+    """
+    stem, suffix = Path(name).stem, Path(name).suffix
+    for index in range(50):
+        tag = "" if index == 0 else f"_rerun{index if index > 1 else ''}"
+        candidate = out_dir / f"{stem}{tag}{suffix}"
+        if not candidate.exists():
+            return candidate
+        with candidate.open() as handle:
+            rows = list(csv.DictReader(handle))
+        if not (rows and int(rows[-1]["epoch"]) >= EPOCHS):
+            return candidate          # unfinished: this is a resume
+    raise RuntimeError(f"{out_dir}/{name}: 50 finished reruns is not a rerun")
+
 
 def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     config_name, seed = run_name.rsplit("_s", 1)
@@ -593,6 +777,25 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     out_dir = RESULTS / run_name
     out_dir.mkdir(parents=True, exist_ok=True)
     final_path, ckpt_path = out_dir / "final.pt", out_dir / "ckpt.pt"
+    # PRE-REGISTERED 2026-08-26, before the first run judged by it.
+    #
+    # best.pt is the epoch with the highest whole-image validation Dice. It
+    # exists because at 31M parameters the fixed 100-epoch protocol stops
+    # being neutral: A_dice_w64_d5_s0 drove its training loss from 0.4164 to
+    # 0.2386 while validation Dice fell 0.8202 -> 0.8014 and Betti-0 error
+    # rose 59 -> 142, i.e. the baseline arm at 31M is scored after it has
+    # already overfitted, while the augmented arm has not. Reporting only
+    # epoch 100 measures that as an augmentation advantage; reporting only
+    # the best epoch throws away the fact that it happened. Both get reported,
+    # from one training run.
+    #
+    # The rule is Dice, not a topology metric, and it is fixed HERE rather
+    # than chosen later at scoring time -- picking the selection metric after
+    # seeing which one flatters an arm is precisely the post-hoc threshold
+    # this repo's pre-registration rule exists to prevent. Every validated
+    # epoch's full metric row stays in log.csv, so the choice is auditable,
+    # but a different rule needs a retrain: only one best.pt is kept.
+    best_path = out_dir / "best.pt"
 
     if final_path.exists():
         print(f"[{run_name}] already finished, skipping", flush=True)
@@ -603,16 +806,31 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     model = build_model(config_name)
     optimiser = torch.optim.Adam(model.parameters(), lr=1e-3)
     start_epoch = 0
+    best_dice = -1.0
 
     if ckpt_path.exists():
-        state = torch.load(ckpt_path, weights_only=False)
+        state = load_checkpoint(ckpt_path)
         model.load_state_dict(state["model"])
         optimiser.load_state_dict(state["optimiser"])
         rng = state["rng"]
         start_epoch = state["epoch"]
-        print(f"[{run_name}] resuming from epoch {start_epoch}", flush=True)
+        best_dice = standing_best(out_dir)
+        print(f"[{run_name}] resuming from epoch {start_epoch} "
+              f"(best dice so far {best_dice:.4f})", flush=True)
 
-    log_path = out_dir / "log.csv"
+    log_path = rerun_path(out_dir, "log.csv")
+    # Decided HERE, with log_path, and not at the end of training. Asking
+    # rerun_path again after the last epoch asks it about a log this very run
+    # has just completed, so every first-time run classified itself as a
+    # rerun and wrote val_final_rerun.csv while val_final.csv -- the file
+    # summarize.py:24 opens by name -- was never created at all.
+    # Derived from the log's own name so the two files always carry the same
+    # tag: log_rerun2.csv pairs with val_final_rerun2.csv, never with a
+    # val_final_rerun.csv left behind by the previous attempt.
+    val_final_path = out_dir / f"val_final{log_path.stem[len('log'):]}.csv"
+    if log_path.name != "log.csv":
+        print(f"[{run_name}] log.csv is already complete; this rerun writes "
+              f"{log_path.name}", flush=True)
     if not log_path.exists():
         with log_path.open("w", newline="") as handle:
             csv.writer(handle).writerow(
@@ -652,19 +870,27 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
                     + [round(scores[k], 4) for k in
                        ("dice", "cldice", "betti0_err", "betti1_err", "hd95")]
                     + [round(minutes, 1)])
+            if scores["dice"] > best_dice:
+                best_dice = scores["dice"]
+                # Written the moment it exists, not at the end: CLAUDE.md's
+                # rule is to save the expensive artifact as soon as it is
+                # there, and this one cannot be reconstructed afterwards --
+                # ckpt.pt rolls forward and final.pt is epoch 100.
+                torch.save({"model": model.state_dict(), "epoch": epoch + 1,
+                            "dice": best_dice}, best_path)
             print(f"[{run_name}] epoch {epoch + 1:3d} loss {running:.4f} "
                   f"dice {scores['dice']:.4f} clDice {scores['cldice']:.4f} "
                   f"b0err {scores['betti0_err']:.1f} "
                   f"95HD {scores['hd95']:.2f} ({minutes:.0f} min)", flush=True)
             if last:
-                with (out_dir / "val_final.csv").open("w", newline="") as handle:
+                with val_final_path.open("w", newline="") as handle:
                     writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
                     writer.writeheader()
                     writer.writerows(rows)
 
     torch.save({"model": model.state_dict(), "epoch": EPOCHS}, final_path)
-    print(f"[{run_name}] done in {(time.time() - started) / 60:.0f} min",
-          flush=True)
+    print(f"[{run_name}] done in {(time.time() - started) / 60:.0f} min; "
+          f"best dice {best_dice:.4f}", flush=True)
 
 
 def main() -> None:

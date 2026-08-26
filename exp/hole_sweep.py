@@ -198,7 +198,7 @@ def main() -> None:
         if not weights.exists():
             print(f"[{run_name}] no checkpoint, skipping", flush=True)
             continue
-        state = torch.load(weights, weights_only=False)
+        state = train.load_checkpoint(weights)
         model = train.build_model(run_name.rsplit("_s", 1)[0])
         model.load_state_dict(state["model"])
         model.eval()

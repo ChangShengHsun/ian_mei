@@ -1,0 +1,6 @@
+waiting for in-flight runs to finish...
+card is free, 2026-08-26 05:30:57
+A_dice_w64_d5_s0: weights moved aside, will retrain with best.pt
+B_cldice_w64_d5_s0: weights moved aside, will retrain with best.pt
+H_aug_w64_d5_s0: weights moved aside, will retrain with best.pt
+tmux session 'e13' started: curve-31M on GPU 0, curve-narrow on GPU 1

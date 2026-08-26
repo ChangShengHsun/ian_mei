@@ -1,0 +1,34 @@
+
+########## stage gate on 2 card(s), 2026-08-26 05:00:39 ##########
+=== 2026-08-26 05:00:39 stage=gate shard=0/2 gpu=0 ===
+=== 2026-08-26 05:00:39 stage=gate shard=1/2 gpu=1 ===
+1 runs on this card
+--- 2026-08-26 05:00:41 H_aug_w64_d5_s0 ---
+1 runs on this card
+--- 2026-08-26 05:00:42 A_dice_w64_d5_s0 ---
+train norm mean 0.4177 std 0.1442
+train norm mean 0.4177 std 0.1442
+[A_dice_w64_d5_s0] epoch  10 loss 0.4164 dice 0.8189 clDice 0.8297 b0err 59.2 95HD 4.32 (1 min)
+[H_aug_w64_d5_s0] epoch  10 loss 0.4521 dice 0.8080 clDice 0.8143 b0err 56.0 95HD 5.82 (2 min)
+[A_dice_w64_d5_s0] epoch  20 loss 0.3841 dice 0.8202 clDice 0.8268 b0err 60.1 95HD 3.95 (3 min)
+[H_aug_w64_d5_s0] epoch  20 loss 0.4371 dice 0.8150 clDice 0.8187 b0err 46.6 95HD 6.11 (3 min)
+[A_dice_w64_d5_s0] epoch  30 loss 0.3487 dice 0.8161 clDice 0.8229 b0err 66.5 95HD 4.06 (4 min)
+[H_aug_w64_d5_s0] epoch  30 loss 0.4295 dice 0.8180 clDice 0.8206 b0err 48.0 95HD 5.85 (4 min)
+[A_dice_w64_d5_s0] epoch  40 loss 0.3193 dice 0.8083 clDice 0.8048 b0err 115.7 95HD 4.23 (5 min)
+[H_aug_w64_d5_s0] epoch  40 loss 0.4212 dice 0.8241 clDice 0.8237 b0err 48.8 95HD 5.01 (6 min)
+[A_dice_w64_d5_s0] epoch  50 loss 0.2789 dice 0.8077 clDice 0.8098 b0err 122.7 95HD 4.12 (7 min)
+[H_aug_w64_d5_s0] epoch  50 loss 0.4205 dice 0.8282 clDice 0.8379 b0err 46.7 95HD 3.88 (7 min)
+[A_dice_w64_d5_s0] epoch  60 loss 0.2574 dice 0.8033 clDice 0.8003 b0err 111.2 95HD 3.94 (8 min)
+[H_aug_w64_d5_s0] epoch  60 loss 0.4176 dice 0.8274 clDice 0.8330 b0err 53.6 95HD 3.74 (9 min)
+[A_dice_w64_d5_s0] epoch  70 loss 0.2386 dice 0.8014 clDice 0.7965 b0err 141.5 95HD 4.14 (9 min)
+[H_aug_w64_d5_s0] epoch  70 loss 0.4199 dice 0.8269 clDice 0.8285 b0err 52.2 95HD 3.89 (10 min)
+[A_dice_w64_d5_s0] epoch  80 loss 0.2169 dice 0.7998 clDice 0.7954 b0err 115.5 95HD 4.04 (11 min)
+[H_aug_w64_d5_s0] epoch  80 loss 0.4127 dice 0.8271 clDice 0.8327 b0err 59.9 95HD 3.58 (12 min)
+[A_dice_w64_d5_s0] epoch  90 loss 0.1987 dice 0.8052 clDice 0.8011 b0err 131.1 95HD 4.02 (12 min)
+[H_aug_w64_d5_s0] epoch  90 loss 0.4093 dice 0.8280 clDice 0.8330 b0err 56.0 95HD 3.55 (13 min)
+[A_dice_w64_d5_s0] epoch 100 loss 0.1910 dice 0.8038 clDice 0.8004 b0err 126.5 95HD 4.06 (13 min)
+[A_dice_w64_d5_s0] done in 13 min
+=== 2026-08-26 05:14:17 stage=gate gpu=0 done, 0 failed ===
+[H_aug_w64_d5_s0] epoch 100 loss 0.4066 dice 0.8276 clDice 0.8353 b0err 54.1 95HD 3.38 (14 min)
+[H_aug_w64_d5_s0] done in 14 min
+=== 2026-08-26 05:15:14 stage=gate gpu=1 done, 0 failed ===

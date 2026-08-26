@@ -1,0 +1,201 @@
+=== 2026-08-26 05:30:57 stage=e13 shard=0/1 gpu=0 ===
+15 runs on this card
+--- 2026-08-26 05:30:59 A_dice_w64_d5_s0 ---
+train norm mean 0.4177 std 0.1442
+[A_dice_w64_d5_s0] log.csv is already complete; this rerun writes log_rerun.csv
+[A_dice_w64_d5_s0] epoch  10 loss 0.4156 dice 0.8204 clDice 0.8304 b0err 63.1 95HD 3.94 (1 min)
+[A_dice_w64_d5_s0] epoch  20 loss 0.3838 dice 0.8170 clDice 0.8213 b0err 63.5 95HD 4.22 (3 min)
+[A_dice_w64_d5_s0] epoch  30 loss 0.3529 dice 0.8181 clDice 0.8238 b0err 66.5 95HD 4.22 (4 min)
+[A_dice_w64_d5_s0] epoch  40 loss 0.3153 dice 0.8078 clDice 0.8046 b0err 108.7 95HD 3.94 (5 min)
+[A_dice_w64_d5_s0] epoch  50 loss 0.2775 dice 0.8079 clDice 0.8077 b0err 110.2 95HD 3.87 (7 min)
+[A_dice_w64_d5_s0] epoch  60 loss 0.2585 dice 0.8064 clDice 0.8046 b0err 113.4 95HD 3.88 (8 min)
+[A_dice_w64_d5_s0] epoch  70 loss 0.2289 dice 0.8037 clDice 0.8016 b0err 136.6 95HD 4.00 (10 min)
+[A_dice_w64_d5_s0] epoch  80 loss 0.2179 dice 0.8004 clDice 0.7949 b0err 118.8 95HD 4.26 (11 min)
+[A_dice_w64_d5_s0] epoch  90 loss 0.1986 dice 0.8040 clDice 0.8004 b0err 124.2 95HD 4.02 (12 min)
+[A_dice_w64_d5_s0] epoch 100 loss 0.1917 dice 0.8044 clDice 0.8013 b0err 135.4 95HD 4.12 (14 min)
+[A_dice_w64_d5_s0] done in 14 min; best dice 0.8204
+--- 2026-08-26 05:44:41 B_cldice_w64_d5_s0 ---
+train norm mean 0.4177 std 0.1442
+[B_cldice_w64_d5_s0] log.csv is already complete; this rerun writes log_rerun.csv
+[B_cldice_w64_d5_s0] epoch  10 loss 0.3998 dice 0.8150 clDice 0.8299 b0err 47.6 95HD 5.11 (2 min)
+[B_cldice_w64_d5_s0] epoch  20 loss 0.3657 dice 0.8163 clDice 0.8285 b0err 45.7 95HD 4.66 (3 min)
+[B_cldice_w64_d5_s0] epoch  30 loss 0.3441 dice 0.8194 clDice 0.8254 b0err 54.5 95HD 3.99 (5 min)
+[B_cldice_w64_d5_s0] epoch  40 loss 0.3150 dice 0.8127 clDice 0.8081 b0err 85.2 95HD 4.01 (7 min)
+[B_cldice_w64_d5_s0] epoch  50 loss 0.2773 dice 0.8129 clDice 0.8100 b0err 90.9 95HD 4.09 (8 min)
+[B_cldice_w64_d5_s0] epoch  60 loss 0.2519 dice 0.8059 clDice 0.8016 b0err 119.2 95HD 4.47 (10 min)
+[B_cldice_w64_d5_s0] epoch  70 loss 0.2298 dice 0.8068 clDice 0.8015 b0err 108.8 95HD 3.96 (12 min)
+[B_cldice_w64_d5_s0] epoch  80 loss 0.2098 dice 0.8056 clDice 0.7999 b0err 94.6 95HD 4.15 (13 min)
+[B_cldice_w64_d5_s0] epoch  90 loss 0.1928 dice 0.8059 clDice 0.8016 b0err 97.3 95HD 4.17 (15 min)
+[B_cldice_w64_d5_s0] epoch 100 loss 0.1846 dice 0.7953 clDice 0.7867 b0err 142.6 95HD 4.14 (17 min)
+[B_cldice_w64_d5_s0] done in 17 min; best dice 0.8194
+--- 2026-08-26 06:01:26 H_aug_w64_d5_s0 ---
+train norm mean 0.4177 std 0.1442
+[H_aug_w64_d5_s0] log.csv is already complete; this rerun writes log_rerun.csv
+[H_aug_w64_d5_s0] epoch  10 loss 0.4530 dice 0.8172 clDice 0.8266 b0err 57.8 95HD 4.41 (1 min)
+[H_aug_w64_d5_s0] epoch  20 loss 0.4337 dice 0.8089 clDice 0.8168 b0err 60.0 95HD 5.35 (3 min)
+[H_aug_w64_d5_s0] epoch  30 loss 0.4292 dice 0.8191 clDice 0.8225 b0err 54.6 95HD 5.21 (4 min)
+[H_aug_w64_d5_s0] epoch  40 loss 0.4207 dice 0.8233 clDice 0.8284 b0err 48.2 95HD 4.50 (6 min)
+[H_aug_w64_d5_s0] epoch  50 loss 0.4224 dice 0.8230 clDice 0.8285 b0err 46.2 95HD 4.72 (7 min)
+[H_aug_w64_d5_s0] epoch  60 loss 0.4187 dice 0.8232 clDice 0.8234 b0err 53.4 95HD 4.94 (9 min)
+[H_aug_w64_d5_s0] epoch  70 loss 0.4203 dice 0.8253 clDice 0.8269 b0err 49.5 95HD 4.53 (10 min)
+[H_aug_w64_d5_s0] epoch  80 loss 0.4068 dice 0.8280 clDice 0.8352 b0err 58.9 95HD 3.56 (12 min)
+[H_aug_w64_d5_s0] epoch  90 loss 0.4108 dice 0.8275 clDice 0.8308 b0err 55.8 95HD 4.05 (13 min)
+[H_aug_w64_d5_s0] epoch 100 loss 0.4052 dice 0.8272 clDice 0.8286 b0err 60.8 95HD 3.79 (15 min)
+[H_aug_w64_d5_s0] done in 15 min; best dice 0.8280
+--- 2026-08-26 06:16:14 A_dice_w64_d5_s1 ---
+train norm mean 0.4177 std 0.1442
+[A_dice_w64_d5_s1] epoch  10 loss 0.4242 dice 0.8160 clDice 0.8248 b0err 70.2 95HD 4.47 (1 min)
+[A_dice_w64_d5_s1] epoch  20 loss 0.3921 dice 0.8218 clDice 0.8299 b0err 61.2 95HD 3.93 (3 min)
+[A_dice_w64_d5_s1] epoch  30 loss 0.3582 dice 0.8161 clDice 0.8205 b0err 69.0 95HD 4.41 (4 min)
+[A_dice_w64_d5_s1] epoch  40 loss 0.3196 dice 0.8135 clDice 0.8155 b0err 81.6 95HD 4.14 (5 min)
+[A_dice_w64_d5_s1] epoch  50 loss 0.2906 dice 0.8082 clDice 0.8013 b0err 146.1 95HD 4.04 (7 min)
+[A_dice_w64_d5_s1] epoch  60 loss 0.2638 dice 0.8040 clDice 0.8006 b0err 102.6 95HD 4.10 (8 min)
+[A_dice_w64_d5_s1] epoch  70 loss 0.2464 dice 0.8021 clDice 0.7972 b0err 124.0 95HD 4.10 (10 min)
+[A_dice_w64_d5_s1] epoch  80 loss 0.2271 dice 0.8026 clDice 0.7966 b0err 136.8 95HD 4.26 (11 min)
+[A_dice_w64_d5_s1] epoch  90 loss 0.2123 dice 0.8046 clDice 0.8000 b0err 105.1 95HD 4.15 (12 min)
+[A_dice_w64_d5_s1] epoch 100 loss 0.2007 dice 0.8026 clDice 0.7948 b0err 136.6 95HD 4.13 (14 min)
+[A_dice_w64_d5_s1] done in 14 min; best dice 0.8218
+--- 2026-08-26 06:29:56 B_cldice_w64_d5_s1 ---
+train norm mean 0.4177 std 0.1442
+[B_cldice_w64_d5_s1] epoch  10 loss 0.4032 dice 0.8173 clDice 0.8299 b0err 59.5 95HD 4.13 (2 min)
+[B_cldice_w64_d5_s1] epoch  20 loss 0.3680 dice 0.8203 clDice 0.8344 b0err 45.0 95HD 3.96 (3 min)
+[B_cldice_w64_d5_s1] epoch  30 loss 0.3389 dice 0.8155 clDice 0.8212 b0err 67.1 95HD 4.36 (5 min)
+[B_cldice_w64_d5_s1] epoch  40 loss 0.3015 dice 0.8139 clDice 0.8157 b0err 73.2 95HD 3.98 (7 min)
+[B_cldice_w64_d5_s1] epoch  50 loss 0.2698 dice 0.8111 clDice 0.8040 b0err 108.8 95HD 4.04 (8 min)
+[B_cldice_w64_d5_s1] epoch  60 loss 0.2439 dice 0.8076 clDice 0.8030 b0err 109.0 95HD 4.17 (10 min)
+[B_cldice_w64_d5_s1] epoch  70 loss 0.2186 dice 0.8032 clDice 0.7963 b0err 116.2 95HD 4.04 (12 min)
+[B_cldice_w64_d5_s1] epoch  80 loss 0.2107 dice 0.8012 clDice 0.7916 b0err 128.2 95HD 4.15 (13 min)
+[B_cldice_w64_d5_s1] epoch  90 loss 0.1927 dice 0.8020 clDice 0.7951 b0err 102.5 95HD 4.22 (15 min)
+[B_cldice_w64_d5_s1] epoch 100 loss 0.1812 dice 0.8042 clDice 0.8046 b0err 91.2 95HD 4.34 (17 min)
+[B_cldice_w64_d5_s1] done in 17 min; best dice 0.8203
+--- 2026-08-26 06:46:34 H_aug_w64_d5_s1 ---
+train norm mean 0.4177 std 0.1442
+[H_aug_w64_d5_s1] epoch  10 loss 0.4537 dice 0.8093 clDice 0.8128 b0err 63.6 95HD 6.02 (1 min)
+[H_aug_w64_d5_s1] epoch  20 loss 0.4407 dice 0.8245 clDice 0.8322 b0err 47.4 95HD 4.28 (3 min)
+[H_aug_w64_d5_s1] epoch  30 loss 0.4300 dice 0.8229 clDice 0.8279 b0err 52.3 95HD 4.13 (4 min)
+[H_aug_w64_d5_s1] epoch  40 loss 0.4224 dice 0.8260 clDice 0.8317 b0err 40.4 95HD 4.76 (6 min)
+[H_aug_w64_d5_s1] epoch  50 loss 0.4248 dice 0.8255 clDice 0.8333 b0err 49.0 95HD 3.75 (7 min)
+[H_aug_w64_d5_s1] epoch  60 loss 0.4189 dice 0.8282 clDice 0.8342 b0err 55.4 95HD 3.70 (9 min)
+[H_aug_w64_d5_s1] epoch  70 loss 0.4150 dice 0.8264 clDice 0.8345 b0err 54.2 95HD 3.93 (10 min)
+[H_aug_w64_d5_s1] epoch  80 loss 0.4140 dice 0.8265 clDice 0.8342 b0err 57.8 95HD 3.43 (12 min)
+[H_aug_w64_d5_s1] epoch  90 loss 0.4120 dice 0.8259 clDice 0.8304 b0err 52.8 95HD 3.95 (13 min)
+[H_aug_w64_d5_s1] epoch 100 loss 0.4044 dice 0.8264 clDice 0.8301 b0err 64.5 95HD 3.60 (15 min)
+[H_aug_w64_d5_s1] done in 15 min; best dice 0.8282
+--- 2026-08-26 07:01:19 A_dice_w64_d5_s2 ---
+train norm mean 0.4177 std 0.1442
+[A_dice_w64_d5_s2] epoch  10 loss 0.4141 dice 0.8145 clDice 0.8262 b0err 57.8 95HD 4.13 (1 min)
+[A_dice_w64_d5_s2] epoch  20 loss 0.3871 dice 0.8219 clDice 0.8309 b0err 53.5 95HD 3.78 (3 min)
+[A_dice_w64_d5_s2] epoch  30 loss 0.3570 dice 0.8166 clDice 0.8206 b0err 59.4 95HD 4.01 (4 min)
+[A_dice_w64_d5_s2] epoch  40 loss 0.3157 dice 0.8122 clDice 0.8131 b0err 82.2 95HD 3.93 (5 min)
+[A_dice_w64_d5_s2] epoch  50 loss 0.2810 dice 0.8077 clDice 0.8080 b0err 106.2 95HD 4.06 (7 min)
+[A_dice_w64_d5_s2] epoch  60 loss 0.2543 dice 0.8050 clDice 0.8013 b0err 115.7 95HD 4.02 (8 min)
+[A_dice_w64_d5_s2] epoch  70 loss 0.2344 dice 0.8053 clDice 0.8013 b0err 124.8 95HD 4.15 (9 min)
+[A_dice_w64_d5_s2] epoch  80 loss 0.2156 dice 0.8024 clDice 0.7977 b0err 134.6 95HD 4.01 (11 min)
+[A_dice_w64_d5_s2] epoch  90 loss 0.2022 dice 0.8000 clDice 0.7953 b0err 164.7 95HD 4.36 (12 min)
+[A_dice_w64_d5_s2] epoch 100 loss 0.1932 dice 0.8036 clDice 0.7961 b0err 141.8 95HD 4.08 (13 min)
+[A_dice_w64_d5_s2] done in 13 min; best dice 0.8219
+--- 2026-08-26 07:14:56 B_cldice_w64_d5_s2 ---
+train norm mean 0.4177 std 0.1442
+[B_cldice_w64_d5_s2] epoch  10 loss 0.3918 dice 0.8186 clDice 0.8329 b0err 47.7 95HD 4.32 (2 min)
+[B_cldice_w64_d5_s2] epoch  20 loss 0.3664 dice 0.8187 clDice 0.8280 b0err 54.4 95HD 3.80 (3 min)
+[B_cldice_w64_d5_s2] epoch  30 loss 0.3381 dice 0.8195 clDice 0.8248 b0err 56.5 95HD 4.07 (5 min)
+[B_cldice_w64_d5_s2] epoch  40 loss 0.3014 dice 0.8150 clDice 0.8163 b0err 68.2 95HD 4.22 (7 min)
+[B_cldice_w64_d5_s2] epoch  50 loss 0.2665 dice 0.8075 clDice 0.8014 b0err 106.5 95HD 4.20 (8 min)
+[B_cldice_w64_d5_s2] epoch  60 loss 0.2490 dice 0.8029 clDice 0.7949 b0err 106.0 95HD 4.36 (10 min)
+[B_cldice_w64_d5_s2] epoch  70 loss 0.2179 dice 0.8028 clDice 0.7934 b0err 111.5 95HD 4.18 (12 min)
+[B_cldice_w64_d5_s2] epoch  80 loss 0.2019 dice 0.8049 clDice 0.8047 b0err 89.7 95HD 4.32 (13 min)
+[B_cldice_w64_d5_s2] epoch  90 loss 0.1881 dice 0.8042 clDice 0.7975 b0err 109.5 95HD 4.31 (15 min)
+[B_cldice_w64_d5_s2] epoch 100 loss 0.1742 dice 0.8031 clDice 0.7980 b0err 103.5 95HD 4.44 (17 min)
+[B_cldice_w64_d5_s2] done in 17 min; best dice 0.8195
+--- 2026-08-26 07:31:33 H_aug_w64_d5_s2 ---
+train norm mean 0.4177 std 0.1442
+[H_aug_w64_d5_s2] epoch  10 loss 0.4556 dice 0.8185 clDice 0.8246 b0err 55.4 95HD 4.88 (1 min)
+[H_aug_w64_d5_s2] epoch  20 loss 0.4348 dice 0.8225 clDice 0.8318 b0err 60.9 95HD 3.71 (3 min)
+[H_aug_w64_d5_s2] epoch  30 loss 0.4296 dice 0.8259 clDice 0.8358 b0err 60.0 95HD 3.45 (4 min)
+[H_aug_w64_d5_s2] epoch  40 loss 0.4202 dice 0.8275 clDice 0.8339 b0err 51.8 95HD 3.85 (6 min)
+[H_aug_w64_d5_s2] epoch  50 loss 0.4293 dice 0.8251 clDice 0.8315 b0err 62.9 95HD 3.47 (7 min)
+[H_aug_w64_d5_s2] epoch  60 loss 0.4181 dice 0.8260 clDice 0.8347 b0err 47.9 95HD 3.71 (9 min)
+[H_aug_w64_d5_s2] epoch  70 loss 0.4134 dice 0.8274 clDice 0.8355 b0err 56.0 95HD 3.56 (10 min)
+[H_aug_w64_d5_s2] epoch  80 loss 0.4100 dice 0.8244 clDice 0.8300 b0err 50.3 95HD 3.68 (12 min)
+[H_aug_w64_d5_s2] epoch  90 loss 0.4106 dice 0.8260 clDice 0.8359 b0err 45.0 95HD 3.60 (13 min)
+[H_aug_w64_d5_s2] epoch 100 loss 0.4049 dice 0.8276 clDice 0.8378 b0err 51.7 95HD 3.52 (15 min)
+[H_aug_w64_d5_s2] done in 15 min; best dice 0.8276
+--- 2026-08-26 07:46:17 A_dice_w64_d5_s3 ---
+train norm mean 0.4177 std 0.1442
+[A_dice_w64_d5_s3] epoch  10 loss 0.4247 dice 0.8183 clDice 0.8269 b0err 58.5 95HD 4.64 (1 min)
+[A_dice_w64_d5_s3] epoch  20 loss 0.3852 dice 0.8185 clDice 0.8269 b0err 57.2 95HD 4.07 (3 min)
+[A_dice_w64_d5_s3] epoch  30 loss 0.3470 dice 0.8123 clDice 0.8158 b0err 73.6 95HD 4.00 (4 min)
+[A_dice_w64_d5_s3] epoch  40 loss 0.3200 dice 0.8121 clDice 0.8129 b0err 91.0 95HD 3.95 (5 min)
+[A_dice_w64_d5_s3] epoch  50 loss 0.2837 dice 0.8022 clDice 0.8000 b0err 114.2 95HD 4.10 (7 min)
+[A_dice_w64_d5_s3] epoch  60 loss 0.2554 dice 0.8040 clDice 0.7987 b0err 130.4 95HD 4.03 (8 min)
+[A_dice_w64_d5_s3] epoch  70 loss 0.2313 dice 0.8002 clDice 0.7934 b0err 132.9 95HD 4.20 (9 min)
+[A_dice_w64_d5_s3] epoch  80 loss 0.2143 dice 0.8018 clDice 0.7966 b0err 110.8 95HD 4.25 (11 min)
+[A_dice_w64_d5_s3] epoch  90 loss 0.2024 dice 0.7967 clDice 0.7869 b0err 188.2 95HD 4.50 (12 min)
+[A_dice_w64_d5_s3] epoch 100 loss 0.1920 dice 0.8007 clDice 0.7941 b0err 125.8 95HD 4.34 (14 min)
+[A_dice_w64_d5_s3] done in 14 min; best dice 0.8185
+--- 2026-08-26 07:59:55 B_cldice_w64_d5_s3 ---
+train norm mean 0.4177 std 0.1442
+[B_cldice_w64_d5_s3] epoch  10 loss 0.4010 dice 0.8166 clDice 0.8361 b0err 49.9 95HD 4.46 (2 min)
+[B_cldice_w64_d5_s3] epoch  20 loss 0.3645 dice 0.8193 clDice 0.8306 b0err 49.4 95HD 4.13 (3 min)
+[B_cldice_w64_d5_s3] epoch  30 loss 0.3307 dice 0.8129 clDice 0.8173 b0err 59.0 95HD 4.24 (5 min)
+[B_cldice_w64_d5_s3] epoch  40 loss 0.3028 dice 0.8134 clDice 0.8157 b0err 60.7 95HD 4.44 (7 min)
+[B_cldice_w64_d5_s3] epoch  50 loss 0.2730 dice 0.8075 clDice 0.8038 b0err 82.2 95HD 3.97 (8 min)
+[B_cldice_w64_d5_s3] epoch  60 loss 0.2439 dice 0.8005 clDice 0.7920 b0err 132.2 95HD 4.32 (10 min)
+[B_cldice_w64_d5_s3] epoch  70 loss 0.2193 dice 0.8041 clDice 0.7974 b0err 99.4 95HD 4.15 (12 min)
+[B_cldice_w64_d5_s3] epoch  80 loss 0.2029 dice 0.8045 clDice 0.7989 b0err 96.6 95HD 4.03 (13 min)
+[B_cldice_w64_d5_s3] epoch  90 loss 0.1943 dice 0.7999 clDice 0.7905 b0err 110.1 95HD 4.11 (15 min)
+[B_cldice_w64_d5_s3] epoch 100 loss 0.1778 dice 0.8040 clDice 0.7985 b0err 112.0 95HD 4.17 (17 min)
+[B_cldice_w64_d5_s3] done in 17 min; best dice 0.8193
+--- 2026-08-26 08:16:42 H_aug_w64_d5_s3 ---
+train norm mean 0.4177 std 0.1442
+[H_aug_w64_d5_s3] epoch  10 loss 0.4547 dice 0.8214 clDice 0.8258 b0err 54.2 95HD 5.08 (1 min)
+[H_aug_w64_d5_s3] epoch  20 loss 0.4414 dice 0.8250 clDice 0.8327 b0err 56.0 95HD 3.85 (3 min)
+[H_aug_w64_d5_s3] epoch  30 loss 0.4310 dice 0.8236 clDice 0.8335 b0err 60.1 95HD 3.64 (4 min)
+[H_aug_w64_d5_s3] epoch  40 loss 0.4295 dice 0.8238 clDice 0.8273 b0err 51.5 95HD 4.42 (6 min)
+[H_aug_w64_d5_s3] epoch  50 loss 0.4211 dice 0.8248 clDice 0.8342 b0err 50.7 95HD 3.97 (7 min)
+[H_aug_w64_d5_s3] epoch  60 loss 0.4218 dice 0.8225 clDice 0.8368 b0err 56.0 95HD 3.60 (9 min)
+[H_aug_w64_d5_s3] epoch  70 loss 0.4194 dice 0.8243 clDice 0.8369 b0err 52.0 95HD 3.64 (10 min)
+[H_aug_w64_d5_s3] epoch  80 loss 0.4076 dice 0.8270 clDice 0.8351 b0err 55.4 95HD 3.57 (12 min)
+[H_aug_w64_d5_s3] epoch  90 loss 0.4081 dice 0.8226 clDice 0.8329 b0err 69.0 95HD 3.55 (13 min)
+[H_aug_w64_d5_s3] epoch 100 loss 0.4085 dice 0.8247 clDice 0.8348 b0err 56.0 95HD 4.01 (15 min)
+[H_aug_w64_d5_s3] done in 15 min; best dice 0.8270
+--- 2026-08-26 08:31:26 A_dice_w64_d5_s4 ---
+train norm mean 0.4177 std 0.1442
+[A_dice_w64_d5_s4] epoch  10 loss 0.4133 dice 0.8126 clDice 0.8187 b0err 39.5 95HD 7.57 (1 min)
+[A_dice_w64_d5_s4] epoch  20 loss 0.3813 dice 0.8175 clDice 0.8191 b0err 64.2 95HD 4.90 (3 min)
+[A_dice_w64_d5_s4] epoch  30 loss 0.3544 dice 0.8175 clDice 0.8184 b0err 84.2 95HD 4.04 (4 min)
+[A_dice_w64_d5_s4] epoch  40 loss 0.3204 dice 0.8128 clDice 0.8095 b0err 111.2 95HD 4.01 (6 min)
+[A_dice_w64_d5_s4] epoch  50 loss 0.2924 dice 0.8039 clDice 0.7973 b0err 127.8 95HD 3.97 (7 min)
+[A_dice_w64_d5_s4] epoch  60 loss 0.2624 dice 0.8075 clDice 0.8034 b0err 117.8 95HD 4.11 (8 min)
+[A_dice_w64_d5_s4] epoch  70 loss 0.2424 dice 0.8044 clDice 0.8032 b0err 136.8 95HD 3.93 (10 min)
+[A_dice_w64_d5_s4] epoch  80 loss 0.2261 dice 0.8007 clDice 0.7945 b0err 179.1 95HD 4.36 (11 min)
+[A_dice_w64_d5_s4] epoch  90 loss 0.2141 dice 0.8018 clDice 0.7949 b0err 155.4 95HD 4.03 (12 min)
+[A_dice_w64_d5_s4] epoch 100 loss 0.2010 dice 0.8022 clDice 0.7948 b0err 147.9 95HD 4.12 (14 min)
+[A_dice_w64_d5_s4] done in 14 min; best dice 0.8175
+--- 2026-08-26 08:45:12 B_cldice_w64_d5_s4 ---
+train norm mean 0.4177 std 0.1442
+[B_cldice_w64_d5_s4] epoch  10 loss 0.3973 dice 0.8171 clDice 0.8353 b0err 34.4 95HD 5.04 (2 min)
+[B_cldice_w64_d5_s4] epoch  20 loss 0.3678 dice 0.8189 clDice 0.8289 b0err 44.7 95HD 4.28 (3 min)
+[B_cldice_w64_d5_s4] epoch  30 loss 0.3388 dice 0.8188 clDice 0.8244 b0err 56.0 95HD 4.13 (5 min)
+[B_cldice_w64_d5_s4] epoch  40 loss 0.3052 dice 0.8134 clDice 0.8101 b0err 87.1 95HD 3.85 (7 min)
+[B_cldice_w64_d5_s4] epoch  50 loss 0.2783 dice 0.8069 clDice 0.7988 b0err 92.8 95HD 3.95 (8 min)
+[B_cldice_w64_d5_s4] epoch  60 loss 0.2443 dice 0.8066 clDice 0.7993 b0err 112.6 95HD 3.99 (10 min)
+[B_cldice_w64_d5_s4] epoch  70 loss 0.2265 dice 0.8053 clDice 0.7982 b0err 115.9 95HD 4.20 (12 min)
+[B_cldice_w64_d5_s4] epoch  80 loss 0.2075 dice 0.8050 clDice 0.8013 b0err 103.2 95HD 4.11 (13 min)
+[B_cldice_w64_d5_s4] epoch  90 loss 0.1875 dice 0.8056 clDice 0.8013 b0err 112.2 95HD 4.11 (15 min)
+[B_cldice_w64_d5_s4] epoch 100 loss 0.1954 dice 0.7966 clDice 0.7866 b0err 152.9 95HD 4.26 (17 min)
+[B_cldice_w64_d5_s4] done in 17 min; best dice 0.8189
+--- 2026-08-26 09:01:52 H_aug_w64_d5_s4 ---
+train norm mean 0.4177 std 0.1442
+[H_aug_w64_d5_s4] epoch  10 loss 0.4550 dice 0.8227 clDice 0.8326 b0err 59.8 95HD 4.11 (1 min)
+[H_aug_w64_d5_s4] epoch  20 loss 0.4409 dice 0.8222 clDice 0.8310 b0err 56.5 95HD 3.93 (3 min)
+[H_aug_w64_d5_s4] epoch  30 loss 0.4307 dice 0.8259 clDice 0.8355 b0err 50.4 95HD 3.73 (4 min)
+[H_aug_w64_d5_s4] epoch  40 loss 0.4271 dice 0.8258 clDice 0.8345 b0err 58.2 95HD 4.01 (6 min)
+[H_aug_w64_d5_s4] epoch  50 loss 0.4195 dice 0.8210 clDice 0.8246 b0err 49.6 95HD 4.73 (7 min)
+[H_aug_w64_d5_s4] epoch  60 loss 0.4209 dice 0.8261 clDice 0.8336 b0err 57.6 95HD 3.42 (9 min)
+[H_aug_w64_d5_s4] epoch  70 loss 0.4181 dice 0.8276 clDice 0.8366 b0err 42.0 95HD 3.72 (10 min)
+[H_aug_w64_d5_s4] epoch  80 loss 0.4107 dice 0.8256 clDice 0.8371 b0err 48.8 95HD 3.45 (12 min)
+[H_aug_w64_d5_s4] epoch  90 loss 0.4089 dice 0.8276 clDice 0.8364 b0err 57.5 95HD 3.40 (13 min)
+[H_aug_w64_d5_s4] epoch 100 loss 0.4087 dice 0.8251 clDice 0.8355 b0err 53.4 95HD 3.53 (14 min)
+[H_aug_w64_d5_s4] done in 14 min; best dice 0.8276
+=== 2026-08-26 09:16:23 stage=e13 gpu=0 done, 0 failed ===

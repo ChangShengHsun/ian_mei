@@ -42,8 +42,8 @@ MIN_SIZE = 20
 
 
 def load(run_name: str) -> tuple[torch.nn.Module, float, float]:
-    state = torch.load(MODELS / run_name / "final.pt", weights_only=False)
-    model = train.TinyUNet()
+    state = train.load_checkpoint(MODELS / run_name / "final.pt")
+    model = train.TinyUNet().to(train.DEVICE)
     model.load_state_dict(state["model"])
     model.eval()
     return model, state["mean"], state["std"]

@@ -98,7 +98,7 @@ def train_one(run_name: str, items: list[dict]) -> None:
 
     torch.manual_seed(seed)
     rng = np.random.default_rng(seed)
-    model = train.TinyUNet()
+    model = train.TinyUNet().to(train.DEVICE)
     optimiser = torch.optim.Adam(model.parameters(), lr=1e-3)
     steps = train.PATCHES_PER_EPOCH // train.BATCH
     started = time.time()

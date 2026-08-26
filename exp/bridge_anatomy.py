@@ -249,7 +249,7 @@ def main() -> None:
             print(f"[{run_name}] no checkpoint, skipping", flush=True)
             continue
         model = train.build_model(run_name.rsplit("_s", 1)[0])
-        model.load_state_dict(torch.load(weights, weights_only=False)["model"])
+        model.load_state_dict(train.load_checkpoint(weights)["model"])
         model.eval()
         for item, skel in zip(test_items, skeletons):
             prob = train.predict_full(model, item["image"], mean, std)
