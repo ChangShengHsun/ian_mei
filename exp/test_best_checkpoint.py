@@ -103,6 +103,41 @@ def main() -> None:
             (train.RESULTS, train.EPOCHS, train.VAL_EVERY,
              train.CKPT_EVERY, train.PATCHES_PER_EPOCH) = original
 
+    # --keep-epochs must keep EVERY validated epoch, each carrying the
+    # metrics that any later selection rule could be built from. A rule that
+    # needs betti0_err and finds only dice would have to re-score 240
+    # checkpoints to get it, so the numbers travel with the weights.
+    original = (train.RESULTS, train.EPOCHS, train.VAL_EVERY,
+                train.CKPT_EVERY, train.PATCHES_PER_EPOCH, train.KEEP_EPOCHS)
+    with tempfile.TemporaryDirectory() as raw:
+        train.RESULTS = Path(raw)
+        train.EPOCHS, train.VAL_EVERY, train.CKPT_EVERY = 3, 1, 1
+        train.PATCHES_PER_EPOCH = 2 * train.BATCH
+        train.KEEP_EPOCHS = True
+        try:
+            train.train_one("A_dice_s0", data, val, mean, std)
+            out_dir = train.RESULTS / "A_dice_s0"
+            kept = sorted(p.name for p in out_dir.glob("epoch*.pt"))
+            assert kept == ["epoch001.pt", "epoch002.pt", "epoch003.pt"], kept
+            for name in kept:
+                state = train.load_checkpoint(out_dir / name)
+                for key in ("epoch", "dice", "betti0_err", "cldice"):
+                    assert key in state, (name, key, list(state))
+            rows = list(csv.DictReader((out_dir / "log.csv").open()))
+            for row, name in zip(rows, kept):
+                state = train.load_checkpoint(out_dir / name)
+                assert state["epoch"] == int(row["epoch"])
+                assert abs(state["dice"] - float(row["dice"])) < 5e-5
+                assert abs(state["betti0_err"]
+                           - float(row["betti0_err"])) < 5e-3
+            print(f"--keep-epochs kept {len(kept)} checkpoints, each carrying "
+                  f"the same dice/betti0 the log recorded for that epoch")
+            assert (out_dir / "best.pt").exists() and (out_dir / "final.pt").exists()
+            print("  and best.pt / final.pt are still written alongside them")
+        finally:
+            (train.RESULTS, train.EPOCHS, train.VAL_EVERY, train.CKPT_EVERY,
+             train.PATCHES_PER_EPOCH, train.KEEP_EPOCHS) = original
+
     print("all checks passed")
 
 

@@ -30,6 +30,20 @@ import metrics
 RESULTS = Path(__file__).resolve().parent / "results"
 PATCH, BATCH, PATCHES_PER_EPOCH, EPOCHS, VAL_EVERY = 48, 32, 10_000, 100, 10
 CKPT_EVERY = 5   # must divide VAL_EVERY; see the note in train_one
+# Set by main() from --keep-epochs. When on, every validated epoch's weights
+# are kept as epoch{N:03d}.pt instead of only the last and the best.
+#
+# Why it exists: best.pt is chosen by whole-image validation Dice, and
+# K_focal_aug's Dice peaks at epoch 10 (median over six seeds) while H_aug's
+# peaks at 65 -- with identical augmentation, so it is the confidence-gated
+# clDice loss doing it. E13b's ERL then measured that K gets WORSE under
+# early stopping (46.1% -> 38.1% of the tree traced) while the baseline gets
+# better. So K keeps improving topologically through the epochs where its
+# Dice is falling, and selecting on Dice deliberately discards exactly that.
+# Deciding which epoch to keep is a question about the data, not a constant,
+# so the runs keep all of them and the selection rule is fitted afterwards on
+# the VALIDATION numbers only.
+KEEP_EPOCHS = False
 DIST_CLIP = 20.0  # px; caps the boundary loss's reach into open background
 
 torch.set_num_threads(6)
@@ -870,6 +884,14 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
                     + [round(scores[k], 4) for k in
                        ("dice", "cldice", "betti0_err", "betti1_err", "hd95")]
                     + [round(minutes, 1)])
+            if KEEP_EPOCHS:
+                # 117k weights are 0.5 MB, so ten per run is 5 MB; at 31M
+                # they are 124 MB and the caller has to have checked the disk.
+                torch.save({"model": model.state_dict(), "epoch": epoch + 1,
+                            "dice": scores["dice"],
+                            "betti0_err": scores["betti0_err"],
+                            "cldice": scores["cldice"]},
+                           out_dir / f"epoch{epoch + 1:03d}.pt")
             if scores["dice"] > best_dice:
                 best_dice = scores["dice"]
                 # Written the moment it exists, not at the end: CLAUDE.md's
@@ -894,12 +916,30 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
 
 
 def main() -> None:
+    global RESULTS, KEEP_EPOCHS
+    argv = list(sys.argv[1:])
+    if "--results" in argv:
+        # A sweep must not overwrite the published runs: retraining into the
+        # same directories would replace the very final.pt and best.pt that
+        # stratify.csv and erl.csv were just computed from, and those CSVs
+        # would stop being reproducible from what is on disk.
+        index = argv.index("--results")
+        RESULTS = Path(argv[index + 1])
+        RESULTS.mkdir(parents=True, exist_ok=True)
+        del argv[index:index + 2]
+    if "--keep-epochs" in argv:
+        KEEP_EPOCHS = True
+        argv.remove("--keep-epochs")
+    print(f"results -> {RESULTS}"
+          f"{', keeping every validated epoch' if KEEP_EPOCHS else ''}",
+          flush=True)
+
     train, val = stack_split("train"), stack_split("val")
     inside = train["images"][train["fovs"]]
     mean, std = float(inside.mean()), float(inside.std())
     print(f"train norm mean {mean:.4f} std {std:.4f}", flush=True)
 
-    wanted = sys.argv[1:]
+    wanted = argv
     run_names = [f"{name}_s{seed}" for seed in (0, 1, 2) for name in CONFIGS]
     for run_name in (wanted or run_names):
         train_one(run_name, train, val, mean, std)

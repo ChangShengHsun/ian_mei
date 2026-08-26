@@ -1,0 +1,170 @@
+=== 2026-08-26 15:46:21 gpu=1 shard=1/2, 12 runs ===
+--- 2026-08-26 15:46:21 H_aug_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_s0] epoch  10 loss 0.4652 dice 0.8166 clDice 0.8283 b0err 85.7 95HD 3.84 (1 min)
+[H_aug_s0] epoch  20 loss 0.4489 dice 0.8189 clDice 0.8300 b0err 77.2 95HD 3.87 (2 min)
+[H_aug_s0] epoch  30 loss 0.4460 dice 0.8205 clDice 0.8343 b0err 66.2 95HD 3.92 (3 min)
+[H_aug_s0] epoch  40 loss 0.4414 dice 0.8229 clDice 0.8312 b0err 64.0 95HD 3.89 (4 min)
+[H_aug_s0] epoch  50 loss 0.4398 dice 0.8219 clDice 0.8341 b0err 60.2 95HD 3.72 (4 min)
+[H_aug_s0] epoch  60 loss 0.4394 dice 0.8213 clDice 0.8331 b0err 58.0 95HD 3.93 (5 min)
+[H_aug_s0] epoch  70 loss 0.4416 dice 0.8220 clDice 0.8300 b0err 62.5 95HD 3.78 (6 min)
+[H_aug_s0] epoch  80 loss 0.4319 dice 0.8229 clDice 0.8344 b0err 67.8 95HD 3.59 (7 min)
+[H_aug_s0] epoch  90 loss 0.4352 dice 0.8222 clDice 0.8321 b0err 64.8 95HD 3.68 (8 min)
+[H_aug_s0] epoch 100 loss 0.4331 dice 0.8216 clDice 0.8308 b0err 59.9 95HD 3.74 (9 min)
+[H_aug_s0] done in 9 min; best dice 0.8229
+--- 2026-08-26 15:55:18 K_focal_aug_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[K_focal_aug_s0] epoch  10 loss 0.4550 dice 0.7964 clDice 0.8483 b0err 51.6 95HD 4.31 (1 min)
+[K_focal_aug_s0] epoch  20 loss 0.4383 dice 0.7999 clDice 0.8486 b0err 51.8 95HD 4.16 (2 min)
+[K_focal_aug_s0] epoch  30 loss 0.4325 dice 0.7987 clDice 0.8531 b0err 46.6 95HD 4.11 (4 min)
+[K_focal_aug_s0] epoch  40 loss 0.4277 dice 0.8020 clDice 0.8510 b0err 37.2 95HD 4.33 (5 min)
+[K_focal_aug_s0] epoch  50 loss 0.4270 dice 0.7978 clDice 0.8554 b0err 41.5 95HD 3.93 (6 min)
+[K_focal_aug_s0] epoch  60 loss 0.4264 dice 0.8031 clDice 0.8523 b0err 35.7 95HD 4.35 (7 min)
+[K_focal_aug_s0] epoch  70 loss 0.4273 dice 0.8024 clDice 0.8522 b0err 39.4 95HD 4.16 (8 min)
+[K_focal_aug_s0] epoch  80 loss 0.4180 dice 0.7983 clDice 0.8551 b0err 45.1 95HD 3.99 (10 min)
+[K_focal_aug_s0] epoch  90 loss 0.4218 dice 0.7982 clDice 0.8550 b0err 37.6 95HD 3.93 (11 min)
+[K_focal_aug_s0] epoch 100 loss 0.4202 dice 0.8006 clDice 0.8542 b0err 35.5 95HD 4.03 (12 min)
+[K_focal_aug_s0] done in 12 min; best dice 0.8031
+--- 2026-08-26 16:07:29 H_aug_s1 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_s1] epoch  10 loss 0.4690 dice 0.8156 clDice 0.8256 b0err 80.0 95HD 4.25 (1 min)
+[H_aug_s1] epoch  20 loss 0.4554 dice 0.8214 clDice 0.8320 b0err 67.2 95HD 4.01 (2 min)
+[H_aug_s1] epoch  30 loss 0.4485 dice 0.8193 clDice 0.8257 b0err 74.2 95HD 3.78 (3 min)
+[H_aug_s1] epoch  40 loss 0.4393 dice 0.8224 clDice 0.8310 b0err 64.7 95HD 4.18 (4 min)
+[H_aug_s1] epoch  50 loss 0.4420 dice 0.8191 clDice 0.8313 b0err 67.2 95HD 3.70 (4 min)
+[H_aug_s1] epoch  60 loss 0.4364 dice 0.8220 clDice 0.8306 b0err 67.9 95HD 3.67 (5 min)
+[H_aug_s1] epoch  70 loss 0.4369 dice 0.8223 clDice 0.8353 b0err 67.3 95HD 3.68 (6 min)
+[H_aug_s1] epoch  80 loss 0.4367 dice 0.8219 clDice 0.8312 b0err 66.1 95HD 3.77 (7 min)
+[H_aug_s1] epoch  90 loss 0.4324 dice 0.8217 clDice 0.8312 b0err 58.4 95HD 3.92 (8 min)
+[H_aug_s1] epoch 100 loss 0.4297 dice 0.8223 clDice 0.8310 b0err 69.2 95HD 3.73 (9 min)
+[H_aug_s1] done in 9 min; best dice 0.8224
+--- 2026-08-26 16:16:28 K_focal_aug_s1 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[K_focal_aug_s1] epoch  10 loss 0.4608 dice 0.8083 clDice 0.8378 b0err 60.8 95HD 4.23 (1 min)
+[K_focal_aug_s1] epoch  20 loss 0.4437 dice 0.8044 clDice 0.8465 b0err 44.8 95HD 4.28 (2 min)
+[K_focal_aug_s1] epoch  30 loss 0.4367 dice 0.8002 clDice 0.8502 b0err 49.0 95HD 3.95 (4 min)
+[K_focal_aug_s1] epoch  40 loss 0.4265 dice 0.8034 clDice 0.8498 b0err 44.8 95HD 4.26 (5 min)
+[K_focal_aug_s1] epoch  50 loss 0.4295 dice 0.8000 clDice 0.8521 b0err 45.3 95HD 3.83 (6 min)
+[K_focal_aug_s1] epoch  60 loss 0.4231 dice 0.8002 clDice 0.8542 b0err 39.5 95HD 4.04 (7 min)
+[K_focal_aug_s1] epoch  70 loss 0.4236 dice 0.7997 clDice 0.8541 b0err 43.2 95HD 3.99 (9 min)
+[K_focal_aug_s1] epoch  80 loss 0.4233 dice 0.8011 clDice 0.8524 b0err 37.9 95HD 4.14 (10 min)
+[K_focal_aug_s1] epoch  90 loss 0.4192 dice 0.8009 clDice 0.8520 b0err 35.1 95HD 4.47 (11 min)
+[K_focal_aug_s1] epoch 100 loss 0.4164 dice 0.7992 clDice 0.8560 b0err 37.4 95HD 3.85 (12 min)
+[K_focal_aug_s1] done in 12 min; best dice 0.8083
+--- 2026-08-26 16:28:47 H_aug_s2 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_s2] epoch  10 loss 0.4653 dice 0.8185 clDice 0.8328 b0err 76.0 95HD 4.08 (1 min)
+[H_aug_s2] epoch  20 loss 0.4508 dice 0.8169 clDice 0.8275 b0err 72.0 95HD 3.89 (2 min)
+[H_aug_s2] epoch  30 loss 0.4451 dice 0.8202 clDice 0.8281 b0err 78.3 95HD 3.70 (3 min)
+[H_aug_s2] epoch  40 loss 0.4393 dice 0.8214 clDice 0.8306 b0err 64.5 95HD 3.87 (4 min)
+[H_aug_s2] epoch  50 loss 0.4451 dice 0.8207 clDice 0.8308 b0err 76.2 95HD 3.65 (4 min)
+[H_aug_s2] epoch  60 loss 0.4346 dice 0.8233 clDice 0.8323 b0err 59.5 95HD 3.73 (5 min)
+[H_aug_s2] epoch  70 loss 0.4345 dice 0.8233 clDice 0.8334 b0err 61.2 95HD 3.76 (6 min)
+[H_aug_s2] epoch  80 loss 0.4292 dice 0.8206 clDice 0.8299 b0err 66.2 95HD 3.49 (7 min)
+[H_aug_s2] epoch  90 loss 0.4307 dice 0.8221 clDice 0.8342 b0err 60.3 95HD 3.63 (8 min)
+[H_aug_s2] epoch 100 loss 0.4276 dice 0.8219 clDice 0.8340 b0err 60.1 95HD 3.70 (9 min)
+[H_aug_s2] done in 9 min; best dice 0.8233
+--- 2026-08-26 16:37:48 K_focal_aug_s2 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[K_focal_aug_s2] epoch  10 loss 0.4586 dice 0.8081 clDice 0.8418 b0err 44.5 95HD 4.59 (1 min)
+[K_focal_aug_s2] epoch  20 loss 0.4389 dice 0.7997 clDice 0.8484 b0err 44.5 95HD 4.06 (2 min)
+[K_focal_aug_s2] epoch  30 loss 0.4333 dice 0.8043 clDice 0.8469 b0err 47.4 95HD 4.01 (4 min)
+[K_focal_aug_s2] epoch  40 loss 0.4270 dice 0.8011 clDice 0.8495 b0err 39.7 95HD 4.10 (5 min)
+[K_focal_aug_s2] epoch  50 loss 0.4306 dice 0.8004 clDice 0.8511 b0err 41.7 95HD 4.01 (6 min)
+[K_focal_aug_s2] epoch  60 loss 0.4207 dice 0.8022 clDice 0.8530 b0err 37.5 95HD 4.04 (7 min)
+[K_focal_aug_s2] epoch  70 loss 0.4206 dice 0.8020 clDice 0.8542 b0err 38.2 95HD 3.85 (9 min)
+[K_focal_aug_s2] epoch  80 loss 0.4158 dice 0.8014 clDice 0.8526 b0err 36.7 95HD 3.80 (10 min)
+[K_focal_aug_s2] epoch  90 loss 0.4174 dice 0.8006 clDice 0.8529 b0err 39.7 95HD 3.97 (11 min)
+[K_focal_aug_s2] epoch 100 loss 0.4138 dice 0.7988 clDice 0.8544 b0err 38.8 95HD 3.84 (12 min)
+[K_focal_aug_s2] done in 12 min; best dice 0.8081
+--- 2026-08-26 16:50:11 H_aug_s3 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_s3] epoch  10 loss 0.4632 dice 0.8194 clDice 0.8298 b0err 74.8 95HD 4.17 (1 min)
+[H_aug_s3] epoch  20 loss 0.4538 dice 0.8199 clDice 0.8289 b0err 75.2 95HD 3.75 (2 min)
+[H_aug_s3] epoch  30 loss 0.4478 dice 0.8173 clDice 0.8235 b0err 76.1 95HD 3.83 (3 min)
+[H_aug_s3] epoch  40 loss 0.4429 dice 0.8222 clDice 0.8313 b0err 61.8 95HD 3.97 (4 min)
+[H_aug_s3] epoch  50 loss 0.4376 dice 0.8205 clDice 0.8337 b0err 64.0 95HD 3.81 (4 min)
+[H_aug_s3] epoch  60 loss 0.4407 dice 0.8210 clDice 0.8316 b0err 63.6 95HD 3.81 (5 min)
+[H_aug_s3] epoch  70 loss 0.4387 dice 0.8218 clDice 0.8343 b0err 59.6 95HD 3.62 (6 min)
+[H_aug_s3] epoch  80 loss 0.4297 dice 0.8237 clDice 0.8324 b0err 65.3 95HD 3.57 (7 min)
+[H_aug_s3] epoch  90 loss 0.4314 dice 0.8223 clDice 0.8308 b0err 74.8 95HD 3.54 (8 min)
+[H_aug_s3] epoch 100 loss 0.4282 dice 0.8237 clDice 0.8318 b0err 60.9 95HD 3.83 (9 min)
+[H_aug_s3] done in 9 min; best dice 0.8237
+--- 2026-08-26 16:59:05 K_focal_aug_s3 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[K_focal_aug_s3] epoch  10 loss 0.4548 dice 0.8056 clDice 0.8411 b0err 49.2 95HD 4.60 (1 min)
+[K_focal_aug_s3] epoch  20 loss 0.4429 dice 0.8014 clDice 0.8438 b0err 46.4 95HD 4.43 (2 min)
+[K_focal_aug_s3] epoch  30 loss 0.4366 dice 0.8016 clDice 0.8493 b0err 45.8 95HD 3.99 (4 min)
+[K_focal_aug_s3] epoch  40 loss 0.4319 dice 0.8026 clDice 0.8497 b0err 36.5 95HD 4.46 (5 min)
+[K_focal_aug_s3] epoch  50 loss 0.4256 dice 0.7998 clDice 0.8537 b0err 38.7 95HD 3.92 (6 min)
+[K_focal_aug_s3] epoch  60 loss 0.4290 dice 0.7970 clDice 0.8505 b0err 44.6 95HD 4.16 (7 min)
+[K_focal_aug_s3] epoch  70 loss 0.4254 dice 0.8000 clDice 0.8519 b0err 39.0 95HD 4.17 (9 min)
+[K_focal_aug_s3] epoch  80 loss 0.4165 dice 0.7975 clDice 0.8554 b0err 44.6 95HD 3.77 (10 min)
+[K_focal_aug_s3] epoch  90 loss 0.4194 dice 0.7960 clDice 0.8543 b0err 43.3 95HD 3.89 (11 min)
+[K_focal_aug_s3] epoch 100 loss 0.4159 dice 0.8012 clDice 0.8554 b0err 35.4 95HD 3.99 (12 min)
+[K_focal_aug_s3] done in 12 min; best dice 0.8056
+--- 2026-08-26 17:11:38 H_aug_s4 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_s4] epoch  10 loss 0.4665 dice 0.8180 clDice 0.8301 b0err 69.3 95HD 4.45 (1 min)
+[H_aug_s4] epoch  20 loss 0.4584 dice 0.8178 clDice 0.8304 b0err 73.3 95HD 3.75 (2 min)
+[H_aug_s4] epoch  30 loss 0.4487 dice 0.8205 clDice 0.8302 b0err 73.4 95HD 3.85 (3 min)
+[H_aug_s4] epoch  40 loss 0.4446 dice 0.8200 clDice 0.8325 b0err 71.8 95HD 3.75 (4 min)
+[H_aug_s4] epoch  50 loss 0.4394 dice 0.8191 clDice 0.8299 b0err 63.9 95HD 3.79 (4 min)
+[H_aug_s4] epoch  60 loss 0.4417 dice 0.8219 clDice 0.8318 b0err 75.2 95HD 3.63 (5 min)
+[H_aug_s4] epoch  70 loss 0.4417 dice 0.8224 clDice 0.8331 b0err 56.6 95HD 3.81 (6 min)
+[H_aug_s4] epoch  80 loss 0.4349 dice 0.8195 clDice 0.8317 b0err 63.5 95HD 3.89 (7 min)
+[H_aug_s4] epoch  90 loss 0.4367 dice 0.8218 clDice 0.8335 b0err 60.0 95HD 3.78 (8 min)
+[H_aug_s4] epoch 100 loss 0.4321 dice 0.8210 clDice 0.8328 b0err 63.8 95HD 3.76 (9 min)
+[H_aug_s4] done in 9 min; best dice 0.8224
+--- 2026-08-26 17:20:42 K_focal_aug_s4 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[K_focal_aug_s4] epoch  10 loss 0.4583 dice 0.8040 clDice 0.8432 b0err 51.7 95HD 4.74 (1 min)
+[K_focal_aug_s4] epoch  20 loss 0.4486 dice 0.8014 clDice 0.8473 b0err 43.0 95HD 4.46 (2 min)
+[K_focal_aug_s4] epoch  30 loss 0.4365 dice 0.7964 clDice 0.8502 b0err 51.9 95HD 4.07 (4 min)
+[K_focal_aug_s4] epoch  40 loss 0.4323 dice 0.7989 clDice 0.8537 b0err 42.6 95HD 3.94 (5 min)
+[K_focal_aug_s4] epoch  50 loss 0.4251 dice 0.8005 clDice 0.8492 b0err 41.0 95HD 4.40 (6 min)
+[K_focal_aug_s4] epoch  60 loss 0.4276 dice 0.7963 clDice 0.8527 b0err 47.3 95HD 3.92 (7 min)
+[K_focal_aug_s4] epoch  70 loss 0.4291 dice 0.7992 clDice 0.8538 b0err 37.6 95HD 4.04 (9 min)
+[K_focal_aug_s4] epoch  80 loss 0.4216 dice 0.7957 clDice 0.8542 b0err 39.4 95HD 4.03 (10 min)
+[K_focal_aug_s4] epoch  90 loss 0.4210 dice 0.7970 clDice 0.8543 b0err 40.3 95HD 3.88 (11 min)
+[K_focal_aug_s4] epoch 100 loss 0.4184 dice 0.7983 clDice 0.8542 b0err 37.1 95HD 4.09 (12 min)
+[K_focal_aug_s4] done in 12 min; best dice 0.8040
+--- 2026-08-26 17:32:59 H_aug_s5 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_s5] epoch  10 loss 0.4638 dice 0.8175 clDice 0.8264 b0err 69.0 95HD 4.17 (1 min)
+[H_aug_s5] epoch  20 loss 0.4498 dice 0.8166 clDice 0.8291 b0err 81.3 95HD 3.99 (2 min)
+[H_aug_s5] epoch  30 loss 0.4460 dice 0.8207 clDice 0.8295 b0err 68.5 95HD 3.74 (3 min)
+[H_aug_s5] epoch  40 loss 0.4389 dice 0.8233 clDice 0.8305 b0err 62.4 95HD 3.92 (4 min)
+[H_aug_s5] epoch  50 loss 0.4411 dice 0.8236 clDice 0.8315 b0err 65.0 95HD 3.87 (4 min)
+[H_aug_s5] epoch  60 loss 0.4383 dice 0.8208 clDice 0.8323 b0err 64.1 95HD 3.75 (5 min)
+[H_aug_s5] epoch  70 loss 0.4342 dice 0.8223 clDice 0.8324 b0err 61.4 95HD 3.71 (6 min)
+[H_aug_s5] epoch  80 loss 0.4342 dice 0.8218 clDice 0.8303 b0err 62.9 95HD 3.61 (7 min)
+[H_aug_s5] epoch  90 loss 0.4350 dice 0.8214 clDice 0.8284 b0err 65.1 95HD 3.66 (8 min)
+[H_aug_s5] epoch 100 loss 0.4295 dice 0.8236 clDice 0.8334 b0err 54.6 95HD 3.72 (9 min)
+[H_aug_s5] done in 9 min; best dice 0.8236
+--- 2026-08-26 17:42:02 K_focal_aug_s5 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[K_focal_aug_s5] epoch  10 loss 0.4557 dice 0.8028 clDice 0.8400 b0err 55.6 95HD 4.40 (1 min)
+[K_focal_aug_s5] epoch  20 loss 0.4388 dice 0.8003 clDice 0.8495 b0err 43.9 95HD 3.99 (2 min)
+[K_focal_aug_s5] epoch  30 loss 0.4341 dice 0.8038 clDice 0.8463 b0err 41.0 95HD 4.49 (4 min)
+[K_focal_aug_s5] epoch  40 loss 0.4257 dice 0.8060 clDice 0.8494 b0err 38.1 95HD 4.39 (5 min)
+[K_focal_aug_s5] epoch  50 loss 0.4280 dice 0.8043 clDice 0.8519 b0err 38.0 95HD 4.08 (6 min)
+[K_focal_aug_s5] epoch  60 loss 0.4254 dice 0.7999 clDice 0.8521 b0err 39.9 95HD 3.98 (7 min)
+[K_focal_aug_s5] epoch  70 loss 0.4201 dice 0.8001 clDice 0.8526 b0err 37.1 95HD 4.09 (9 min)
+[K_focal_aug_s5] epoch  80 loss 0.4212 dice 0.7996 clDice 0.8522 b0err 39.4 95HD 3.97 (10 min)
+[K_focal_aug_s5] epoch  90 loss 0.4212 dice 0.7984 clDice 0.8515 b0err 41.0 95HD 4.04 (11 min)
+[K_focal_aug_s5] epoch 100 loss 0.4159 dice 0.8006 clDice 0.8526 b0err 34.2 95HD 4.34 (12 min)
+[K_focal_aug_s5] done in 12 min; best dice 0.8060
+=== 2026-08-26 17:54:26 gpu=1 shard=1 done ===

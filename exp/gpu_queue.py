@@ -121,6 +121,22 @@ def stage(name: str) -> tuple[str, ...]:
     # runs that unblock the verdict would finish scattered through the night
     # for no gain -- the rest of `recover` unblocks nothing until it is all
     # there.
+    # Task B: the 31M arms again, keeping every validated epoch so A3's
+    # winning selection rule can be applied at real capacity. Written into a
+    # separate results root by the runner -- retraining over the published
+    # w64_d5 directories would replace the weights stratify.csv and erl.csv
+    # were computed from.
+    if name == "taskb":
+        return tuple(f"{arm}_s{seed}" for seed in range(5)
+                     for arm in E13_ARMS)
+    # Task C: seeds 6-11 of the 117k arms, to settle the two ERL comparisons
+    # that sit on the gate's edge and to give e13b section 3 a THIRD batch of
+    # six seeds. B_cldice is in the list although the work order's C1 omits
+    # it: e13b's unreproduced verdict IS B_cldice minus A_dice, so without it
+    # C3 cannot be answered at all.
+    if name == "taskc":
+        arms = ("A_dice", "B_cldice", "H_aug", "G_focal", "K_focal_aug")
+        return tuple(f"{arm}_s{seed}" for seed in range(6, 12) for arm in arms)
     if name == "curve":
         return tuple(run for run in stage("recover") if is_curve_arm(run))
     if name == "recover_rest":
@@ -199,6 +215,22 @@ def selftest() -> None:
     assert not set(recover) & set(e13), sorted(set(recover) & set(e13))
     assert not set(recover) & set(task1), sorted(set(recover) & set(task1))
     # The 27 runs the capacity curve's first two columns need must lead.
+    taskb, taskc = stage("taskb"), stage("taskc")
+    assert len(taskb) == 15, len(taskb)
+    assert len(taskc) == 30, len(taskc)
+    for run_name in taskb:
+        assert train.net_depth(run_name.rsplit("_s", 1)[0]) == 5, run_name
+    for run_name in taskc:
+        config = run_name.rsplit("_s", 1)[0]
+        assert train.net_depth(config) == 3 and train.base_width(config) == 16
+        assert int(run_name.rsplit("_s", 1)[1]) >= 6, run_name
+    # Task C must not collide with runs that already exist, or it would
+    # retrain over published weights.
+    assert not (set(taskc) & set(existing_runs())), \
+        sorted(set(taskc) & set(existing_runs()))
+    print(f"  taskb {len(taskb)} runs @31M, taskc {len(taskc)} runs @117k "
+          f"seeds 6-11")
+
     curve, rest = stage("curve"), stage("recover_rest")
     assert len(curve) == 27, len(curve)
     assert recover[:len(curve)] == curve, "the curve arms must lead recover"
