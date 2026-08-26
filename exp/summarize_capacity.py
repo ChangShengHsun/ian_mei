@@ -30,6 +30,12 @@ import summarize_confidence as confidence
 import summarize_gated as gated
 
 DIM, CLEAR = "Q1_dimmest", "Q4_clearest"
+RESULTS = Path(__file__).resolve().parent / "results"
+# (file, human name). Order matters: the published protocol prints first so a
+# reader meets the numbers the rest of the series was measured under before
+# the alternative.
+PROTOCOLS = (("stratify.csv", "last epoch (the published protocol)"),
+             ("stratify_best.csv", "best validated epoch"))
 MIN_SIZE = gated.PRIMARY_MIN_SIZE
 NARROW = ("A_dice", "B_cldice", "H_aug")
 WIDE = tuple(f"{name}_w32" for name in NARROW)
@@ -43,12 +49,13 @@ POINTS = (("base=16", ""), ("base=32", "_w32"), ("31M/d5", "_w64_d5"))
 DEEP = tuple(f"{name}_w64_d5" for name in NARROW)
 
 
-def paired_seeds(*arms: str) -> tuple[str, ...]:
-    import train
-    runs = set(train.trained_runs())
-    seeds = {name.rsplit("_s", 1)[1] for name in runs}
-    return tuple(sorted(seed for seed in seeds
-                        if all(f"{arm}_s{seed}" in runs for arm in arms)))
+def paired_seeds(rows, *arms: str) -> tuple[str, ...]:
+    """Delegates to summarize_gated so the enumeration lives in one place.
+
+    Kept as a name here because compare_widths reads better for it; the rule
+    it must obey -- enumerate the DATA, not the disk -- is documented there.
+    """
+    return gated.paired_seeds(rows, *arms)
 
 
 def gap(rows, better: str, worse: str, band: str) -> dict:
@@ -72,7 +79,7 @@ def compare_widths(rows, better: str, worse: str, band: str,
     print(f"  {label}")
     verdicts = {}
     for width, suffix in POINTS:
-        seeds = paired_seeds(better + suffix, worse + suffix)
+        seeds = paired_seeds(rows, better + suffix, worse + suffix)
         if not seeds:
             print(f"    {width:9} not trained yet")
             verdicts[width] = None
@@ -143,30 +150,50 @@ def main() -> None:
         selftest()
         return
 
-    rows = gated.load()
-    present = {r["config"] for r in rows}
-    missing = [n for n in WIDE if n not in present]
-    if missing:
-        print(f"not trained yet: {missing}\n")
+    # Both protocols, side by side, never one replacing the other. The
+    # last-epoch column is what every published number in this series was
+    # measured under; the best-epoch column exists because at 31M the fixed
+    # schedule stops being neutral (e13b section 4). Reporting only one of
+    # them is a choice about which arm gets to be overfitted.
+    for source, protocol in PROTOCOLS:
+        if not (RESULTS / source).exists():
+            print(f"### {protocol}: {source} not built yet "
+                  f"(run: python exp/stratify.py --checkpoint "
+                  f"{'best.pt' if 'best' in source else 'final.pt'})\n")
+            continue
+        rows = gated.load(source)
+        gated.report_scope(rows, source)
+        present = {r["config"] for r in rows}
+        missing = [n for n in WIDE + DEEP if n not in present]
+        if missing:
+            print(f"  not scored in {source}: {missing}")
+        print()
 
-    print("=== E13: does the gap between arms survive 4x the width? ===\n")
-    print(f"-- {DIM} --")
-    compare_widths(rows, "H_aug", "A_dice", DIM,
-                   "1. augmentation over the plain baseline")
-    compare_widths(rows, "B_cldice", "A_dice", DIM,
-                   "2. the topology loss over the plain baseline")
-    compare_widths(rows, "H_aug", "B_cldice", DIM,
-                   "3. augmentation over the topology loss")
-    print(f"-- {CLEAR} --")
-    compare_widths(rows, "H_aug", "A_dice", CLEAR,
-                   "4. augmentation in the band with no headroom left")
+        print(f"=== E13 capacity curve, {protocol} ({source}) ===\n")
+        print(f"-- {DIM} --")
+        compare_widths(rows, "H_aug", "A_dice", DIM,
+                       "1. augmentation over the plain baseline")
+        compare_widths(rows, "B_cldice", "A_dice", DIM,
+                       "2. the topology loss over the plain baseline")
+        compare_widths(rows, "H_aug", "B_cldice", DIM,
+                       "3. augmentation over the topology loss")
+        print(f"-- {CLEAR} --")
+        compare_widths(rows, "H_aug", "A_dice", CLEAR,
+                       "4. augmentation in the band with no headroom left")
 
-    print("Reading it: if gap 1 holds at both widths, the input side matters")
-    print("independently of capacity. If it shrinks toward zero, augmentation")
-    print("was partly standing in for a model too small, and E14's ordering is")
-    print("a small-model result. Gap 2 is E13's original question, which E14")
-    print("demoted: whether the loss starts to matter once there is capacity")
-    print("for it to matter.")
+    print("Reading it: if gap 1 holds at every capacity, the input side")
+    print("matters independently of capacity. If it shrinks toward zero,")
+    print("augmentation was partly standing in for a model too small. Gap 2")
+    print("is E13's original question: whether the loss starts to matter once")
+    print("there is capacity for it to matter.")
+    print()
+    print("The two protocols differ only in WHICH epoch's weights were")
+    print("scored, from the same trainings. A gap that holds under one and")
+    print("not the other is a gap that depends on how long the losing arm was")
+    print("allowed to overfit, which is a fact about the schedule, not the")
+    print("method. best.pt is the best VALIDATED epoch, and validation runs")
+    print(f"every {__import__('train').VAL_EVERY} epochs -- a true optimum")
+    print("between two validations is not visible to either protocol.")
 
 
 if __name__ == "__main__":

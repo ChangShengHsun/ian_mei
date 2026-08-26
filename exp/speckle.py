@@ -32,10 +32,25 @@ MIN_SIZES = (0, 2, 5, 10, 20, 50, 100)
 CONN8 = np.ones((3, 3), dtype=bool)
 
 
-def load_model(run_name: str) -> torch.nn.Module:
+def load_model(run_name: str,
+               checkpoint: str = "final.pt") -> torch.nn.Module:
+    """The run's weights, from `checkpoint` inside its results directory.
+
+    The default is the last epoch, which is the protocol every number in this
+    series up to E13b was measured under. `best.pt` is the second protocol --
+    the best validated epoch -- and it exists because at 31M parameters the
+    fixed 100-epoch schedule stops being neutral: the un-augmented arm peaks
+    at epoch 10 and then overfits for ninety more (betti-0 error 63 -> 135),
+    while the augmented arm peaks at 80. Scoring only epoch 100 books that
+    difference as an augmentation advantage.
+
+    Which checkpoint is an argument here, and ONLY here, so that a script
+    choosing a protocol chooses it once. Every model load in the analysis
+    scripts already goes through this function.
+    """
     config_name = run_name.rsplit("_s", 1)[0]
     model = train.build_model(config_name)
-    state = train.load_checkpoint(RESULTS / run_name / "final.pt")
+    state = train.load_checkpoint(RESULTS / run_name / checkpoint)
     model.load_state_dict(state["model"])
     model.eval()
     return model

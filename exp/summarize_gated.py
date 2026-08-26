@@ -39,14 +39,69 @@ PRIMARY_MIN_SIZE = 20
 DIM, CLEAR = "Q1_dimmest", "Q4_clearest"
 
 
-def load() -> list[dict]:
-    rows = list(csv.DictReader((RESULTS / "stratify.csv").open()))
+def load(name: str = "stratify.csv") -> list[dict]:
+    """The stratified measurements. `name` picks the training protocol.
+
+    stratify.csv is the last-epoch protocol every number up to E13b was
+    measured under; stratify_best.csv is the best-validated-epoch one.
+    """
+    rows = list(csv.DictReader((RESULTS / name).open()))
     for row in rows:
         for key in ("dice", "cldice", "tprec", "tsens"):
             row[key] = float(row[key])
         for key in ("breaks", "gt_px", "skel_px", "min_size"):
             row[key] = int(row[key])
     return rows
+
+
+def paired_seeds(rows: list[dict], *arms: str) -> tuple[str, ...]:
+    """Seeds for which EVERY arm has rows IN THE DATA BEING ANALYSED.
+
+    Enumerated from `rows`, not from train.trained_runs(). trained_runs()
+    globs final.pt, which answers "what can this machine train or score" --
+    a different question from "what is in the file I am about to average".
+
+    On a fresh clone the two diverge completely. *.pt is gitignored, so a
+    machine holding the committed CSVs and no weights silently narrowed every
+    analysis to whichever checkpoints happened to be local and printed a
+    complete-looking verdict: summarize_combo.py on Ivan's laptop reported
+    "paired seeds: 0, 1, 2" and dropped seeds 3-5 without a word. That is
+    README lesson six -- a result file that looks complete without having read
+    complete data -- in a cross-machine costume, and it was copied into four
+    scripts, the same way the hand-written seed range was copied into five.
+
+    Callers that also need to know the two disagree call report_scope().
+    """
+    runs = {row["run"] for row in rows}
+    seeds = {name.rsplit("_s", 1)[1] for name in runs}
+    return tuple(sorted(seed for seed in seeds
+                        if all(f"{arm}_s{seed}" in runs for arm in arms)))
+
+
+def report_scope(rows: list[dict], source: str = "stratify.csv") -> set:
+    """Print, loudly, every run that is on disk but not in the data, or vice
+    versa. Returns the runs present in `rows`.
+
+    Silence here is the failure mode: taking the intersection quietly is
+    exactly how an analysis narrows itself and still prints a full-looking
+    table. Saying it costs two lines and cannot be missed.
+    """
+    import train
+    in_data = {row["run"] for row in rows}
+    on_disk = set(train.trained_runs())
+    only_disk = sorted(on_disk - in_data)
+    only_data = sorted(in_data - on_disk)
+    print(f"scope: {len(in_data)} runs in {source}, "
+          f"{len(on_disk)} with a checkpoint on this machine")
+    if only_disk:
+        print(f"  WARNING: {len(only_disk)} trained but NOT scored in "
+              f"{source}, so absent from every number below: "
+              f"{', '.join(only_disk)}")
+    if only_data:
+        print(f"  note: {len(only_data)} scored in {source} with no local "
+              f"checkpoint (fine -- the measurements are what is averaged): "
+              f"{', '.join(only_data)}")
+    return in_data
 
 
 def series(rows: list[dict], config: str, band: str, min_size: int,

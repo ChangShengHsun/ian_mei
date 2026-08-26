@@ -119,11 +119,35 @@ def main() -> None:
     # Whatever has a finished checkpoint, at whatever seed. A config added to
     # CONFIGS ahead of its runs costs nothing, and a seed trained after this
     # script was written is picked up rather than silently dropped.
-    runs = sys.argv[1:] or train.trained_runs()
+    # --checkpoint picks the protocol; the output file is named after it so
+    # the two never land in one CSV. Overwriting stratify.csv with best-epoch
+    # numbers would silently restate every published figure in this series
+    # under a protocol it was not measured with.
+    checkpoint = "final.pt"
+    argv = list(sys.argv[1:])
+    if "--checkpoint" in argv:
+        index = argv.index("--checkpoint")
+        checkpoint = argv[index + 1]
+        del argv[index:index + 2]
+    out_name = ("stratify.csv" if checkpoint == "final.pt"
+                else f"stratify_{Path(checkpoint).stem}.csv")
+    print(f"checkpoint {checkpoint} -> {out_name}", flush=True)
+
+    runs = argv or [name for name in train.trained_runs()
+                    if (RESULTS / name / checkpoint).exists()]
+    if not argv:
+        missing = [name for name in train.trained_runs()
+                   if not (RESULTS / name / checkpoint).exists()]
+        if missing:
+            # Loud, not a silent intersection. A run trained before best.pt
+            # existed would otherwise drop out of the comparison without a
+            # word -- lesson six, one layer down.
+            print(f"WARNING: {len(missing)} run(s) have no {checkpoint} and "
+                  f"are NOT in this file: {', '.join(missing)}", flush=True)
     print(f"scoring {len(runs)} runs", flush=True)
     rows = []
     for run_name in runs:
-        model = speckle.load_model(run_name)
+        model = speckle.load_model(run_name, checkpoint)
         # Per run: a LIOT run needs its own constants, and predict_full
         # raises rather than silently scoring if these disagree.
         mean, std = train.normalisation(run_name, train_data)
@@ -149,11 +173,11 @@ def main() -> None:
                     })
         print(f"{run_name} done", flush=True)
 
-    with (RESULTS / "stratify.csv").open("w", newline="") as handle:
+    with (RESULTS / out_name).open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()
         writer.writerows(rows)
-    print(f"\nwrote {RESULTS / 'stratify.csv'}  ({len(rows)} rows)")
+    print(f"\nwrote {RESULTS / out_name}  ({len(rows)} rows)")
 
 
 if __name__ == "__main__":
