@@ -1,0 +1,86 @@
+=== 2026-08-27 01:42:55 d1 gpu=0 6 runs -> exp/results/selection_sweep ===
+--- 2026-08-27 01:42:55 A_dice_dir_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_s0] epoch  10 loss 0.5231 dice 0.8161 clDice 0.8274 b0err 79.5 95HD 4.10 (1 min)
+[A_dice_dir_s0] epoch  20 loss 0.4983 dice 0.8173 clDice 0.8255 b0err 81.0 95HD 4.12 (2 min)
+[A_dice_dir_s0] epoch  30 loss 0.4839 dice 0.8181 clDice 0.8274 b0err 65.6 95HD 4.16 (3 min)
+[A_dice_dir_s0] epoch  40 loss 0.4735 dice 0.8161 clDice 0.8212 b0err 72.6 95HD 4.27 (3 min)
+[A_dice_dir_s0] epoch  50 loss 0.4632 dice 0.8162 clDice 0.8228 b0err 66.3 95HD 4.39 (4 min)
+[A_dice_dir_s0] epoch  60 loss 0.4608 dice 0.8150 clDice 0.8209 b0err 66.8 95HD 4.52 (5 min)
+[A_dice_dir_s0] epoch  70 loss 0.4537 dice 0.8138 clDice 0.8206 b0err 70.0 95HD 4.16 (6 min)
+[A_dice_dir_s0] epoch  80 loss 0.4498 dice 0.8119 clDice 0.8155 b0err 70.0 95HD 4.61 (7 min)
+[A_dice_dir_s0] epoch  90 loss 0.4431 dice 0.8129 clDice 0.8205 b0err 68.0 95HD 4.51 (8 min)
+[A_dice_dir_s0] epoch 100 loss 0.4422 dice 0.8128 clDice 0.8163 b0err 82.0 95HD 4.33 (8 min)
+[A_dice_dir_s0] done in 8 min; best dice 0.8181
+--- 2026-08-27 01:51:23 A_dice_dir_s1 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_s1] epoch  10 loss 0.5253 dice 0.8133 clDice 0.8203 b0err 90.0 95HD 4.45 (1 min)
+[A_dice_dir_s1] epoch  20 loss 0.4988 dice 0.8177 clDice 0.8297 b0err 71.0 95HD 4.11 (2 min)
+[A_dice_dir_s1] epoch  30 loss 0.4821 dice 0.8158 clDice 0.8247 b0err 68.8 95HD 4.33 (3 min)
+[A_dice_dir_s1] epoch  40 loss 0.4698 dice 0.8158 clDice 0.8254 b0err 82.8 95HD 4.17 (3 min)
+[A_dice_dir_s1] epoch  50 loss 0.4655 dice 0.8153 clDice 0.8220 b0err 77.4 95HD 4.33 (4 min)
+[A_dice_dir_s1] epoch  60 loss 0.4606 dice 0.8138 clDice 0.8221 b0err 82.3 95HD 4.28 (5 min)
+[A_dice_dir_s1] epoch  70 loss 0.4504 dice 0.8108 clDice 0.8138 b0err 88.3 95HD 4.40 (6 min)
+[A_dice_dir_s1] epoch  80 loss 0.4489 dice 0.8136 clDice 0.8199 b0err 67.3 95HD 4.39 (7 min)
+[A_dice_dir_s1] epoch  90 loss 0.4441 dice 0.8115 clDice 0.8206 b0err 73.0 95HD 4.32 (8 min)
+[A_dice_dir_s1] epoch 100 loss 0.4416 dice 0.8127 clDice 0.8185 b0err 77.0 95HD 4.27 (8 min)
+[A_dice_dir_s1] done in 8 min; best dice 0.8177
+--- 2026-08-27 01:59:58 A_dice_dir_s2 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_s2] epoch  10 loss 0.5157 dice 0.8153 clDice 0.8264 b0err 74.5 95HD 4.12 (1 min)
+[A_dice_dir_s2] epoch  20 loss 0.4970 dice 0.8111 clDice 0.8200 b0err 82.4 95HD 3.93 (2 min)
+[A_dice_dir_s2] epoch  30 loss 0.4829 dice 0.8174 clDice 0.8283 b0err 75.2 95HD 4.02 (3 min)
+[A_dice_dir_s2] epoch  40 loss 0.4718 dice 0.8158 clDice 0.8223 b0err 65.2 95HD 4.20 (3 min)
+[A_dice_dir_s2] epoch  50 loss 0.4585 dice 0.8168 clDice 0.8233 b0err 65.1 95HD 4.43 (4 min)
+[A_dice_dir_s2] epoch  60 loss 0.4619 dice 0.8155 clDice 0.8210 b0err 76.8 95HD 4.22 (5 min)
+[A_dice_dir_s2] epoch  70 loss 0.4504 dice 0.8150 clDice 0.8225 b0err 65.2 95HD 4.21 (6 min)
+[A_dice_dir_s2] epoch  80 loss 0.4477 dice 0.8149 clDice 0.8211 b0err 64.5 95HD 4.30 (7 min)
+[A_dice_dir_s2] epoch  90 loss 0.4450 dice 0.8133 clDice 0.8172 b0err 71.6 95HD 4.32 (8 min)
+[A_dice_dir_s2] epoch 100 loss 0.4448 dice 0.8132 clDice 0.8204 b0err 71.5 95HD 4.36 (8 min)
+[A_dice_dir_s2] done in 8 min; best dice 0.8174
+--- 2026-08-27 02:08:30 A_dice_dir_s3 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_s3] epoch  10 loss 0.5230 dice 0.8174 clDice 0.8252 b0err 77.0 95HD 4.22 (1 min)
+[A_dice_dir_s3] epoch  20 loss 0.4950 dice 0.8148 clDice 0.8235 b0err 71.0 95HD 4.26 (2 min)
+[A_dice_dir_s3] epoch  30 loss 0.4805 dice 0.8139 clDice 0.8212 b0err 74.5 95HD 4.36 (3 min)
+[A_dice_dir_s3] epoch  40 loss 0.4731 dice 0.8164 clDice 0.8281 b0err 61.5 95HD 4.22 (3 min)
+[A_dice_dir_s3] epoch  50 loss 0.4631 dice 0.8160 clDice 0.8245 b0err 76.0 95HD 4.10 (4 min)
+[A_dice_dir_s3] epoch  60 loss 0.4580 dice 0.8148 clDice 0.8222 b0err 77.5 95HD 4.16 (5 min)
+[A_dice_dir_s3] epoch  70 loss 0.4511 dice 0.8152 clDice 0.8210 b0err 71.0 95HD 4.09 (6 min)
+[A_dice_dir_s3] epoch  80 loss 0.4488 dice 0.8136 clDice 0.8197 b0err 77.8 95HD 4.21 (7 min)
+[A_dice_dir_s3] epoch  90 loss 0.4450 dice 0.8129 clDice 0.8174 b0err 79.2 95HD 4.23 (8 min)
+[A_dice_dir_s3] epoch 100 loss 0.4421 dice 0.8132 clDice 0.8152 b0err 71.5 95HD 4.39 (8 min)
+[A_dice_dir_s3] done in 8 min; best dice 0.8174
+--- 2026-08-27 02:17:06 A_dice_dir_s4 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_s4] epoch  10 loss 0.5186 dice 0.8173 clDice 0.8331 b0err 55.9 95HD 4.33 (1 min)
+[A_dice_dir_s4] epoch  20 loss 0.4953 dice 0.8175 clDice 0.8260 b0err 66.8 95HD 4.43 (2 min)
+[A_dice_dir_s4] epoch  30 loss 0.4850 dice 0.8168 clDice 0.8234 b0err 61.5 95HD 4.34 (3 min)
+[A_dice_dir_s4] epoch  40 loss 0.4728 dice 0.8166 clDice 0.8255 b0err 65.5 95HD 4.14 (3 min)
+[A_dice_dir_s4] epoch  50 loss 0.4628 dice 0.8150 clDice 0.8214 b0err 74.0 95HD 4.26 (4 min)
+[A_dice_dir_s4] epoch  60 loss 0.4561 dice 0.8158 clDice 0.8200 b0err 68.2 95HD 4.27 (5 min)
+[A_dice_dir_s4] epoch  70 loss 0.4565 dice 0.8156 clDice 0.8226 b0err 72.2 95HD 4.34 (6 min)
+[A_dice_dir_s4] epoch  80 loss 0.4522 dice 0.8158 clDice 0.8228 b0err 66.2 95HD 4.27 (7 min)
+[A_dice_dir_s4] epoch  90 loss 0.4403 dice 0.8138 clDice 0.8194 b0err 67.8 95HD 4.32 (8 min)
+[A_dice_dir_s4] epoch 100 loss 0.4427 dice 0.8136 clDice 0.8187 b0err 72.1 95HD 4.34 (8 min)
+[A_dice_dir_s4] done in 8 min; best dice 0.8175
+--- 2026-08-27 02:25:42 A_dice_dir_s5 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_s5] epoch  10 loss 0.5234 dice 0.8153 clDice 0.8286 b0err 85.5 95HD 4.08 (1 min)
+[A_dice_dir_s5] epoch  20 loss 0.5005 dice 0.8121 clDice 0.8218 b0err 84.7 95HD 4.28 (2 min)
+[A_dice_dir_s5] epoch  30 loss 0.4757 dice 0.8157 clDice 0.8242 b0err 84.7 95HD 4.00 (3 min)
+[A_dice_dir_s5] epoch  40 loss 0.4697 dice 0.8165 clDice 0.8266 b0err 70.4 95HD 4.24 (3 min)
+[A_dice_dir_s5] epoch  50 loss 0.4659 dice 0.8159 clDice 0.8218 b0err 66.8 95HD 4.38 (4 min)
+[A_dice_dir_s5] epoch  60 loss 0.4572 dice 0.8155 clDice 0.8240 b0err 67.8 95HD 4.32 (5 min)
+[A_dice_dir_s5] epoch  70 loss 0.4554 dice 0.8126 clDice 0.8184 b0err 70.9 95HD 4.44 (6 min)
+[A_dice_dir_s5] epoch  80 loss 0.4519 dice 0.8132 clDice 0.8196 b0err 73.7 95HD 4.28 (7 min)
+[A_dice_dir_s5] epoch  90 loss 0.4432 dice 0.8126 clDice 0.8180 b0err 61.8 95HD 4.61 (8 min)
+[A_dice_dir_s5] epoch 100 loss 0.4425 dice 0.8118 clDice 0.8158 b0err 77.5 95HD 4.50 (8 min)
+[A_dice_dir_s5] done in 8 min; best dice 0.8165
+=== 2026-08-27 02:34:15 d1 gpu=0 done ===

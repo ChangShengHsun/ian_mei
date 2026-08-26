@@ -1,22 +1,22 @@
 === task A3: checkpoint selection rules ===
-240 checkpoints over 24 runs; selection on odd images, ERL reported on even ones
+360 checkpoints over 36 runs; selection on odd images, ERL reported on even ones
 
 === A_dice (6 seeds) ===
   rule                                    epochs                      traced    vs (i)      t  gate
   -------------------------------------------------------------------------------------------------
   (i) best Dice [current]                 [30, 20, 30, 10, 30, 10]    32.0%        --     --  reference
                                           gave up 0.00000 Dice on the selection half
-  (ii) best betti0 [gameable]             [70, 50, 30, 10, 50, 50]    30.0%    -174.9  -2.36  fails
+  (ii) best betti0 [gameable]             [70, 50, 30, 10, 50, 50]    30.0%    -174.7  -2.35  fails
                                           gave up 0.00247 Dice on the selection half
   (iii) best betti0, Dice within 1sd (0.00086)[30, 20, 30, 10, 30, 30]    30.8%    -110.7  -2.66  fails
                                           gave up 0.00004 Dice on the selection half
-  (iii) best betti0, Dice within 2sd (0.00172)[40, 20, 30, 10, 30, 30]    30.1%    -172.0  -3.72  fails
-                                          gave up 0.00030 Dice on the selection half
-  (iii) best betti0, Dice within 4sd (0.00344)[40, 20, 30, 10, 50, 50]    30.7%    -113.9  -2.90  fails
+  (iii) best betti0, Dice within 2sd (0.00172)[40, 20, 30, 10, 30, 50]    30.7%    -113.1  -3.44  fails
+                                          gave up 0.00055 Dice on the selection half
+  (iii) best betti0, Dice within 4sd (0.00344)[40, 20, 30, 10, 50, 50]    30.7%    -113.8  -2.89  fails
                                           gave up 0.00108 Dice on the selection half
   (iv) best clDice                        [30, 20, 30, 10, 10, 10]    32.4%     +36.9   1.34  fails
                                           per seed [+0 +0 +0 +0 +221 +0]
-                                          gave up 0.00037 Dice on the selection half
+                                          gave up 0.00038 Dice on the selection half
 
 === H_aug (6 seeds) ===
   rule                                    epochs                      traced    vs (i)      t  gate
@@ -29,7 +29,7 @@
   (iii) best betti0, Dice within 1sd (0.00086)[70, 60, 60, 100, 70, 100]  32.5%     +42.2   0.69  fails
                                           per seed [-126 +482 +0 +53 -155 +0]
                                           gave up 0.00023 Dice on the selection half
-  (iii) best betti0, Dice within 2sd (0.00172)[60, 90, 60, 100, 70, 100]  32.5%     +35.4   0.68  fails
+  (iii) best betti0, Dice within 2sd (0.00172)[60, 90, 60, 100, 70, 100]  32.5%     +35.4   0.69  fails
                                           per seed [+107 +208 +0 +53 -155 +0]
                                           gave up 0.00058 Dice on the selection half
   (iii) best betti0, Dice within 4sd (0.00344)[60, 90, 60, 70, 70, 100]   32.8%     +62.1   1.23  fails
@@ -44,18 +44,18 @@
   -------------------------------------------------------------------------------------------------
   (i) best Dice [current]                 [10, 80, 10, 10, 10, 10]    33.9%        --     --  reference
                                           gave up 0.00000 Dice on the selection half
-  (ii) best betti0 [gameable]             [50, 30, 10, 30, 10, 60]    37.6%    +318.4   2.75  fails
+  (ii) best betti0 [gameable]             [50, 30, 10, 30, 10, 60]    37.6%    +318.3   2.75  fails
                                           per seed [+565 +68 +0 +377 +0 +900]
                                           gave up 0.00415 Dice on the selection half
   (iii) best betti0, Dice within 1sd (0.00086)[10, 40, 10, 10, 10, 10]    33.7%     -18.8  -0.53  fails
-                                          gave up 0.00005 Dice on the selection half
+                                          gave up 0.00006 Dice on the selection half
   (iii) best betti0, Dice within 2sd (0.00172)[10, 40, 10, 10, 10, 10]    33.7%     -18.8  -0.53  fails
-                                          gave up 0.00005 Dice on the selection half
+                                          gave up 0.00006 Dice on the selection half
   (iii) best betti0, Dice within 4sd (0.00344)[10, 40, 10, 10, 10, 10]    33.7%     -18.8  -0.53  fails
-                                          gave up 0.00005 Dice on the selection half
-  (iv) best clDice                        [30, 40, 30, 20, 40, 30]    39.9%    +517.2   4.16  fails
-                                          per seed [+541 -113 +495 +808 +809 +563]
-                                          gave up 0.00487 Dice on the selection half
+                                          gave up 0.00006 Dice on the selection half
+  (iv) best clDice                        [30, 40, 30, 20, 40, 30]    39.9%    +517.5   4.16  fails
+                                          per seed [+541 -113 +496 +808 +809 +563]
+                                          gave up 0.00486 Dice on the selection half
 
 === K_focal_aug (6 seeds) ===
   rule                                    epochs                      traced    vs (i)      t  gate
@@ -66,10 +66,10 @@
                                           gave up 0.00506 Dice on the selection half
   (iii) best betti0, Dice within 1sd (0.00086)[60, 10, 10, 10, 10, 40]    40.1%      +0.0    nan  fails
                                           gave up 0.00000 Dice on the selection half
-  (iii) best betti0, Dice within 2sd (0.00172)[60, 10, 10, 10, 10, 50]    40.0%      -4.2  -0.26  fails
+  (iii) best betti0, Dice within 2sd (0.00172)[60, 10, 10, 10, 10, 50]    40.0%      -4.2  -0.25  fails
                                           gave up 0.00017 Dice on the selection half
   (iii) best betti0, Dice within 4sd (0.00344)[100, 10, 10, 20, 20, 50]   40.9%     +78.0   1.33  fails
-                                          per seed [+174 +0 +0 +48 +271 -25]
+                                          per seed [+174 +0 +0 +48 +270 -25]
                                           gave up 0.00143 Dice on the selection half
   (iv) best clDice                        [50, 100, 70, 80, 90, 60]   47.4%    +624.4   6.38  HOLDS
                                           gave up 0.00682 Dice on the selection half

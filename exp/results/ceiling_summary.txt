@@ -1,0 +1,64 @@
+=== C1.0: the ceiling on severs-guided linking ===
+traced fraction of the ground-truth tree, report half, weights chosen by 10 (rule iv); closing radii used [0, 1, 6] px
+
+A_dice
+  condition        traced     Dice       fg   vs raw
+  --------------------------------------------------
+  raw              32.4%   0.8211    1.00x    +0.0%
+  closing          46.0%   0.7389    1.31x   +13.6%
+  closing_fair     34.2%   0.8200    1.01x    +1.8%
+  oracle_sever     36.1%   0.8262    1.01x    +3.7%
+  oracle_all       97.8%   0.8527    1.05x   +65.4%
+  -> headroom +3.7%, unclaimed over the fair closing +1.9%: NOT WORTH BUILDING
+     (the UNCONSTRAINED closing reaches 46.0% at 1.31x the foreground -- not a comparable condition)
+
+H_aug
+  condition        traced     Dice       fg   vs raw
+  --------------------------------------------------
+  raw              34.3%   0.8235    1.00x    +0.0%
+  closing          45.6%   0.7405    1.31x   +11.2%
+  closing_fair     35.5%   0.8226    1.01x    +1.2%
+  oracle_sever     37.2%   0.8278    1.01x    +2.9%
+  oracle_all       97.8%   0.8552    1.05x   +63.5%
+  -> headroom +2.9%, unclaimed over the fair closing +1.7%: NOT WORTH BUILDING
+     (the UNCONSTRAINED closing reaches 45.6% at 1.31x the foreground -- not a comparable condition)
+
+G_focal
+  condition        traced     Dice       fg   vs raw
+  --------------------------------------------------
+  raw              39.9%   0.8104    1.00x    +0.0%
+  closing          54.2%   0.7245    1.31x   +14.2%
+  closing_fair     43.4%   0.8090    1.01x    +3.5%
+  oracle_sever     44.7%   0.8149    1.01x    +4.7%
+  oracle_all       97.8%   0.8377    1.04x   +57.8%
+  -> headroom +4.7%, unclaimed over the fair closing +1.3%: NOT WORTH BUILDING
+     (the UNCONSTRAINED closing reaches 54.2% at 1.31x the foreground -- not a comparable condition)
+
+K_focal_aug
+  condition        traced     Dice       fg   vs raw
+  --------------------------------------------------
+  raw              47.4%   0.8015    1.00x    +0.0%
+  closing          62.0%   0.7158    1.30x   +14.7%
+  closing_fair     50.8%   0.8001    1.01x    +3.4%
+  oracle_sever     52.4%   0.8055    1.01x    +5.1%
+  oracle_all       97.8%   0.8251    1.04x   +50.4%
+  -> headroom +5.1%, unclaimed over the fair closing +1.7%: NOT WORTH BUILDING
+     (the UNCONSTRAINED closing reaches 62.0% at 1.30x the foreground -- not a comparable condition)
+
+
+headroom  = oracle_sever - raw: everything a perfect linker adds.
+unclaimed = oracle_sever - closing_fair: what is left after blind
+            closing has taken what it can AT THE ORACLE'S OWN DICE
+            COST. C1's real budget.
+fg        = foreground relative to raw. This column is why the
+            unconstrained closing is not a valid baseline: it buys
+            run length by painting more, which ERL rewards and
+            Dice charges for.
+oracle_all is the bound for ANY post-processing: the distance from
+oracle_sever to it is tree that no linker can reach, because
+nothing was predicted near it. That part is D1's and B1's problem,
+not C1's.
+
+Both oracle columns use ground truth by construction. They are
+upper bounds, not methods, and nothing here is a claim about a
+model. The one decision they support is where the next weeks go.

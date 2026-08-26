@@ -205,3 +205,36 @@ train norm mean 0.4177 std 0.1442
 00:42:51 gpu0 2531MB free, need 3500; waiting
 00:47:51 gpu0 2531MB free, need 3500; waiting
 00:52:51 gpu0 2531MB free, need 3500; waiting
+00:57:51 gpu0 2531MB free, need 3500; waiting
+01:02:51 gpu0 2531MB free, need 3500; waiting
+01:07:51 gpu0 2531MB free, need 3500; waiting
+01:12:51 gpu0 2531MB free, need 3500; waiting
+--- 2026-08-27 01:17:51 B_cldice_s11 ---
+results -> /home/ivanchang/ian_mei/exp/results
+train norm mean 0.4177 std 0.1442
+[B_cldice_s11] epoch  10 loss 0.4199 dice 0.8116 clDice 0.8313 b0err 75.5 95HD 4.21 (1 min)
+[B_cldice_s11] epoch  20 loss 0.3941 dice 0.8169 clDice 0.8303 b0err 61.6 95HD 4.10 (2 min)
+[B_cldice_s11] epoch  30 loss 0.3808 dice 0.8166 clDice 0.8279 b0err 69.3 95HD 4.34 (4 min)
+[B_cldice_s11] epoch  40 loss 0.3739 dice 0.8158 clDice 0.8262 b0err 52.0 95HD 4.65 (5 min)
+[B_cldice_s11] epoch  50 loss 0.3641 dice 0.8142 clDice 0.8230 b0err 65.7 95HD 4.41 (6 min)
+[B_cldice_s11] epoch  60 loss 0.3577 dice 0.8156 clDice 0.8256 b0err 56.8 95HD 4.71 (7 min)
+[B_cldice_s11] epoch  70 loss 0.3574 dice 0.8129 clDice 0.8217 b0err 64.3 95HD 4.45 (8 min)
+[B_cldice_s11] epoch  80 loss 0.3481 dice 0.8142 clDice 0.8235 b0err 68.5 95HD 4.46 (10 min)
+[B_cldice_s11] epoch  90 loss 0.3433 dice 0.8134 clDice 0.8169 b0err 66.0 95HD 4.52 (11 min)
+[B_cldice_s11] epoch 100 loss 0.3411 dice 0.8119 clDice 0.8192 b0err 67.7 95HD 4.51 (12 min)
+[B_cldice_s11] done in 12 min; best dice 0.8169
+--- 2026-08-27 01:29:57 G_focal_s11 ---
+results -> /home/ivanchang/ian_mei/exp/results
+train norm mean 0.4177 std 0.1442
+[G_focal_s11] epoch  10 loss 0.4296 dice 0.8051 clDice 0.8413 b0err 65.9 95HD 4.14 (1 min)
+[G_focal_s11] epoch  20 loss 0.4032 dice 0.8077 clDice 0.8415 b0err 50.4 95HD 4.27 (2 min)
+[G_focal_s11] epoch  30 loss 0.3903 dice 0.8061 clDice 0.8401 b0err 46.9 95HD 4.61 (4 min)
+[G_focal_s11] epoch  40 loss 0.3832 dice 0.8057 clDice 0.8360 b0err 57.5 95HD 4.58 (5 min)
+[G_focal_s11] epoch  50 loss 0.3749 dice 0.8038 clDice 0.8383 b0err 53.5 95HD 4.43 (6 min)
+[G_focal_s11] epoch  60 loss 0.3698 dice 0.8048 clDice 0.8366 b0err 52.9 95HD 4.58 (7 min)
+[G_focal_s11] epoch  70 loss 0.3693 dice 0.8033 clDice 0.8353 b0err 53.6 95HD 4.54 (9 min)
+[G_focal_s11] epoch  80 loss 0.3607 dice 0.8034 clDice 0.8337 b0err 59.1 95HD 4.66 (10 min)
+[G_focal_s11] epoch  90 loss 0.3554 dice 0.8054 clDice 0.8286 b0err 56.8 95HD 4.71 (11 min)
+[G_focal_s11] epoch 100 loss 0.3534 dice 0.8047 clDice 0.8286 b0err 65.7 95HD 4.44 (12 min)
+[G_focal_s11] done in 12 min; best dice 0.8077
+=== 2026-08-27 01:42:05 taskc gpu=0 done ===

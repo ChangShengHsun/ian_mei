@@ -89,18 +89,41 @@ def traced(rows) -> float:
     return float(np.mean([r["erl"] / r["skel_px"] for r in rows]))
 
 
+def seed_mean(rows, config: str, variant: str) -> dict:
+    """{image: mean over seeds} for one arm and variant.
+
+    What an ensemble has to be compared against. An ensemble carries no seed,
+    so there is no seed to pair it with, and asking for one returned None --
+    which printed as "not scored" and read as missing data rather than as an
+    undefined comparison. The average seed is the honest counterpart: it is
+    what you get from one training run in expectation. It is a WEAKER bar
+    than the best single seed, which P3 uses, and both are reported.
+    """
+    grouped = defaultdict(list)
+    for row in rows:
+        if row["config"] == config and row["variant"] == variant:
+            grouped[row["image"]].append(row)
+    return {image: {"erl": float(np.mean([r["erl"] for r in these])),
+                    "dice": float(np.mean([r["dice"] for r in these]))}
+            for image, these in grouped.items()}
+
+
 def compare(rows, config: str, variant: str, base: str) -> dict | None:
     """Paired ERL difference for one arm, gated the repo's way."""
     table = indexed(rows)
     seeds = sorted({r["seed"] for r in rows
                     if r["config"] == config and r["variant"] == variant})
     images = sorted({r["image"] for r in rows if r["config"] == config})
+    # An unseeded variant (an ensemble) is paired against the base's average
+    # seed, since it has no seed of its own to match.
+    averaged = seed_mean(rows, config, base) if seeds == [""] else None
     paired, per_seed, dice_cost = [], [], []
     for seed in seeds:
         inside = []
         for image in images:
             mine = table.get((config, seed, variant, image))
-            theirs = table.get((config, seed, base, image))
+            theirs = (averaged.get(image) if averaged is not None
+                      else table.get((config, seed, base, image)))
             if mine is None or theirs is None:
                 return None
             inside.append((mine["erl"], theirs["erl"]))
@@ -135,7 +158,7 @@ def table(rows, pairs) -> None:
                 print(f"  {config:<14}{'not scored':>8}")
                 continue
             if got["unseeded"]:
-                verdict = "unseeded"
+                verdict = "vs mean seed"
             else:
                 verdict = "HOLDS" if got["holds"] else "fails"
             print(f"  {config:<14}{got['share']:7.1%}{got['mean']:+10.1f}"
@@ -274,10 +297,22 @@ def selftest() -> None:
            for i in range(1, 21)]
     ens += [make("A_dice", "", "rule_iv", f"{i:02d}", 2000.0)
             for i in range(1, 21)]
+    # An ensemble carries no seed, so it is paired against the base's MEAN
+    # seed. Two seeds at 1900 and 2100 average to 2000, and the ensemble at
+    # 2500 must score +500 against that -- not None, which is what pairing on
+    # a seed the ensemble does not have used to return.
+    ens = [make("A_dice", "", "ens_iv", f"{i:02d}", 2500.0)
+           for i in range(1, 21)]
+    for seed, value in (("0", 1900.0), ("1", 2100.0)):
+        ens += [make("A_dice", seed, "rule_iv", f"{i:02d}", value)
+                for i in range(1, 21)]
     unseeded = compare(report_only(ens), "A_dice", "ens_iv", "rule_iv")
+    assert unseeded is not None, "an ensemble must not come back unscored"
+    assert abs(unseeded["mean"] - 500.0) < 1e-6, unseeded
     assert unseeded["unseeded"] and not unseeded["holds"], unseeded
-    print(f"an ensemble improving by {unseeded['mean']:+.0f} is reported "
-          f"'unseeded', never 'HOLDS' -- one ensemble is not three seeds")
+    print(f"an ensemble is paired against the mean seed "
+          f"({unseeded['mean']:+.0f}) and reported unseeded, never 'HOLDS' "
+          f"-- one ensemble is not three seeds")
     print("all checks passed")
 
 
