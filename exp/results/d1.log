@@ -1,0 +1,32 @@
+=== 2026-08-27 04:21:07 D1 phase 1: the direction ceiling ===
+ellipse(along=4, across=1, angle=0): 9 px wide, 3 tall
+  a quarter turn swaps its axes, and it always contains its centre
+a 45-degree vessel dilated along=6 across=0: 4 px gained on its own diagonal, 0 px four rows off it
+  isotropic dilation radius 6 puts 45 px there instead -- that spill is what costs Dice
+oriented adds 3.15x foreground, isotropic 19.46x, for the same reach
+every setting is a superset of the input, so the sweep is monotone
+shuffled field: axis gap 1.29 against the true tangent (the true field scores 0.00) -- it carries no direction
+16 bins span [0, pi) and theta+pi lands in the same bin
+  at the seam theta=0 and theta=pi land in bins [0, 15], which are 1 apart on the mod-pi circle -- adjacent, not opposite
+  and their structuring elements differ by 11.25 degrees, one quantisation step
+all checks passed
+grid: along (0.0, 0.5, 1.0, 1.5, 2.0), across (0.0, 0.25, 0.5, 1.0), isotropic (0.0, 0.25, 0.5, 0.75, 1.0, 1.5) -- 20 oriented + 6 isotropic settings per image
+a bridged detour scores split 39.5% vs bridged 79.0% -- both are reported, always
+a 6px gap in a 45-degree vessel:
+  oriented  traced 46.2%  Dice 0.916  161 px of foreground
+  isotropic needs radius 2.25 to trace as far: 46.2%  Dice 0.481  431 px
+  -> isotropic pays 2.68x the foreground and 0.435 more Dice for the same trace
+  shuffled  traced 42.4%  Dice 0.543 (354 px) -- the control that says it is direction, not foreground
+all checks passed
+the Dice floor refuses the 0.90 setting that costs 0.12 Dice and takes (1.0, 0.25) at 0.60 -- a gain bought with overlap is a trade
+  isotropic clears the floor at no setting, so it scores nothing -- which is the finding, not a gap in the table
+thresholds: <3% stop, 3%-8% let the net learn it, >8% build the layer -- fixed before the run
+all checks passed
+a prediction entirely off the centreline traces nothing under either convention -- there is no covered fragment to bridge
+a 10px detour around the centreline: split 36, bridged 71 (whole vessel 90)
+a severing cut scores the same under both -- only bridged gaps are merged
+all checks passed
+=== 2026-08-27 04:21:12 all selftests passed ===
+=== 2026-08-27 04:21:12 sweeping (4 arms x 6 seeds x 20 images, ~2h on CPU) ===
+4 arm(s), width 2.83 px, component filter 17 px
+  K_focal_aug_s0 epoch 50 done

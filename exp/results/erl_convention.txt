@@ -1,0 +1,10 @@
+arm               split   bridged   change
+------------------------------------------
+A_dice           32.4%    59.8%  +27.4%
+H_aug            34.3%    60.6%  +26.3%
+G_focal          39.9%    63.2%  +23.2%
+K_focal_aug      47.4%    67.3%  +19.9%
+
+If `bridged` is close to `split`, the 36.6-point intact budget is
+real geometry. If it closes most of the gap to 84.0%, that budget
+is this implementation's splitting rule and not the segmentation.
