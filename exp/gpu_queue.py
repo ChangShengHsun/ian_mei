@@ -146,6 +146,18 @@ def stage(name: str) -> tuple[str, ...]:
     if name == "d1":
         return tuple(f"{arm}_s{seed}" for seed in range(6)
                      for arm in ("A_dice_dir", "H_aug_dir"))
+    # D-B and its ablation: the propagation layer driven by the model's own
+    # direction head, against the same layer driven by noise. Paired so a
+    # queue stopped early still has both sides of the comparison at the seeds
+    # it reached, rather than one arm measured and its control missing.
+    if name == "d1b":
+        arms = ("A_dice_dir_prop", "A_dice_dir_prop_shuf",
+                "H_aug_dir_prop", "H_aug_dir_prop_shuf")
+        return tuple(f"{arm}_s{seed}" for seed in range(6) for arm in arms)
+    # D-E: the cheap competitor, no direction anywhere in it.
+    if name == "d1e":
+        return tuple(f"{arm}_s{seed}" for seed in range(6)
+                     for arm in ("A_dice_clw", "H_aug_clw"))
     if name == "curve":
         return tuple(run for run in stage("recover") if is_curve_arm(run))
     if name == "recover_rest":
@@ -272,6 +284,28 @@ def selftest() -> None:
         assert run_name not in taskc and run_name not in existing_runs()
     print(f"  d1 {len(d1)} runs: {d1[0]} .. {d1[-1]}, each carrying its "
           f"namesake's augmentation")
+
+    d1b, d1e = stage("d1b"), stage("d1e")
+    assert len(d1b) == 24 and len(d1e) == 12, (len(d1b), len(d1e))
+    for run_name in d1b + d1e:
+        config = run_name.rsplit("_s", 1)[0]
+        assert config in train.CONFIGS, config
+        assert train.net_depth(config) == 3 and train.base_width(config) == 16
+        # The AUGMENTS trap again, in its D-B shape. Four of these six names
+        # start with H_aug, and one missing from AUGMENTS trains unaugmented
+        # while still answering to the augmented arm's name.
+        base = config.split("_")[0] + "_" + config.split("_")[1]
+        assert train.AUGMENTS.get(config, ()) == train.AUGMENTS.get(base, ()),\
+            f"{config} does not carry {base}'s augmentation tuple"
+    # Every _prop arm must have its shuffled control at the same seed, or the
+    # ablation is missing exactly where it is needed.
+    for run_name in d1b:
+        if "shuf" not in run_name:
+            partner = run_name.replace("_prop_s", "_prop_shuf_s")
+            assert partner in d1b, partner
+    assert sum("shuf" in r for r in d1b) == len(d1b) // 2
+    print(f"  d1b {len(d1b)} runs (half of them the shuffled control), "
+          f"d1e {len(d1e)} runs")
 
     curve, rest = stage("curve"), stage("recover_rest")
     # The 27 published runs of E13's narrow arms are what turn a one-column

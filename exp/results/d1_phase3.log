@@ -1,0 +1,14 @@
+reuses phase 1's grid exactly: along (0.0, 0.5, 1.0, 1.5, 2.0), across (0.0, 0.25, 0.5, 1.0)
+  width 2 px, gap of one width: along=1.0 widths takes it 48% -> 100%
+  width 6 px, gap of one width: along=1.0 widths takes it 42% -> 100%
+  the same multiple closes the same relative gap at both scales -- which is what the unit is for
+  the same reach in PIXELS (tuned on the 2 px vessel) leaves the 6 px one at 45%
+all checks passed
+the split works on DRIVE's '01', STARE's 'im0003', VessMAP's '10084' and HRF's '13_g'
+two datasets 2x apart in vessel width choosing (1.0, 0.25) is what 'the unit transfers' looks like
+all checks passed
+=== 2026-08-27 04:37:08 selftests passed ===
+=== 2026-08-27 04:37:08 sweeping DRIVE / STARE / HRF / VessMAP ===
+DRIVE: 20 images, width 2.83 px, component filter 17 px
+  K_focal_aug_s0 done on DRIVE
+  K_focal_aug_s1 done on DRIVE

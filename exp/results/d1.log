@@ -31,3 +31,14 @@ all checks passed
 4 arm(s), width 2.83 px, component filter 17 px
   K_focal_aug_s0 epoch 50 done
   K_focal_aug_s1 epoch 100 done
+  K_focal_aug_s2 epoch 70 done
+  K_focal_aug_s3 epoch 80 done
+  K_focal_aug_s4 epoch 90 done
+  K_focal_aug_s5 epoch 60 done
+  A_dice_s0 epoch 30 done
+  A_dice_s1 epoch 20 done
+  A_dice_s2 epoch 30 done
+  A_dice_s3 epoch 10 done
+  A_dice_s4 epoch 10 done
+  A_dice_s5 epoch 10 done
+  A_dice_dir_s0 epoch 30 done

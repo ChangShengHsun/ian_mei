@@ -130,6 +130,29 @@ def load_topomortar(label_kind: str = "accurate") -> tuple[list[dict], list[dict
     return build(splits["train"], label_kind), build(splits["test"], "accurate")
 
 
+def load_vessmap() -> tuple[list[dict], list[dict]]:
+    """VessMAP: 100 brain-vessel micrographs, 256x256, no aperture.
+
+    Zenodo 10045265, CC-BY-4.0, fetched by exp/fetch_vessmap.py. Not a retina
+    and not a fundus camera -- which is why it is here. Vessels are 32% of the
+    frame against DRIVE's 8%, and the median width is several times larger, so
+    it is the hardest test of a setting expressed in vessel widths: anything
+    that is really a pixel count in disguise breaks on it.
+
+    annotator1 labels all 100; annotator2 labels 20 of them, which is the
+    agreement subset and is not used here. The split is by sorted name, first
+    80 train, last 20 test -- fixed, and nothing in this repo trains on it.
+    """
+    items = []
+    for image_path in sorted((DATA / "VessMAP" / "images").glob("*.tiff")):
+        stem = image_path.stem
+        gray = np.asarray(Image.open(image_path))
+        label = np.asarray(Image.open(
+            DATA / "VessMAP" / "annotator1" / "labels" / f"{stem}.png")) > 127
+        items.append(prepare(gray, label, np.ones(label.shape, bool), stem))
+    return items[:80], items[80:]
+
+
 def loader_for(dataset: str):
     """`topomortar:noisy` trains on the noisy labels and still scores against
     the accurate ones. That is E5: how fast does each loss degrade as the
@@ -138,6 +161,8 @@ def loader_for(dataset: str):
     if dataset.startswith("topomortar"):
         kind = dataset.partition(":")[2] or "accurate"
         return lambda: load_topomortar(kind)
+    if dataset == "vessmap":
+        return load_vessmap
     return load_hrf
 
 

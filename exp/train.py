@@ -20,11 +20,13 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from scipy import ndimage
+from skimage.morphology import skeletonize
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import augment
 import direction
 import drive
+import propagate
 import liot
 import metrics
 
@@ -232,13 +234,99 @@ def uses_direction(config_name: str) -> bool:
     return "dir" in config_name.split("_")
 
 
+# Where phase 1's sweep leaves the geometry it chose. A _prop config refuses
+# to build without it: the along/across radii were selected on held-out images
+# under a Dice floor, and guessing them here would fit the same quantity twice
+# on 20 images -- which is the whole reason phase 1 runs first.
+GEOMETRY = RESULTS / "d1_geometry.txt"
+
+
+_WIDTH_CACHE: dict = {}
+
+
+def vessel_width() -> float:
+    """Median vessel width of the TRAINING split, in pixels. Cached.
+
+    The geometry file is written in MULTIPLES of this, never in pixels --
+    CLAUDE.md's rule, and here it is load-bearing rather than tidy: HRF is
+    about six times DRIVE's resolution, so a layer built from a pixel count
+    would silently become a different operator on transfer while keeping the
+    same name. The conversion happens here, once, at the boundary.
+
+    The first version of this skipped the conversion entirely and handed
+    build_model the width multiples as if they were pixels. `along=1.0` then
+    produced a one-pixel kernel, the layer was the identity, and its gate saw
+    a gradient of 6e-10 -- a whole arm that would have trained, converged, and
+    reported "the propagation layer does nothing" while never having run.
+    """
+    if "width" not in _WIDTH_CACHE:
+        import cross_dataset
+        _WIDTH_CACHE["width"] = cross_dataset.median_width(
+            drive.load_split("train"))
+    return _WIDTH_CACHE["width"]
+
+
+def propagation_geometry() -> tuple[float, float]:
+    """(along, across) IN PIXELS, converted from the stored width multiples."""
+    if not GEOMETRY.exists():
+        raise FileNotFoundError(
+            f"{GEOMETRY} is missing: a _prop config needs the along/across "
+            f"radii phase 1 chose. Run exp/direction_ceiling.py and "
+            f"exp/gate_d1.py first, or this trains a made-up architecture "
+            f"under a name that claims otherwise.")
+    along, across = (float(value) for value in GEOMETRY.read_text().split())
+    width = vessel_width()
+    return along * width, across * width
+
+
+def uses_propagation(config_name: str) -> bool:
+    """D-B: the oriented propagation layer, inside the network."""
+    return "prop" in config_name.split("_")
+
+
+def uses_shuffled_direction(config_name: str) -> bool:
+    """D-B's ablation: the same layer driven by a MEANINGLESS axis field.
+
+    The control the whole architecture rests on. Oriented propagation adds
+    evidence, and adding evidence moves ERL on its own; if the shuffled arm
+    matches the real one, the layer is a dilation with a direction-shaped
+    parameter and D-B has measured nothing.
+    """
+    return "shuf" in config_name.split("_")
+
+
+# D-E's weight on ground-truth centreline pixels, on top of the 1.0 every
+# pixel already carries. DERIVED, not chosen: DRIVE's median vessel is 2.83 px
+# across, so a cross-section is about three pixels of which one is centreline.
+# At weight 2 the centreline counts for as much as the rest of the vessel put
+# together, which is the strongest form of "cover the centreline" that does
+# not simply outvote the body.
+CENTRELINE_WEIGHT = 2.0
+
+
+def uses_centreline_weight(config_name: str) -> bool:
+    """D-E: the competitor that could make this whole line unnecessary.
+
+    The measured error is that the prediction covers the vessel but misses its
+    centreline. The cheapest possible answer to that is to weight centreline
+    pixels in the loss -- no direction field, no extra head, no new layer. If
+    this arm captures the budget, D1 is an expensive route to something one
+    weight map already does, and that has to be known before D-B is believed.
+    """
+    return "clw" in config_name.split("_")
+
+
 def build_model(config_name: str) -> "TinyUNet":
     """The only place architecture is derived from a config name."""
     blurpool, _ = CONFIGS[config_name]
     return TinyUNet(base=base_width(config_name), blurpool=blurpool,
                     in_channels=len(liot.DIRECTIONS) if uses_liot(config_name)
                     else 1, depth=net_depth(config_name),
-                    direction=uses_direction(config_name)).to(DEVICE)
+                    direction=uses_direction(config_name),
+                    propagation=(propagation_geometry()
+                                 if uses_propagation(config_name)
+                                 else None),
+                    shuffle=uses_shuffled_direction(config_name)).to(DEVICE)
 
 
 class TinyUNet(nn.Module):
@@ -257,7 +345,8 @@ class TinyUNet(nn.Module):
 
     def __init__(self, base: int = 16, blurpool: bool = False,
                  in_channels: int = 1, depth: int = 3,
-                 direction: bool = False):
+                 direction: bool = False, propagation: tuple | None = None,
+                 shuffle: bool = False):
         super().__init__()
         self.depth = depth
         channels = [base * 2 ** level for level in range(depth)]
@@ -278,6 +367,16 @@ class TinyUNet(nn.Module):
         # because a vessel tangent is an axis and a single angle tears at the
         # wrap-around. See exp/direction.py for why, and for the test.
         self.dir_head = nn.Conv2d(base, 2, 1) if direction else None
+        # D-B. Between the trunk and the head, driven by dir_head's own
+        # output, so a wrong field costs segmentation accuracy directly.
+        self.propagation = (propagate.OrientedPropagation(*propagation)
+                            if propagation is not None else None)
+        # D-B's ablation. The layer runs on a random axis field instead of the
+        # head's, so the head predicts direction (the auxiliary loss still
+        # sees it) but nothing downstream uses it. Set on the MODEL rather
+        # than at a call site because inference has to be ablated too -- an
+        # ablation that only holds during training is not one.
+        self.shuffle_field = shuffle
 
     def features(self, x: torch.Tensor) -> torch.Tensor:
         """Everything up to the 1x1 heads. Shared by both of them."""
@@ -292,21 +391,35 @@ class TinyUNet(nn.Module):
         return x
 
     def forward(self, x: torch.Tensor) -> torch.Tensor:
-        """Segmentation logits, and nothing else.
+        """Segmentation logits, after propagation if this model has it.
 
         Deliberately unchanged in shape by D1: twenty analysis scripts call
         model(image) and index [0, 0]. A _dir model reached through forward()
         is exactly the segmentation model it would have been, so every
         existing script scores it correctly with no edit.
         """
-        return self.head(self.features(x))
+        if self.propagation is None:
+            return self.head(self.features(x))
+        # A _prop model's segmentation is not defined without its field, so
+        # forward() computes both and returns only the logits -- every
+        # analysis script that calls model(image) then scores the real thing
+        # rather than the pre-propagation logits.
+        return self.forward_direction(x)[0]
 
     def forward_direction(self, x: torch.Tensor) -> tuple:
         """(segmentation logits, tangent field). Training and D1 only."""
         if self.dir_head is None:
             raise ValueError("this model was built without a direction head")
         shared = self.features(x)
-        return self.head(shared), self.dir_head(shared)
+        logits, field = self.head(shared), self.dir_head(shared)
+        if self.propagation is not None:
+            driving = field
+            if self.shuffle_field:
+                angle = torch.rand_like(field[:, :1]) * torch.pi
+                driving = torch.cat([torch.sin(2 * angle),
+                                     torch.cos(2 * angle)], dim=1)
+            logits = self.propagation(logits, driving)
+        return logits, field
 
 
 # --------------------------------------------------------------- losses
@@ -555,6 +668,22 @@ CONFIGS = {
     # linker than 1-p.
     "A_dice_dir": (False, None),
     "H_aug_dir": (False, None),
+    # D-B (2026-08-27). The oriented propagation layer between trunk and head,
+    # driven by the model's OWN direction head, with the geometry phase 1
+    # chose. ONE extra parameter over the _dir arms -- the gate that opens the
+    # layer -- so capacity is not a confound in any direction.
+    "A_dice_dir_prop": (False, None),
+    "H_aug_dir_prop": (False, None),
+    # D-B's ablation: the same layer on a random axis field. The head still
+    # predicts direction and the auxiliary loss still sees it; nothing
+    # downstream uses it. If these match the _prop arms, the layer is a
+    # dilation and D-B measured nothing.
+    "A_dice_dir_prop_shuf": (False, None),
+    "H_aug_dir_prop_shuf": (False, None),
+    # D-E. No direction at all: BCE with the ground-truth centreline weighted
+    # up. The cheap competitor that could make the whole line unnecessary.
+    "A_dice_clw": (False, None),
+    "H_aug_clw": (False, None),
 }
 
 # Which augmentations each config gets. Keeping this beside CONFIGS rather than
@@ -583,6 +712,12 @@ AUGMENTS = {
     "K_focal_aug_w64_d5": ("dihedral", "jitter"),
     # Must match H_aug exactly; test_capacity.py asserts every variant does.
     "H_aug_dir": ("dihedral", "jitter"),
+    # Every H_aug variant must carry H_aug's tuple exactly; test_capacity.py
+    # and gpu_queue's selftest both assert it, because a variant missing from
+    # here trains unaugmented and still answers to the augmented arm's name.
+    "H_aug_dir_prop": ("dihedral", "jitter"),
+    "H_aug_dir_prop_shuf": ("dihedral", "jitter"),
+    "H_aug_clw": ("dihedral", "jitter"),
 }
 
 
@@ -603,6 +738,18 @@ def direction_loss(field, target) -> torch.Tensor:
     error = (field - target[:, :2]) ** 2
     total = weight.sum() * 2 + 1e-6
     return (error * weight).sum() / total
+
+
+def centreline_loss(logits, target, skeleton) -> torch.Tensor:
+    """D-E. BCE with ground-truth centreline pixels weighted up.
+
+    No direction anywhere in it. That is the point: it is the cheapest thing
+    that answers the measurement -- the prediction covers the vessel and
+    misses its centreline -- and if it captures the budget then D1's field,
+    head and layer are an expensive route to what one weight map does.
+    """
+    weight = 1.0 + CENTRELINE_WEIGHT * skeleton
+    return F.binary_cross_entropy_with_logits(logits, target, weight=weight)
 
 
 def compute_loss(logits, target, dist, extra, image=None):
@@ -648,7 +795,12 @@ def stack_split(split: str) -> dict:
     # than per crop because it is deterministic and three gaussian filters on
     # 20 full images cost seconds against 1M crops per run.
     fields = [direction.tangent_field(item["label"] > 0.5) for item in items]
+    # D-E's target: the ground-truth centreline. Precomputed because
+    # skeletonize on a 48 px crop, a million times a run, is not affordable.
+    skeletons = np.stack([skeletonize(item["label"] > 0.5).astype(np.float32)
+                          for item in items])
     return {"images": images, "labels": labels, "fovs": fovs, "dists": dists,
+            "skel": skeletons,
             "dir_sin": np.stack([f[0] for f in fields]),
             "dir_cos": np.stack([f[1] for f in fields]),
             "dir_weight": np.stack([f[2] for f in fields]),
@@ -691,7 +843,8 @@ def liot_stats(data: dict) -> tuple[np.ndarray, np.ndarray]:
 
 def sample_batch(data: dict, rng: np.random.Generator, mean, std,
                  augments: tuple = (), inpainted: np.ndarray | None = None,
-                 use_liot: bool = False, use_direction: bool = False):
+                 use_liot: bool = False, use_direction: bool = False,
+                 use_skeleton: bool = False):
     """One batch of random crops, optionally augmented.
 
     Order matters. CoLeTra reads from the inpainted copy of the SAME crop, so
@@ -710,7 +863,7 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
     inner = slice(pad, pad + PATCH)
     height, width = data["images"].shape[1:]
     images, labels, dists = [], [], []
-    sines, cosines, weights = [], [], []
+    sines, cosines, weights, skeletons = [], [], [], []
     while len(images) < BATCH:
         index = rng.integers(len(data["images"]))
         top = rng.integers(height - size)
@@ -727,7 +880,9 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
         # the LIOT tests each build their own data dict, and none of them
         # carries these planes. An unconditional read makes D1's target a
         # requirement of every caller instead of of the one that asked.
-        sine = cosine = weight = None
+        sine = cosine = weight = skeleton = None
+        if use_skeleton:
+            skeleton = data["skel"][index][window]
         if use_direction:
             sine = data["dir_sin"][index][window]
             cosine = data["dir_cos"][index][window]
@@ -743,6 +898,8 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
             turns, flip = augment.dihedral_choice(rng)
             image, label, dist = augment.apply_dihedral(
                 turns, flip, image, label, dist)
+            if use_skeleton:
+                skeleton, = augment.apply_dihedral(turns, flip, skeleton)
             if use_direction:
                 weight, = augment.apply_dihedral(turns, flip, weight)
                 sine, cosine = direction.dihedral(turns, flip, sine, cosine)
@@ -759,6 +916,8 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
             sines.append(sine[inner, inner])
             cosines.append(cosine[inner, inner])
             weights.append(weight[inner, inner])
+        if use_skeleton:
+            skeletons.append(skeleton[inner, inner])
     batch = np.stack(images)
     if batch.ndim == 3:
         batch = batch[:, None]
@@ -768,19 +927,30 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
     out = (torch.from_numpy(batch).to(DEVICE),
            torch.from_numpy(np.stack(labels))[:, None].to(DEVICE),
            torch.from_numpy(np.stack(dists))[:, None].to(DEVICE))
-    # Three values unless a direction target was ASKED for. Six call sites in
+    # Three values unless an extra target was ASKED for. Six call sites in
     # this repo unpack exactly three, and a fourth slot appearing under them
-    # would break every one of them at import time -- for a target five of
-    # the six have no use for. The arity follows the argument, and
-    # test_direction.py pins both shapes.
-    if not use_direction:
+    # would break every one of them at import time -- for targets five of the
+    # six have no use for.
+    #
+    # When there IS a fourth it is a DICT, not a bare tensor. With two
+    # optional planes a positional fourth slot would mean the direction field
+    # for one caller and the skeleton for another, and a caller that asked
+    # for the wrong one would get a correctly shaped tensor of the wrong
+    # quantity -- silent, and exactly the class of bug this repo keeps paying
+    # for. test_direction.py pins all three shapes.
+    if not (use_direction or use_skeleton):
         return out
-    # (sin 2theta, cos 2theta, coherence) stacked into one 3-channel tensor,
-    # so the loss receives its target and its weight together and cannot be
-    # handed one without the other.
-    field = np.stack([np.stack(sines), np.stack(cosines)], axis=1)
-    return out + (torch.from_numpy(np.concatenate(
-        [field, np.stack(weights)[:, None]], axis=1)).to(DEVICE),)
+    extras = {}
+    if use_direction:
+        # (sin 2theta, cos 2theta, coherence) in one tensor, so the loss gets
+        # its target and its weight together and cannot be handed one alone.
+        field = np.stack([np.stack(sines), np.stack(cosines)], axis=1)
+        extras["field"] = torch.from_numpy(np.concatenate(
+            [field, np.stack(weights)[:, None]], axis=1)).to(DEVICE)
+    if use_skeleton:
+        extras["skel"] = torch.from_numpy(
+            np.stack(skeletons))[:, None].to(DEVICE)
+    return out + (extras,)
 
 
 @torch.no_grad()
@@ -896,6 +1066,7 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     augments = AUGMENTS.get(config_name, ())
     use_liot = uses_liot(config_name)
     use_direction = uses_direction(config_name)
+    use_skeleton = uses_centreline_weight(config_name)
     if use_liot:
         # The grey mean/std main() computed are meaningless for a byte-code
         # input, so recompute here rather than making every caller know.
@@ -975,14 +1146,24 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
         running = 0.0
         for _ in range(steps):
             optimiser.zero_grad()
-            if use_direction:
-                images, labels, dists, field = sample_batch(
+            if use_direction or use_skeleton:
+                images, labels, dists, extras = sample_batch(
                     train, rng, mean, std, augments, inpainted, use_liot,
-                    True)
-                logits, predicted = model.forward_direction(images)
+                    use_direction, use_skeleton)
+                if use_direction:
+                    logits, predicted = model.forward_direction(images)
+                else:
+                    logits = model(images)
                 loss = compute_loss(logits, labels, dists, extra, images)
-                loss = loss + DIRECTION_WEIGHT * direction_loss(predicted,
-                                                               field)
+                if use_direction:
+                    loss = loss + DIRECTION_WEIGHT * direction_loss(
+                        predicted, extras["field"])
+                if use_skeleton:
+                    # Replaces nothing: it is added on top of the arm's own
+                    # loss, so _clw differs from its namesake in exactly this
+                    # term and the comparison isolates it.
+                    loss = loss + centreline_loss(logits, labels,
+                                                  extras["skel"])
             else:
                 images, labels, dists = sample_batch(
                     train, rng, mean, std, augments, inpainted, use_liot)

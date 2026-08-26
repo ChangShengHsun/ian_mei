@@ -40,6 +40,7 @@ def fake_split(count: int = 3, size: int = 96) -> dict:
         labels.append(label)
         images.append((0.4 + 0.2 * label + 0.01 * rng.standard_normal(
             (size, size))).astype(np.float32))
+    from skimage.morphology import skeletonize
     fields = [direction.tangent_field(label) for label in labels]
     return {"images": np.stack(images),
             "labels": np.stack(labels).astype(np.float32),
@@ -48,6 +49,8 @@ def fake_split(count: int = 3, size: int = 96) -> dict:
             "dir_sin": np.stack([f[0] for f in fields]),
             "dir_cos": np.stack([f[1] for f in fields]),
             "dir_weight": np.stack([f[2] for f in fields]),
+            "skel": np.stack([skeletonize(l).astype(np.float32)
+                              for l in labels]),
             "names": [f"{i:02d}" for i in range(count)]}
 
 
@@ -58,11 +61,22 @@ def check_arity(data) -> None:
     withdir = train.sample_batch(data, np.random.default_rng(1), 0.4, 0.2,
                                  use_direction=True)
     assert len(withdir) == 4, len(withdir)
+    assert set(withdir[3]) == {"field"}, withdir[3].keys()
+    withskel = train.sample_batch(data, np.random.default_rng(1), 0.4, 0.2,
+                                  use_skeleton=True)
+    assert set(withskel[3]) == {"skel"}, withskel[3].keys()
+    both = train.sample_batch(data, np.random.default_rng(1), 0.4, 0.2,
+                              use_direction=True, use_skeleton=True)
+    assert set(both[3]) == {"field", "skel"}, both[3].keys()
+    # The extras are a DICT for exactly this reason: two optional planes in
+    # one positional slot would hand a caller the wrong quantity in the right
+    # shape.
+    assert not torch.equal(both[3]["field"][:, :1], both[3]["skel"])
     # Same seed, same first three tensors: asking for the target must not
     # perturb the crops, or a _dir arm would not be comparable to its namesake.
     for left, right in zip(plain, withdir):
         assert torch.equal(left, right), "asking for direction moved the crops"
-    field = withdir[3]
+    field = withdir[3]["field"]
     assert field.shape == (train.BATCH, 3, train.PATCH, train.PATCH), field.shape
     print(f"sample_batch returns 3 tensors by default and 4 when asked; the "
           f"crops are identical either way, target {tuple(field.shape)}")
@@ -75,9 +89,10 @@ def check_augmented_target(data) -> None:
     across the vessel -- the exact bug direction.dihedral exists to prevent,
     here checked end to end through sample_batch rather than in isolation.
     """
-    _, labels, _, field = train.sample_batch(
+    _, labels, _, extras = train.sample_batch(
         data, np.random.default_rng(4), 0.4, 0.2,
         augments=("dihedral",), use_direction=True)
+    field = extras["field"]
     # The reference is recomputed on the CROP, whose four edges the batch's
     # field does not have -- it was cut out of a whole image. A ridge that
     # runs off the edge of a 48 px tile is smoothed against nothing there, so
