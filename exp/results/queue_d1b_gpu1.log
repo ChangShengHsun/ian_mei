@@ -170,3 +170,507 @@ train norm mean 0.4177 std 0.1442
 === 2026-08-27 19:33:32 d1b gpu=1 done ===
 === 2026-08-27 21:55:03 d1b gpu=1 36 runs -> exp/results/selection_sweep ===
 21:55:03 gpu1 2547MB free, need 3500; waiting
+22:00:03 gpu1 2547MB free, need 3500; waiting
+22:05:03 gpu1 2547MB free, need 3500; waiting
+22:10:03 gpu1 2547MB free, need 3500; waiting
+22:15:03 gpu1 2547MB free, need 3500; waiting
+--- 2026-08-27 22:20:03 A_dice_dir_prop_shuf_a050_c025_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch  10 loss 0.5219 dice 0.8135 clDice 0.8236 b0err 64.8 95HD 4.74 (1 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch  20 loss 0.4969 dice 0.8176 clDice 0.8237 b0err 80.4 95HD 4.10 (2 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch  30 loss 0.4838 dice 0.8185 clDice 0.8278 b0err 64.2 95HD 4.20 (3 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch  40 loss 0.4771 dice 0.8175 clDice 0.8227 b0err 65.2 95HD 4.23 (4 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch  50 loss 0.4640 dice 0.8161 clDice 0.8213 b0err 69.4 95HD 4.36 (5 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch  60 loss 0.4624 dice 0.8166 clDice 0.8246 b0err 68.9 95HD 4.19 (6 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch  70 loss 0.4538 dice 0.8160 clDice 0.8228 b0err 71.5 95HD 4.19 (7 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch  80 loss 0.4500 dice 0.8135 clDice 0.8193 b0err 72.7 95HD 4.27 (8 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch  90 loss 0.4434 dice 0.8152 clDice 0.8195 b0err 64.1 95HD 4.61 (9 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] epoch 100 loss 0.4418 dice 0.8122 clDice 0.8154 b0err 87.0 95HD 4.39 (10 min)
+[A_dice_dir_prop_shuf_a050_c025_s0] done in 10 min; best dice 0.8185
+--- 2026-08-27 22:29:43 A_dice_dir_prop_shuf_a100_c025_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch  10 loss 0.5209 dice 0.8141 clDice 0.8242 b0err 67.3 95HD 4.55 (1 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch  20 loss 0.4975 dice 0.8174 clDice 0.8262 b0err 81.5 95HD 4.17 (2 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch  30 loss 0.4858 dice 0.8181 clDice 0.8267 b0err 66.8 95HD 4.18 (3 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch  40 loss 0.4751 dice 0.8172 clDice 0.8237 b0err 68.2 95HD 4.13 (4 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch  50 loss 0.4632 dice 0.8170 clDice 0.8246 b0err 67.4 95HD 4.21 (5 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch  60 loss 0.4627 dice 0.8160 clDice 0.8243 b0err 66.2 95HD 4.12 (6 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch  70 loss 0.4535 dice 0.8155 clDice 0.8214 b0err 69.3 95HD 4.14 (7 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch  80 loss 0.4480 dice 0.8133 clDice 0.8189 b0err 72.2 95HD 4.24 (7 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch  90 loss 0.4434 dice 0.8142 clDice 0.8210 b0err 64.0 95HD 4.44 (8 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] epoch 100 loss 0.4443 dice 0.8118 clDice 0.8176 b0err 87.0 95HD 4.38 (9 min)
+[A_dice_dir_prop_shuf_a100_c025_s0] done in 9 min; best dice 0.8181
+--- 2026-08-27 22:39:08 A_dice_dir_prop_shuf_a200_c025_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch  10 loss 0.5222 dice 0.8128 clDice 0.8217 b0err 67.7 95HD 4.70 (1 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch  20 loss 0.4963 dice 0.8180 clDice 0.8251 b0err 84.5 95HD 4.10 (2 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch  30 loss 0.4828 dice 0.8180 clDice 0.8274 b0err 64.0 95HD 4.02 (3 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch  40 loss 0.4748 dice 0.8178 clDice 0.8243 b0err 70.5 95HD 4.23 (4 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch  50 loss 0.4641 dice 0.8175 clDice 0.8248 b0err 66.3 95HD 4.19 (5 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch  60 loss 0.4620 dice 0.8159 clDice 0.8226 b0err 77.6 95HD 4.15 (6 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch  70 loss 0.4541 dice 0.8151 clDice 0.8215 b0err 72.3 95HD 4.30 (7 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch  80 loss 0.4502 dice 0.8128 clDice 0.8182 b0err 72.3 95HD 4.34 (7 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch  90 loss 0.4434 dice 0.8136 clDice 0.8211 b0err 66.1 95HD 4.54 (8 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] epoch 100 loss 0.4431 dice 0.8141 clDice 0.8185 b0err 82.9 95HD 4.29 (9 min)
+[A_dice_dir_prop_shuf_a200_c025_s0] done in 9 min; best dice 0.8180
+--- 2026-08-27 22:48:34 H_aug_dir_prop_shuf_a050_c025_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch  10 loss 0.5590 dice 0.8157 clDice 0.8303 b0err 80.2 95HD 4.13 (1 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch  20 loss 0.5418 dice 0.8196 clDice 0.8312 b0err 71.8 95HD 3.83 (2 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch  30 loss 0.5364 dice 0.8209 clDice 0.8346 b0err 60.4 95HD 3.94 (3 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch  40 loss 0.5283 dice 0.8214 clDice 0.8312 b0err 62.6 95HD 3.94 (4 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch  50 loss 0.5283 dice 0.8223 clDice 0.8338 b0err 61.8 95HD 3.82 (5 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch  60 loss 0.5275 dice 0.8228 clDice 0.8317 b0err 57.4 95HD 3.96 (6 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch  70 loss 0.5295 dice 0.8220 clDice 0.8296 b0err 66.7 95HD 3.66 (7 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch  80 loss 0.5173 dice 0.8240 clDice 0.8346 b0err 63.0 95HD 3.72 (8 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch  90 loss 0.5226 dice 0.8224 clDice 0.8332 b0err 60.2 95HD 3.82 (9 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] epoch 100 loss 0.5191 dice 0.8226 clDice 0.8341 b0err 58.0 95HD 3.64 (10 min)
+[H_aug_dir_prop_shuf_a050_c025_s0] done in 10 min; best dice 0.8240
+--- 2026-08-27 22:58:49 H_aug_dir_prop_shuf_a100_c025_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch  10 loss 0.5596 dice 0.8161 clDice 0.8278 b0err 77.2 95HD 4.06 (1 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch  20 loss 0.5419 dice 0.8203 clDice 0.8317 b0err 69.6 95HD 3.76 (2 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch  30 loss 0.5353 dice 0.8214 clDice 0.8328 b0err 65.3 95HD 3.84 (3 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch  40 loss 0.5298 dice 0.8214 clDice 0.8304 b0err 60.9 95HD 3.99 (4 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch  50 loss 0.5280 dice 0.8217 clDice 0.8329 b0err 59.5 95HD 3.82 (5 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch  60 loss 0.5272 dice 0.8220 clDice 0.8307 b0err 61.6 95HD 3.83 (6 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch  70 loss 0.5302 dice 0.8224 clDice 0.8301 b0err 62.4 95HD 3.70 (7 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch  80 loss 0.5181 dice 0.8230 clDice 0.8343 b0err 65.2 95HD 3.75 (8 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch  90 loss 0.5219 dice 0.8221 clDice 0.8320 b0err 57.4 95HD 3.77 (9 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] epoch 100 loss 0.5196 dice 0.8228 clDice 0.8331 b0err 55.0 95HD 3.63 (10 min)
+[H_aug_dir_prop_shuf_a100_c025_s0] done in 10 min; best dice 0.8230
+--- 2026-08-27 23:09:08 H_aug_dir_prop_shuf_a200_c025_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch  10 loss 0.5597 dice 0.8163 clDice 0.8278 b0err 82.7 95HD 4.03 (1 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch  20 loss 0.5417 dice 0.8200 clDice 0.8313 b0err 66.5 95HD 3.79 (2 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch  30 loss 0.5360 dice 0.8205 clDice 0.8351 b0err 59.6 95HD 3.96 (3 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch  40 loss 0.5300 dice 0.8212 clDice 0.8314 b0err 61.1 95HD 3.97 (4 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch  50 loss 0.5289 dice 0.8223 clDice 0.8338 b0err 62.5 95HD 3.73 (5 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch  60 loss 0.5280 dice 0.8216 clDice 0.8302 b0err 59.8 95HD 3.89 (6 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch  70 loss 0.5296 dice 0.8232 clDice 0.8315 b0err 58.7 95HD 3.78 (7 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch  80 loss 0.5168 dice 0.8235 clDice 0.8349 b0err 61.1 95HD 3.64 (8 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch  90 loss 0.5242 dice 0.8221 clDice 0.8326 b0err 57.2 95HD 3.80 (9 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] epoch 100 loss 0.5201 dice 0.8226 clDice 0.8333 b0err 56.0 95HD 3.70 (10 min)
+[H_aug_dir_prop_shuf_a200_c025_s0] done in 10 min; best dice 0.8235
+--- 2026-08-27 23:19:33 A_dice_dir_prop_shuf_a050_c025_s1 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch  10 loss 0.5247 dice 0.8158 clDice 0.8239 b0err 75.0 95HD 4.56 (1 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch  20 loss 0.4971 dice 0.8187 clDice 0.8301 b0err 67.2 95HD 4.06 (2 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch  30 loss 0.4837 dice 0.8169 clDice 0.8250 b0err 72.7 95HD 4.22 (3 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch  40 loss 0.4694 dice 0.8162 clDice 0.8238 b0err 78.6 95HD 4.13 (4 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch  50 loss 0.4677 dice 0.8150 clDice 0.8212 b0err 79.2 95HD 4.20 (5 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch  60 loss 0.4619 dice 0.8137 clDice 0.8223 b0err 77.8 95HD 4.40 (6 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch  70 loss 0.4510 dice 0.8134 clDice 0.8189 b0err 77.9 95HD 4.49 (7 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch  80 loss 0.4492 dice 0.8139 clDice 0.8180 b0err 70.8 95HD 4.45 (8 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch  90 loss 0.4450 dice 0.8129 clDice 0.8206 b0err 77.2 95HD 4.27 (9 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] epoch 100 loss 0.4446 dice 0.8125 clDice 0.8180 b0err 81.0 95HD 4.30 (10 min)
+[A_dice_dir_prop_shuf_a050_c025_s1] done in 10 min; best dice 0.8187
+--- 2026-08-27 23:29:32 A_dice_dir_prop_shuf_a100_c025_s1 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch  10 loss 0.5248 dice 0.8115 clDice 0.8180 b0err 88.9 95HD 4.56 (1 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch  20 loss 0.4993 dice 0.8171 clDice 0.8305 b0err 65.7 95HD 4.20 (2 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch  30 loss 0.4832 dice 0.8153 clDice 0.8241 b0err 78.8 95HD 4.26 (3 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch  40 loss 0.4680 dice 0.8169 clDice 0.8259 b0err 80.5 95HD 4.18 (4 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch  50 loss 0.4659 dice 0.8141 clDice 0.8211 b0err 77.6 95HD 4.28 (5 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch  60 loss 0.4613 dice 0.8149 clDice 0.8237 b0err 74.2 95HD 4.40 (6 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch  70 loss 0.4501 dice 0.8125 clDice 0.8171 b0err 83.0 95HD 4.35 (7 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch  80 loss 0.4499 dice 0.8149 clDice 0.8229 b0err 64.1 95HD 4.39 (7 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch  90 loss 0.4457 dice 0.8116 clDice 0.8190 b0err 73.6 95HD 4.42 (8 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] epoch 100 loss 0.4448 dice 0.8099 clDice 0.8200 b0err 77.7 95HD 4.52 (9 min)
+[A_dice_dir_prop_shuf_a100_c025_s1] done in 9 min; best dice 0.8171
+--- 2026-08-27 23:38:59 A_dice_dir_prop_shuf_a200_c025_s1 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch  10 loss 0.5244 dice 0.8133 clDice 0.8236 b0err 74.9 95HD 4.44 (1 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch  20 loss 0.4991 dice 0.8191 clDice 0.8293 b0err 60.5 95HD 4.36 (2 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch  30 loss 0.4823 dice 0.8150 clDice 0.8221 b0err 74.8 95HD 4.19 (3 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch  40 loss 0.4710 dice 0.8149 clDice 0.8227 b0err 69.8 95HD 4.35 (4 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch  50 loss 0.4660 dice 0.8148 clDice 0.8220 b0err 78.0 95HD 4.35 (5 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch  60 loss 0.4619 dice 0.8124 clDice 0.8235 b0err 71.4 95HD 4.61 (6 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch  70 loss 0.4506 dice 0.8126 clDice 0.8164 b0err 83.1 95HD 4.43 (7 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch  80 loss 0.4487 dice 0.8150 clDice 0.8223 b0err 64.1 95HD 4.26 (7 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch  90 loss 0.4433 dice 0.8122 clDice 0.8224 b0err 70.8 95HD 4.32 (8 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] epoch 100 loss 0.4433 dice 0.8132 clDice 0.8185 b0err 83.0 95HD 4.40 (9 min)
+[A_dice_dir_prop_shuf_a200_c025_s1] done in 9 min; best dice 0.8191
+--- 2026-08-27 23:48:27 H_aug_dir_prop_shuf_a050_c025_s1 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch  10 loss 0.5662 dice 0.8175 clDice 0.8288 b0err 80.0 95HD 4.08 (1 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch  20 loss 0.5475 dice 0.8214 clDice 0.8328 b0err 55.0 95HD 3.98 (2 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch  30 loss 0.5387 dice 0.8193 clDice 0.8292 b0err 64.0 95HD 3.81 (3 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch  40 loss 0.5266 dice 0.8238 clDice 0.8326 b0err 55.5 95HD 4.25 (4 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch  50 loss 0.5302 dice 0.8211 clDice 0.8318 b0err 61.5 95HD 3.67 (5 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch  60 loss 0.5232 dice 0.8235 clDice 0.8341 b0err 60.3 95HD 3.69 (6 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch  70 loss 0.5231 dice 0.8207 clDice 0.8343 b0err 66.7 95HD 3.61 (7 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch  80 loss 0.5233 dice 0.8204 clDice 0.8312 b0err 57.7 95HD 3.69 (8 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch  90 loss 0.5191 dice 0.8220 clDice 0.8319 b0err 59.1 95HD 3.76 (9 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] epoch 100 loss 0.5161 dice 0.8213 clDice 0.8335 b0err 64.2 95HD 3.62 (10 min)
+[H_aug_dir_prop_shuf_a050_c025_s1] done in 10 min; best dice 0.8238
+--- 2026-08-27 23:58:39 H_aug_dir_prop_shuf_a100_c025_s1 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch  10 loss 0.5652 dice 0.8153 clDice 0.8247 b0err 79.3 95HD 4.08 (1 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch  20 loss 0.5481 dice 0.8196 clDice 0.8309 b0err 54.9 95HD 4.24 (2 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch  30 loss 0.5399 dice 0.8198 clDice 0.8287 b0err 70.8 95HD 3.89 (3 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch  40 loss 0.5290 dice 0.8221 clDice 0.8322 b0err 55.0 95HD 4.10 (4 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch  50 loss 0.5320 dice 0.8205 clDice 0.8325 b0err 57.1 95HD 3.72 (5 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch  60 loss 0.5238 dice 0.8241 clDice 0.8346 b0err 57.2 95HD 3.69 (6 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch  70 loss 0.5242 dice 0.8229 clDice 0.8379 b0err 56.0 95HD 3.62 (7 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch  80 loss 0.5250 dice 0.8203 clDice 0.8312 b0err 57.0 95HD 3.73 (8 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch  90 loss 0.5195 dice 0.8214 clDice 0.8318 b0err 57.9 95HD 3.74 (9 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] epoch 100 loss 0.5167 dice 0.8214 clDice 0.8328 b0err 62.4 95HD 3.57 (10 min)
+[H_aug_dir_prop_shuf_a100_c025_s1] done in 10 min; best dice 0.8241
+--- 2026-08-28 00:08:57 H_aug_dir_prop_shuf_a200_c025_s1 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch  10 loss 0.5661 dice 0.8169 clDice 0.8283 b0err 76.6 95HD 4.08 (1 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch  20 loss 0.5476 dice 0.8203 clDice 0.8311 b0err 57.9 95HD 4.10 (2 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch  30 loss 0.5385 dice 0.8193 clDice 0.8275 b0err 65.0 95HD 3.83 (3 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch  40 loss 0.5309 dice 0.8216 clDice 0.8316 b0err 57.5 95HD 4.04 (4 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch  50 loss 0.5310 dice 0.8209 clDice 0.8340 b0err 58.0 95HD 3.57 (5 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch  60 loss 0.5244 dice 0.8241 clDice 0.8337 b0err 58.5 95HD 3.62 (6 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch  70 loss 0.5237 dice 0.8207 clDice 0.8362 b0err 59.2 95HD 3.51 (7 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch  80 loss 0.5239 dice 0.8209 clDice 0.8323 b0err 56.6 95HD 3.75 (8 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch  90 loss 0.5199 dice 0.8215 clDice 0.8313 b0err 52.7 95HD 3.83 (9 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] epoch 100 loss 0.5162 dice 0.8219 clDice 0.8341 b0err 61.2 95HD 3.49 (10 min)
+[H_aug_dir_prop_shuf_a200_c025_s1] done in 10 min; best dice 0.8241
+--- 2026-08-28 00:19:19 A_dice_dir_prop_shuf_a050_c025_s2 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch  10 loss 0.5149 dice 0.8152 clDice 0.8257 b0err 75.2 95HD 4.04 (1 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch  20 loss 0.4978 dice 0.8133 clDice 0.8216 b0err 69.0 95HD 4.27 (2 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch  30 loss 0.4831 dice 0.8176 clDice 0.8291 b0err 65.7 95HD 4.18 (3 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch  40 loss 0.4701 dice 0.8163 clDice 0.8221 b0err 65.0 95HD 4.18 (4 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch  50 loss 0.4621 dice 0.8156 clDice 0.8233 b0err 64.5 95HD 4.30 (5 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch  60 loss 0.4612 dice 0.8163 clDice 0.8209 b0err 73.0 95HD 4.29 (6 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch  70 loss 0.4520 dice 0.8149 clDice 0.8211 b0err 68.6 95HD 4.27 (7 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch  80 loss 0.4473 dice 0.8136 clDice 0.8196 b0err 70.5 95HD 4.25 (8 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch  90 loss 0.4458 dice 0.8133 clDice 0.8173 b0err 75.0 95HD 4.28 (9 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] epoch 100 loss 0.4425 dice 0.8139 clDice 0.8184 b0err 65.6 95HD 4.27 (10 min)
+[A_dice_dir_prop_shuf_a050_c025_s2] done in 10 min; best dice 0.8176
+--- 2026-08-28 00:29:19 A_dice_dir_prop_shuf_a100_c025_s2 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch  10 loss 0.5148 dice 0.8145 clDice 0.8267 b0err 72.3 95HD 4.12 (1 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch  20 loss 0.4978 dice 0.8144 clDice 0.8225 b0err 82.0 95HD 4.09 (2 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch  30 loss 0.4826 dice 0.8173 clDice 0.8282 b0err 73.2 95HD 4.04 (3 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch  40 loss 0.4711 dice 0.8177 clDice 0.8245 b0err 72.1 95HD 4.12 (4 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch  50 loss 0.4598 dice 0.8172 clDice 0.8263 b0err 65.6 95HD 4.48 (5 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch  60 loss 0.4597 dice 0.8162 clDice 0.8205 b0err 76.9 95HD 4.43 (6 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch  70 loss 0.4559 dice 0.8173 clDice 0.8246 b0err 66.0 95HD 4.21 (7 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch  80 loss 0.4479 dice 0.8151 clDice 0.8220 b0err 64.1 95HD 4.50 (8 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch  90 loss 0.4507 dice 0.8143 clDice 0.8202 b0err 78.2 95HD 4.46 (8 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] epoch 100 loss 0.4417 dice 0.8129 clDice 0.8205 b0err 79.2 95HD 4.39 (9 min)
+[A_dice_dir_prop_shuf_a100_c025_s2] done in 9 min; best dice 0.8177
+--- 2026-08-28 00:38:34 A_dice_dir_prop_shuf_a200_c025_s2 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch  10 loss 0.5147 dice 0.8144 clDice 0.8251 b0err 77.8 95HD 4.19 (1 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch  20 loss 0.4978 dice 0.8154 clDice 0.8253 b0err 72.1 95HD 4.11 (2 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch  30 loss 0.4838 dice 0.8183 clDice 0.8306 b0err 65.6 95HD 4.21 (2 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch  40 loss 0.4704 dice 0.8161 clDice 0.8228 b0err 66.5 95HD 4.10 (3 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch  50 loss 0.4594 dice 0.8165 clDice 0.8245 b0err 73.5 95HD 4.19 (4 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch  60 loss 0.4617 dice 0.8166 clDice 0.8207 b0err 76.7 95HD 4.19 (5 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch  70 loss 0.4541 dice 0.8147 clDice 0.8210 b0err 73.4 95HD 4.25 (6 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch  80 loss 0.4484 dice 0.8156 clDice 0.8206 b0err 67.2 95HD 4.15 (7 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch  90 loss 0.4458 dice 0.8130 clDice 0.8163 b0err 73.8 95HD 4.35 (8 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] epoch 100 loss 0.4421 dice 0.8140 clDice 0.8200 b0err 74.0 95HD 4.32 (8 min)
+[A_dice_dir_prop_shuf_a200_c025_s2] done in 8 min; best dice 0.8183
+00:47:06 gpu1 2545MB free, need 3500; waiting
+--- 2026-08-28 00:52:06 H_aug_dir_prop_shuf_a050_c025_s2 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch  10 loss 0.5630 dice 0.8193 clDice 0.8332 b0err 63.5 95HD 4.26 (1 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch  20 loss 0.5442 dice 0.8164 clDice 0.8314 b0err 64.0 95HD 3.83 (2 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch  30 loss 0.5373 dice 0.8212 clDice 0.8324 b0err 62.7 95HD 3.81 (3 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch  40 loss 0.5295 dice 0.8208 clDice 0.8318 b0err 63.5 95HD 3.80 (4 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch  50 loss 0.5346 dice 0.8205 clDice 0.8314 b0err 64.8 95HD 3.68 (5 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch  60 loss 0.5222 dice 0.8222 clDice 0.8349 b0err 52.2 95HD 3.79 (6 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch  70 loss 0.5180 dice 0.8232 clDice 0.8352 b0err 57.0 95HD 3.66 (7 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch  80 loss 0.5172 dice 0.8218 clDice 0.8313 b0err 60.0 95HD 3.61 (8 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch  90 loss 0.5150 dice 0.8215 clDice 0.8322 b0err 56.1 95HD 3.93 (9 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] epoch 100 loss 0.5131 dice 0.8221 clDice 0.8340 b0err 54.5 95HD 3.68 (10 min)
+[H_aug_dir_prop_shuf_a050_c025_s2] done in 10 min; best dice 0.8232
+--- 2026-08-28 01:02:08 H_aug_dir_prop_shuf_a100_c025_s2 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch  10 loss 0.5622 dice 0.8180 clDice 0.8318 b0err 61.5 95HD 4.36 (1 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch  20 loss 0.5437 dice 0.8196 clDice 0.8337 b0err 59.0 95HD 4.10 (2 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch  30 loss 0.5360 dice 0.8218 clDice 0.8333 b0err 64.5 95HD 3.79 (3 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch  40 loss 0.5298 dice 0.8195 clDice 0.8322 b0err 63.6 95HD 3.79 (4 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch  50 loss 0.5338 dice 0.8208 clDice 0.8303 b0err 64.2 95HD 3.75 (5 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch  60 loss 0.5208 dice 0.8224 clDice 0.8330 b0err 57.8 95HD 3.75 (6 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch  70 loss 0.5191 dice 0.8233 clDice 0.8357 b0err 54.5 95HD 3.69 (7 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch  80 loss 0.5155 dice 0.8217 clDice 0.8325 b0err 60.8 95HD 3.49 (8 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch  90 loss 0.5166 dice 0.8216 clDice 0.8332 b0err 55.5 95HD 3.75 (9 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] epoch 100 loss 0.5127 dice 0.8216 clDice 0.8345 b0err 56.8 95HD 3.71 (10 min)
+[H_aug_dir_prop_shuf_a100_c025_s2] done in 10 min; best dice 0.8233
+--- 2026-08-28 01:12:28 H_aug_dir_prop_shuf_a200_c025_s2 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch  10 loss 0.5637 dice 0.8192 clDice 0.8346 b0err 57.6 95HD 4.28 (1 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch  20 loss 0.5430 dice 0.8185 clDice 0.8321 b0err 61.0 95HD 3.93 (2 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch  30 loss 0.5361 dice 0.8204 clDice 0.8313 b0err 62.9 95HD 3.92 (3 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch  40 loss 0.5290 dice 0.8197 clDice 0.8327 b0err 61.6 95HD 3.82 (4 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch  50 loss 0.5339 dice 0.8212 clDice 0.8330 b0err 61.7 95HD 3.73 (5 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch  60 loss 0.5212 dice 0.8235 clDice 0.8347 b0err 52.5 95HD 3.71 (6 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch  70 loss 0.5187 dice 0.8233 clDice 0.8372 b0err 54.9 95HD 3.64 (7 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch  80 loss 0.5163 dice 0.8216 clDice 0.8343 b0err 56.5 95HD 3.56 (8 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch  90 loss 0.5173 dice 0.8217 clDice 0.8348 b0err 55.7 95HD 3.71 (9 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] epoch 100 loss 0.5136 dice 0.8230 clDice 0.8355 b0err 54.0 95HD 3.68 (10 min)
+[H_aug_dir_prop_shuf_a200_c025_s2] done in 10 min; best dice 0.8235
+--- 2026-08-28 01:22:53 A_dice_dir_prop_shuf_a050_c025_s3 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch  10 loss 0.5241 dice 0.8163 clDice 0.8277 b0err 76.2 95HD 4.28 (1 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch  20 loss 0.4960 dice 0.8160 clDice 0.8251 b0err 69.8 95HD 4.24 (2 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch  30 loss 0.4793 dice 0.8163 clDice 0.8252 b0err 71.8 95HD 4.18 (3 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch  40 loss 0.4745 dice 0.8167 clDice 0.8273 b0err 57.2 95HD 4.40 (4 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch  50 loss 0.4627 dice 0.8152 clDice 0.8225 b0err 77.7 95HD 4.16 (5 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch  60 loss 0.4614 dice 0.8146 clDice 0.8216 b0err 73.5 95HD 4.29 (6 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch  70 loss 0.4490 dice 0.8153 clDice 0.8218 b0err 72.0 95HD 4.37 (6 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch  80 loss 0.4467 dice 0.8150 clDice 0.8209 b0err 74.6 95HD 4.19 (7 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch  90 loss 0.4441 dice 0.8102 clDice 0.8153 b0err 79.7 95HD 4.42 (8 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] epoch 100 loss 0.4431 dice 0.8130 clDice 0.8169 b0err 78.8 95HD 4.32 (9 min)
+[A_dice_dir_prop_shuf_a050_c025_s3] done in 9 min; best dice 0.8167
+--- 2026-08-28 01:31:58 A_dice_dir_prop_shuf_a100_c025_s3 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch  10 loss 0.5238 dice 0.8172 clDice 0.8270 b0err 76.7 95HD 4.21 (1 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch  20 loss 0.4965 dice 0.8160 clDice 0.8247 b0err 67.5 95HD 4.31 (2 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch  30 loss 0.4800 dice 0.8133 clDice 0.8237 b0err 67.0 95HD 4.27 (3 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch  40 loss 0.4726 dice 0.8135 clDice 0.8277 b0err 67.3 95HD 4.49 (4 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch  50 loss 0.4636 dice 0.8170 clDice 0.8257 b0err 70.0 95HD 4.12 (4 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch  60 loss 0.4620 dice 0.8158 clDice 0.8227 b0err 69.7 95HD 4.24 (5 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch  70 loss 0.4501 dice 0.8144 clDice 0.8223 b0err 72.2 95HD 4.24 (6 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch  80 loss 0.4474 dice 0.8112 clDice 0.8154 b0err 81.7 95HD 4.44 (7 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch  90 loss 0.4447 dice 0.8109 clDice 0.8172 b0err 81.5 95HD 4.45 (8 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] epoch 100 loss 0.4428 dice 0.8115 clDice 0.8146 b0err 76.5 95HD 4.28 (9 min)
+[A_dice_dir_prop_shuf_a100_c025_s3] done in 9 min; best dice 0.8172
+--- 2026-08-28 01:41:04 A_dice_dir_prop_shuf_a200_c025_s3 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch  10 loss 0.5246 dice 0.8165 clDice 0.8261 b0err 74.0 95HD 4.36 (1 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch  20 loss 0.4949 dice 0.8166 clDice 0.8237 b0err 71.9 95HD 4.28 (2 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch  30 loss 0.4780 dice 0.8137 clDice 0.8229 b0err 68.9 95HD 4.27 (3 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch  40 loss 0.4712 dice 0.8145 clDice 0.8261 b0err 64.2 95HD 4.26 (4 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch  50 loss 0.4645 dice 0.8157 clDice 0.8256 b0err 73.2 95HD 4.09 (4 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch  60 loss 0.4614 dice 0.8129 clDice 0.8198 b0err 83.8 95HD 4.32 (5 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch  70 loss 0.4530 dice 0.8136 clDice 0.8197 b0err 82.3 95HD 4.42 (6 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch  80 loss 0.4464 dice 0.8130 clDice 0.8181 b0err 85.7 95HD 4.35 (7 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch  90 loss 0.4443 dice 0.8105 clDice 0.8135 b0err 99.7 95HD 4.53 (8 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] epoch 100 loss 0.4427 dice 0.8117 clDice 0.8141 b0err 84.1 95HD 4.40 (9 min)
+[A_dice_dir_prop_shuf_a200_c025_s3] done in 9 min; best dice 0.8166
+--- 2026-08-28 01:50:10 H_aug_dir_prop_shuf_a050_c025_s3 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch  10 loss 0.5593 dice 0.8123 clDice 0.8244 b0err 58.4 95HD 5.10 (1 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch  20 loss 0.5477 dice 0.8163 clDice 0.8267 b0err 69.0 95HD 4.08 (2 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch  30 loss 0.5366 dice 0.8188 clDice 0.8308 b0err 62.1 95HD 3.81 (3 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch  40 loss 0.5333 dice 0.8224 clDice 0.8301 b0err 55.2 95HD 4.04 (4 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch  50 loss 0.5261 dice 0.8200 clDice 0.8365 b0err 55.5 95HD 3.88 (5 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch  60 loss 0.5302 dice 0.8204 clDice 0.8334 b0err 57.1 95HD 3.87 (6 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch  70 loss 0.5256 dice 0.8208 clDice 0.8354 b0err 50.9 95HD 3.74 (8 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch  80 loss 0.5164 dice 0.8207 clDice 0.8307 b0err 55.5 95HD 4.12 (9 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch  90 loss 0.5170 dice 0.8221 clDice 0.8347 b0err 60.7 95HD 3.64 (10 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] epoch 100 loss 0.5149 dice 0.8233 clDice 0.8337 b0err 53.0 95HD 3.75 (11 min)
+[H_aug_dir_prop_shuf_a050_c025_s3] done in 11 min; best dice 0.8233
+--- 2026-08-28 02:01:12 H_aug_dir_prop_shuf_a100_c025_s3 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch  10 loss 0.5566 dice 0.8168 clDice 0.8284 b0err 60.0 95HD 4.85 (1 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch  20 loss 0.5462 dice 0.8175 clDice 0.8264 b0err 60.0 95HD 4.32 (2 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch  30 loss 0.5372 dice 0.8203 clDice 0.8325 b0err 62.4 95HD 3.65 (3 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch  40 loss 0.5334 dice 0.8219 clDice 0.8315 b0err 53.4 95HD 4.10 (4 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch  50 loss 0.5245 dice 0.8193 clDice 0.8371 b0err 50.5 95HD 3.84 (6 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch  60 loss 0.5292 dice 0.8199 clDice 0.8334 b0err 57.7 95HD 3.80 (7 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch  70 loss 0.5260 dice 0.8203 clDice 0.8352 b0err 52.1 95HD 3.66 (8 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch  80 loss 0.5175 dice 0.8233 clDice 0.8344 b0err 53.5 95HD 3.82 (9 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch  90 loss 0.5188 dice 0.8226 clDice 0.8333 b0err 64.3 95HD 3.55 (10 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] epoch 100 loss 0.5157 dice 0.8237 clDice 0.8352 b0err 54.6 95HD 3.74 (11 min)
+[H_aug_dir_prop_shuf_a100_c025_s3] done in 11 min; best dice 0.8237
+--- 2026-08-28 02:12:16 H_aug_dir_prop_shuf_a200_c025_s3 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch  10 loss 0.5574 dice 0.8130 clDice 0.8223 b0err 56.0 95HD 5.53 (1 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch  20 loss 0.5454 dice 0.8197 clDice 0.8292 b0err 63.5 95HD 4.14 (2 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch  30 loss 0.5368 dice 0.8196 clDice 0.8324 b0err 61.6 95HD 3.68 (3 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch  40 loss 0.5326 dice 0.8223 clDice 0.8310 b0err 56.0 95HD 4.02 (4 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch  50 loss 0.5267 dice 0.8201 clDice 0.8344 b0err 54.0 95HD 4.03 (6 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch  60 loss 0.5288 dice 0.8193 clDice 0.8307 b0err 60.5 95HD 3.80 (7 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch  70 loss 0.5255 dice 0.8206 clDice 0.8350 b0err 48.8 95HD 3.85 (8 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch  80 loss 0.5167 dice 0.8224 clDice 0.8335 b0err 57.1 95HD 3.69 (9 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch  90 loss 0.5175 dice 0.8221 clDice 0.8354 b0err 64.9 95HD 3.59 (10 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] epoch 100 loss 0.5156 dice 0.8237 clDice 0.8354 b0err 47.1 95HD 3.91 (11 min)
+[H_aug_dir_prop_shuf_a200_c025_s3] done in 11 min; best dice 0.8237
+--- 2026-08-28 02:23:29 A_dice_dir_prop_shuf_a050_c025_s4 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch  10 loss 0.5194 dice 0.8174 clDice 0.8312 b0err 57.8 95HD 4.42 (1 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch  20 loss 0.4962 dice 0.8173 clDice 0.8281 b0err 62.7 95HD 4.16 (2 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch  30 loss 0.4825 dice 0.8179 clDice 0.8256 b0err 61.4 95HD 4.43 (3 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch  40 loss 0.4742 dice 0.8159 clDice 0.8245 b0err 70.2 95HD 4.22 (4 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch  50 loss 0.4633 dice 0.8148 clDice 0.8237 b0err 72.1 95HD 4.35 (4 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch  60 loss 0.4595 dice 0.8142 clDice 0.8209 b0err 74.1 95HD 4.34 (5 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch  70 loss 0.4566 dice 0.8141 clDice 0.8193 b0err 67.8 95HD 4.45 (6 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch  80 loss 0.4544 dice 0.8110 clDice 0.8220 b0err 71.7 95HD 4.55 (7 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch  90 loss 0.4434 dice 0.8135 clDice 0.8182 b0err 65.8 95HD 4.45 (8 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] epoch 100 loss 0.4426 dice 0.8130 clDice 0.8186 b0err 71.5 95HD 4.37 (9 min)
+[A_dice_dir_prop_shuf_a050_c025_s4] done in 9 min; best dice 0.8179
+--- 2026-08-28 02:32:33 A_dice_dir_prop_shuf_a100_c025_s4 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch  10 loss 0.5179 dice 0.8164 clDice 0.8310 b0err 56.5 95HD 4.56 (1 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch  20 loss 0.4970 dice 0.8176 clDice 0.8259 b0err 63.2 95HD 4.13 (2 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch  30 loss 0.4853 dice 0.8181 clDice 0.8272 b0err 66.7 95HD 4.06 (3 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch  40 loss 0.4751 dice 0.8165 clDice 0.8268 b0err 64.3 95HD 4.20 (4 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch  50 loss 0.4635 dice 0.8149 clDice 0.8248 b0err 79.8 95HD 4.25 (4 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch  60 loss 0.4585 dice 0.8144 clDice 0.8217 b0err 70.5 95HD 4.32 (5 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch  70 loss 0.4575 dice 0.8161 clDice 0.8233 b0err 67.7 95HD 4.30 (6 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch  80 loss 0.4505 dice 0.8154 clDice 0.8248 b0err 68.8 95HD 4.26 (7 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch  90 loss 0.4452 dice 0.8130 clDice 0.8193 b0err 72.6 95HD 4.42 (8 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] epoch 100 loss 0.4420 dice 0.8134 clDice 0.8186 b0err 77.7 95HD 4.30 (9 min)
+[A_dice_dir_prop_shuf_a100_c025_s4] done in 9 min; best dice 0.8181
+--- 2026-08-28 02:41:36 A_dice_dir_prop_shuf_a200_c025_s4 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch  10 loss 0.5196 dice 0.8157 clDice 0.8353 b0err 58.2 95HD 4.19 (1 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch  20 loss 0.4957 dice 0.8184 clDice 0.8262 b0err 67.9 95HD 4.32 (2 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch  30 loss 0.4842 dice 0.8194 clDice 0.8262 b0err 66.0 95HD 4.23 (3 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch  40 loss 0.4733 dice 0.8155 clDice 0.8237 b0err 65.5 95HD 4.23 (4 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch  50 loss 0.4639 dice 0.8158 clDice 0.8239 b0err 75.0 95HD 4.32 (5 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch  60 loss 0.4599 dice 0.8149 clDice 0.8212 b0err 73.8 95HD 4.38 (5 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch  70 loss 0.4560 dice 0.8170 clDice 0.8248 b0err 60.5 95HD 4.36 (6 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch  80 loss 0.4508 dice 0.8121 clDice 0.8217 b0err 80.8 95HD 4.51 (7 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch  90 loss 0.4424 dice 0.8146 clDice 0.8189 b0err 68.4 95HD 4.36 (8 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] epoch 100 loss 0.4436 dice 0.8148 clDice 0.8188 b0err 75.6 95HD 4.33 (9 min)
+[A_dice_dir_prop_shuf_a200_c025_s4] done in 9 min; best dice 0.8194
+--- 2026-08-28 02:50:44 H_aug_dir_prop_shuf_a050_c025_s4 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch  10 loss 0.5624 dice 0.8170 clDice 0.8287 b0err 65.7 95HD 4.39 (1 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch  20 loss 0.5525 dice 0.8177 clDice 0.8320 b0err 61.5 95HD 3.91 (2 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch  30 loss 0.5394 dice 0.8206 clDice 0.8325 b0err 67.7 95HD 3.83 (3 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch  40 loss 0.5331 dice 0.8209 clDice 0.8324 b0err 62.5 95HD 3.84 (4 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch  50 loss 0.5262 dice 0.8201 clDice 0.8316 b0err 54.2 95HD 4.10 (5 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch  60 loss 0.5301 dice 0.8228 clDice 0.8344 b0err 64.0 95HD 3.67 (6 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch  70 loss 0.5281 dice 0.8225 clDice 0.8328 b0err 58.9 95HD 3.72 (7 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch  80 loss 0.5207 dice 0.8209 clDice 0.8329 b0err 57.9 95HD 3.78 (8 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch  90 loss 0.5204 dice 0.8206 clDice 0.8328 b0err 63.8 95HD 3.67 (9 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] epoch 100 loss 0.5185 dice 0.8228 clDice 0.8357 b0err 55.7 95HD 3.72 (10 min)
+[H_aug_dir_prop_shuf_a050_c025_s4] done in 10 min; best dice 0.8228
+--- 2026-08-28 03:01:13 H_aug_dir_prop_shuf_a100_c025_s4 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch  10 loss 0.5640 dice 0.8186 clDice 0.8312 b0err 57.5 95HD 4.55 (1 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch  20 loss 0.5521 dice 0.8180 clDice 0.8306 b0err 62.9 95HD 3.89 (2 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch  30 loss 0.5398 dice 0.8207 clDice 0.8328 b0err 65.4 95HD 3.74 (3 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch  40 loss 0.5339 dice 0.8216 clDice 0.8345 b0err 65.0 95HD 3.75 (4 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch  50 loss 0.5280 dice 0.8202 clDice 0.8308 b0err 54.7 95HD 3.97 (5 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch  60 loss 0.5305 dice 0.8220 clDice 0.8339 b0err 68.8 95HD 3.66 (6 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch  70 loss 0.5296 dice 0.8227 clDice 0.8346 b0err 59.5 95HD 3.67 (7 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch  80 loss 0.5211 dice 0.8205 clDice 0.8332 b0err 64.8 95HD 3.72 (8 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch  90 loss 0.5203 dice 0.8208 clDice 0.8337 b0err 65.0 95HD 3.65 (9 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] epoch 100 loss 0.5182 dice 0.8218 clDice 0.8348 b0err 55.0 95HD 3.68 (10 min)
+[H_aug_dir_prop_shuf_a100_c025_s4] done in 10 min; best dice 0.8227
+--- 2026-08-28 03:11:31 H_aug_dir_prop_shuf_a200_c025_s4 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch  10 loss 0.5635 dice 0.8180 clDice 0.8300 b0err 64.1 95HD 4.57 (1 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch  20 loss 0.5511 dice 0.8188 clDice 0.8324 b0err 62.9 95HD 4.09 (2 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch  30 loss 0.5399 dice 0.8184 clDice 0.8319 b0err 72.2 95HD 3.83 (3 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch  40 loss 0.5347 dice 0.8206 clDice 0.8313 b0err 67.1 95HD 3.78 (4 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch  50 loss 0.5266 dice 0.8199 clDice 0.8312 b0err 57.2 95HD 4.00 (5 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch  60 loss 0.5305 dice 0.8208 clDice 0.8318 b0err 66.8 95HD 3.63 (6 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch  70 loss 0.5288 dice 0.8228 clDice 0.8332 b0err 53.7 95HD 3.86 (7 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch  80 loss 0.5203 dice 0.8196 clDice 0.8332 b0err 56.8 95HD 3.84 (8 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch  90 loss 0.5203 dice 0.8222 clDice 0.8360 b0err 52.5 95HD 3.70 (9 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] epoch 100 loss 0.5181 dice 0.8219 clDice 0.8346 b0err 53.5 95HD 3.74 (10 min)
+[H_aug_dir_prop_shuf_a200_c025_s4] done in 10 min; best dice 0.8228
+--- 2026-08-28 03:21:46 A_dice_dir_prop_shuf_a050_c025_s5 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch  10 loss 0.5211 dice 0.8166 clDice 0.8283 b0err 79.2 95HD 4.04 (1 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch  20 loss 0.5028 dice 0.8152 clDice 0.8257 b0err 70.5 95HD 4.35 (2 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch  30 loss 0.4750 dice 0.8177 clDice 0.8247 b0err 72.3 95HD 4.21 (3 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch  40 loss 0.4712 dice 0.8163 clDice 0.8260 b0err 66.0 95HD 4.19 (4 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch  50 loss 0.4634 dice 0.8149 clDice 0.8224 b0err 72.5 95HD 4.32 (5 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch  60 loss 0.4532 dice 0.8150 clDice 0.8227 b0err 63.8 95HD 4.49 (6 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch  70 loss 0.4549 dice 0.8143 clDice 0.8209 b0err 68.9 95HD 4.19 (7 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch  80 loss 0.4500 dice 0.8103 clDice 0.8179 b0err 79.3 95HD 4.31 (8 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch  90 loss 0.4422 dice 0.8120 clDice 0.8183 b0err 66.3 95HD 4.63 (8 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] epoch 100 loss 0.4408 dice 0.8120 clDice 0.8174 b0err 78.3 95HD 4.57 (9 min)
+[A_dice_dir_prop_shuf_a050_c025_s5] done in 9 min; best dice 0.8177
+--- 2026-08-28 03:31:20 A_dice_dir_prop_shuf_a100_c025_s5 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch  10 loss 0.5213 dice 0.8150 clDice 0.8313 b0err 70.4 95HD 4.42 (1 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch  20 loss 0.5000 dice 0.8162 clDice 0.8267 b0err 72.0 95HD 4.11 (2 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch  30 loss 0.4761 dice 0.8161 clDice 0.8250 b0err 86.4 95HD 4.38 (3 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch  40 loss 0.4723 dice 0.8174 clDice 0.8266 b0err 59.9 95HD 4.25 (4 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch  50 loss 0.4662 dice 0.8173 clDice 0.8251 b0err 64.2 95HD 4.32 (5 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch  60 loss 0.4541 dice 0.8146 clDice 0.8240 b0err 64.0 95HD 4.35 (6 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch  70 loss 0.4540 dice 0.8147 clDice 0.8219 b0err 67.2 95HD 4.36 (7 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch  80 loss 0.4503 dice 0.8127 clDice 0.8200 b0err 80.2 95HD 4.30 (7 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch  90 loss 0.4421 dice 0.8123 clDice 0.8183 b0err 66.5 95HD 4.53 (8 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] epoch 100 loss 0.4403 dice 0.8123 clDice 0.8171 b0err 79.5 95HD 4.55 (9 min)
+[A_dice_dir_prop_shuf_a100_c025_s5] done in 9 min; best dice 0.8174
+--- 2026-08-28 03:40:46 A_dice_dir_prop_shuf_a200_c025_s5 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch  10 loss 0.5222 dice 0.8160 clDice 0.8283 b0err 81.7 95HD 4.20 (1 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch  20 loss 0.5002 dice 0.8172 clDice 0.8257 b0err 65.8 95HD 4.31 (2 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch  30 loss 0.4762 dice 0.8163 clDice 0.8251 b0err 76.5 95HD 4.19 (3 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch  40 loss 0.4691 dice 0.8170 clDice 0.8261 b0err 63.5 95HD 4.39 (4 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch  50 loss 0.4635 dice 0.8150 clDice 0.8216 b0err 67.2 95HD 4.44 (5 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch  60 loss 0.4519 dice 0.8151 clDice 0.8230 b0err 66.7 95HD 4.41 (6 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch  70 loss 0.4531 dice 0.8136 clDice 0.8204 b0err 73.0 95HD 4.24 (7 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch  80 loss 0.4505 dice 0.8101 clDice 0.8158 b0err 83.3 95HD 4.50 (8 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch  90 loss 0.4429 dice 0.8139 clDice 0.8212 b0err 66.5 95HD 4.55 (9 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] epoch 100 loss 0.4412 dice 0.8124 clDice 0.8179 b0err 70.8 95HD 4.54 (10 min)
+[A_dice_dir_prop_shuf_a200_c025_s5] done in 10 min; best dice 0.8172
+--- 2026-08-28 03:50:35 H_aug_dir_prop_shuf_a050_c025_s5 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch  10 loss 0.5613 dice 0.8161 clDice 0.8278 b0err 65.8 95HD 4.30 (1 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch  20 loss 0.5417 dice 0.8182 clDice 0.8303 b0err 67.8 95HD 3.96 (2 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch  30 loss 0.5350 dice 0.8210 clDice 0.8308 b0err 60.0 95HD 3.81 (3 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch  40 loss 0.5275 dice 0.8236 clDice 0.8342 b0err 56.7 95HD 3.82 (4 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch  50 loss 0.5290 dice 0.8240 clDice 0.8334 b0err 55.3 95HD 3.91 (5 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch  60 loss 0.5257 dice 0.8216 clDice 0.8337 b0err 52.2 95HD 3.90 (6 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch  70 loss 0.5201 dice 0.8220 clDice 0.8327 b0err 55.6 95HD 3.87 (7 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch  80 loss 0.5212 dice 0.8220 clDice 0.8316 b0err 56.5 95HD 3.73 (8 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch  90 loss 0.5221 dice 0.8230 clDice 0.8336 b0err 54.9 95HD 3.66 (9 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] epoch 100 loss 0.5149 dice 0.8228 clDice 0.8359 b0err 58.5 95HD 3.62 (10 min)
+[H_aug_dir_prop_shuf_a050_c025_s5] done in 10 min; best dice 0.8240
+--- 2026-08-28 04:00:54 H_aug_dir_prop_shuf_a100_c025_s5 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch  10 loss 0.5600 dice 0.8150 clDice 0.8276 b0err 72.2 95HD 4.28 (1 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch  20 loss 0.5419 dice 0.8181 clDice 0.8299 b0err 66.2 95HD 3.90 (2 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch  30 loss 0.5358 dice 0.8215 clDice 0.8319 b0err 66.3 95HD 3.61 (3 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch  40 loss 0.5287 dice 0.8235 clDice 0.8348 b0err 56.5 95HD 3.84 (4 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch  50 loss 0.5292 dice 0.8236 clDice 0.8318 b0err 59.3 95HD 3.83 (5 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch  60 loss 0.5253 dice 0.8212 clDice 0.8333 b0err 56.8 95HD 3.78 (6 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch  70 loss 0.5202 dice 0.8221 clDice 0.8327 b0err 55.4 95HD 3.74 (7 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch  80 loss 0.5226 dice 0.8215 clDice 0.8335 b0err 55.4 95HD 3.63 (8 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch  90 loss 0.5220 dice 0.8223 clDice 0.8314 b0err 57.6 95HD 3.66 (9 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] epoch 100 loss 0.5147 dice 0.8229 clDice 0.8351 b0err 50.3 95HD 3.92 (10 min)
+[H_aug_dir_prop_shuf_a100_c025_s5] done in 10 min; best dice 0.8236
+--- 2026-08-28 04:11:14 H_aug_dir_prop_shuf_a200_c025_s5 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[H_aug_dir_prop_shuf_a200_c025_s5] epoch  10 loss 0.5603 dice 0.8158 clDice 0.8300 b0err 69.8 95HD 4.03 (1 min)
+[H_aug_dir_prop_shuf_a200_c025_s5] epoch  20 loss 0.5422 dice 0.8189 clDice 0.8319 b0err 66.7 95HD 3.87 (2 min)
+[H_aug_dir_prop_shuf_a200_c025_s5] epoch  30 loss 0.5350 dice 0.8219 clDice 0.8334 b0err 58.4 95HD 3.72 (3 min)
+[H_aug_dir_prop_shuf_a200_c025_s5] epoch  40 loss 0.5276 dice 0.8237 clDice 0.8340 b0err 54.2 95HD 3.92 (4 min)
+[H_aug_dir_prop_shuf_a200_c025_s5] epoch  50 loss 0.5288 dice 0.8244 clDice 0.8323 b0err 58.1 95HD 3.91 (5 min)
+[H_aug_dir_prop_shuf_a200_c025_s5] epoch  60 loss 0.5260 dice 0.8207 clDice 0.8327 b0err 59.1 95HD 3.79 (6 min)
