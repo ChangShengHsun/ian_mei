@@ -12,3 +12,37 @@ all checks passed
 DRIVE: 20 images, width 2.83 px, component filter 17 px
   K_focal_aug_s0 done on DRIVE
   K_focal_aug_s1 done on DRIVE
+  K_focal_aug_s2 done on DRIVE
+HRF: 15 images, width 4.00 px, component filter 33 px
+  K_focal_aug_s0 done on HRF
+  K_focal_aug_s1 done on HRF
+  K_focal_aug_s2 done on HRF
+VessMAP: 20 images, width 5.66 px, component filter 67 px
+  K_focal_aug_s0 done on VessMAP
+  K_focal_aug_s1 done on VessMAP
+  K_focal_aug_s2 done on VessMAP
+STARE: 20 images, width 4.00 px, component filter 33 px
+  K_focal_aug_s0 done on STARE
+  K_focal_aug_s1 done on STARE
+  K_focal_aug_s2 done on STARE
+
+wrote 5625 rows to /home/ivanchang/ian_mei/exp/results/selection_sweep/transfer_ceiling.csv
+=== phase 3: does the geometry transfer? ===
+
+  dataset     width     raw   oracle  isotropic    gain   chosen (along, across)
+  ------------------------------------------------------------------------------
+  DRIVE       2.83p  46.4%       --         --
+  HRF         4.00p   3.4%    4.5%*         --   +1.1%   (0.5, 0.0)
+  STARE       4.00p  30.5%   30.5%*         --   +0.0%   (0.0, 0.25)
+  VessMAP     5.66p   0.0%   17.7%*     17.3%*   +0.5%   (2.0, 1.0)
+  * best setting under the dataset's own raw Dice, chosen on its selection half.
+
+The datasets did NOT agree on a setting:
+  HRF       (0.5, 0.0)
+  STARE     (0.0, 0.25)
+  VessMAP   (2.0, 1.0)
+Read carefully before calling this a failure -- disagreement
+between a retina and a brain micrograph may be a real
+difference in vessel geometry rather than a broken unit. What
+it does rule out is shipping one setting as universal.
+=== 2026-08-27 04:55:40 phase 3 done ===

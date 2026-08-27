@@ -19,11 +19,17 @@ WHAT IT DECIDES.
 
 WHAT IT HANDS OVER. The along/across radii, in MULTIPLES OF THE MEDIAN VESSEL
 WIDTH, into exp/results/d1_geometry.txt. train.propagation_geometry() converts
-to pixels at the boundary. Taken from the `predicted` source where that clears
-the Dice floor -- that is the field the layer will actually be driven by --
-and from `oracle` otherwise, which is stated loudly rather than silently,
-because it means the head is the bottleneck and D-B is being asked to fix by
-joint training what it could not do post-hoc.
+to pixels at the boundary. Taken from the `predicted` source where it has
+data -- that is the field the layer will actually be driven by -- and from
+`oracle` otherwise, which is stated loudly rather than silently.
+
+CORRECTED 2026-08-27, after its first run skipped D-B on an empty table. The
+routing and thresholds are unchanged. What changed is that both come from
+summarize_direction_ceiling's MATCHED-BUDGET comparison instead of its
+absolute Dice floor, because no dilation can be Dice-free and the floor
+therefore returned nothing for every source -- which this script reported as
+"no arm produced a usable oracle setting" and treated as a NO. A gate that
+cannot evaluate must not answer; the fix is in the evaluator.
 
   python exp/gate_d1.py --selftest
   python exp/gate_d1.py          # exit 0 = build D-B, 1 = D-E only
@@ -53,10 +59,13 @@ def decide(rows) -> tuple[bool, tuple, str]:
         if raw is None:
             continue
         raw_erl, raw_dice = raw
+        # The tightest budget, which is the least favourable to the
+        # mechanism. A verdict that needs the loose one is not a verdict.
+        budget = ceiling.BUDGETS[0]
         chosen = {}
         for source in ("oracle", "isotropic", "predicted"):
             chosen[source] = ceiling.pick(selection, config, source, raw_dice,
-                                          "erl_split")
+                                          "erl_split", budget)
         if chosen["oracle"] is None:
             continue
         oracle = ceiling.by_setting(report, config, "oracle",
@@ -77,20 +86,26 @@ def decide(rows) -> tuple[bool, tuple, str]:
             f"oracle beats isotropic by only {gain:+.1%}, under the "
             f"pre-registered {ceiling.DEAD:.0%}: the mechanism is wrong")
 
-    predicted = [p for p, _ in picks if p is not None]
+    # A pick of (0, 0) is the do-nothing setting: under a matched budget every
+    # source can always afford it, so "predicted returned something" is no
+    # longer evidence that the predicted field can drive the layer. Handing it
+    # over would build a layer with a one-pixel kernel -- the same silent
+    # no-op that cost the first _prop smoke test its gradient.
+    usable = lambda pick: pick is not None and pick != (0.0, 0.0)
+    predicted = [p for p, _ in picks if usable(p)]
     if predicted:
         geometry = tuple(float(np.mean([p[i] for p in predicted]))
                          for i in (0, 1))
         why = (f"oracle beats isotropic by {gain:+.1%}; geometry from the "
                f"PREDICTED field, which is what the layer will be driven by")
     else:
-        oracles = [o for _, o in picks if o is not None]
+        oracles = [o for _, o in picks if usable(o)]
         if not oracles:
             return False, (0.0, 0.0), "no geometry available for the D-B arms"
         geometry = tuple(float(np.mean([o[i] for o in oracles]))
                          for i in (0, 1))
         why = (f"oracle beats isotropic by {gain:+.1%}, BUT no predicted "
-               f"field cleared the Dice floor: geometry taken from the "
+               f"field could afford to do anything: geometry taken from the "
                f"oracle, and D-B is being asked to fix by joint training "
                f"what the head could not do post-hoc")
     return True, geometry, why
@@ -108,12 +123,17 @@ def selftest() -> None:
             image = f"{index:02d}"
             for config in BUILD_ON:
                 rows.append(make(config, "raw", 0.0, 0.0, image, 0.50, 0.820))
+                for source in ("isotropic", "oracle", "predicted"):
+                    rows.append(make(config, source, 0.0, 0.0, image, 0.50,
+                                     0.820))
                 rows.append(make(config, "isotropic", 0.5, 0.5, image, 0.55,
                                  0.821))
                 rows.append(make(config, "oracle", 1.5, 0.25, image,
                                  oracle_erl, 0.822))
                 rows.append(make(config, "predicted", 1.0, 0.5, image,
                                  0.60, 0.823 if predicted_ok else 0.700))
+                rows.append(make(config, "oracle", 0.0, 0.0, image, 0.50,
+                                 0.820))
         return rows
 
     build_it, geometry, why = decide(build(0.70, True))

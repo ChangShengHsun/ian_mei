@@ -42,3 +42,49 @@ all checks passed
   A_dice_s4 epoch 10 done
   A_dice_s5 epoch 10 done
   A_dice_dir_s0 epoch 30 done
+  A_dice_dir_s1 epoch 20 done
+  A_dice_dir_s2 epoch 30 done
+  A_dice_dir_s3 epoch 40 done
+  A_dice_dir_s4 epoch 10 done
+  A_dice_dir_s5 epoch 10 done
+  H_aug_dir_s0 epoch 30 done
+  H_aug_dir_s1 epoch 80 done
+  H_aug_dir_s2 epoch 70 done
+  H_aug_dir_s3 epoch 70 done
+  H_aug_dir_s4 epoch 60 done
+  H_aug_dir_s5 epoch 80 done
+
+wrote 25680 rows to /home/ivanchang/ian_mei/exp/results/selection_sweep/direction_ceiling.csv
+=== 2026-08-27 05:00:35 sweep OK ===
+=== D1 ceiling: what is knowing the vessel's axis worth? ===
+
+--- erl.py as written (a bridged gap splits a run) ---
+  arm                raw   isotropic    shuffled   predicted      oracle  oracle-iso   verdict
+  --------------------------------------------------------------------------------------------
+  A_dice          32.4%          --          --          --          --
+  A_dice_dir      32.9%          --          --          --          --
+  H_aug_dir       34.9%          --          --          --          --
+  K_focal_aug     47.4%          --          --          --          --
+  * best setting under the Dice floor, chosen on the selection half, reported on the other. '--' = no setting cleared it.
+
+--- not splitting runs the prediction bridges ---
+  arm                raw   isotropic    shuffled   predicted      oracle  oracle-iso   verdict
+  --------------------------------------------------------------------------------------------
+  A_dice          59.8%          --          --          --          --
+  A_dice_dir      59.8%          --          --          --          --
+  H_aug_dir       60.6%          --          --          --          --
+  K_focal_aug     67.3%          --          --          --          --
+  * best setting under the Dice floor, chosen on the selection half, reported on the other. '--' = no setting cleared it.
+
+READ THE CONTROLS FIRST.
+  oracle vs shuffled: if these are close, oriented dilation is
+    just dilation and every verdict above is void.
+  oracle vs predicted: the part of the prize lost to the direction
+    HEAD rather than to the mechanism. A large gap says the next
+    effort is a better head; a small one says it is the layer.
+
+The prize is 21.8 points: 16.7 for covering the centreline the
+prediction runs beside, 5.1 for the severing breaks. The other
+19.9 points between the two tables above are erl.py's splitting
+rule and are not available to any method.
+=== 2026-08-27 05:00:36 D1 phase 1 done ===

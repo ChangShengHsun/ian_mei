@@ -158,6 +158,10 @@ def stage(name: str) -> tuple[str, ...]:
     if name == "d1e":
         return tuple(f"{arm}_s{seed}" for seed in range(6)
                      for arm in ("A_dice_clw", "H_aug_clw"))
+    # D-B x D-E: both interventions in one arm, six seeds.
+    if name == "d1f":
+        return tuple(f"{arm}_s{seed}" for seed in range(6)
+                     for arm in ("A_dice_clw_dir_prop", "H_aug_clw_dir_prop"))
     if name == "curve":
         return tuple(run for run in stage("recover") if is_curve_arm(run))
     if name == "recover_rest":
@@ -304,8 +308,20 @@ def selftest() -> None:
             partner = run_name.replace("_prop_s", "_prop_shuf_s")
             assert partner in d1b, partner
     assert sum("shuf" in r for r in d1b) == len(d1b) // 2
+    d1f = stage("d1f")
+    assert len(d1f) == 12, len(d1f)
+    for run_name in d1f:
+        config = run_name.rsplit("_s", 1)[0]
+        assert config in train.CONFIGS, config
+        # The combination arm must actually carry BOTH interventions, or it
+        # is one of them under a name claiming two.
+        assert train.uses_centreline_weight(config), config
+        assert train.uses_propagation(config), config
+        assert train.uses_direction(config), config
+        base = "_".join(config.split("_")[:2])
+        assert train.AUGMENTS.get(config, ()) == train.AUGMENTS.get(base, ())
     print(f"  d1b {len(d1b)} runs (half of them the shuffled control), "
-          f"d1e {len(d1e)} runs")
+          f"d1e {len(d1e)} runs, d1f {len(d1f)} runs (both interventions)")
 
     curve, rest = stage("curve"), stage("recover_rest")
     # The 27 published runs of E13's narrow arms are what turn a one-column

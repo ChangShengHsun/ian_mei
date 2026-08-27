@@ -1,5 +1,5 @@
 === task A3: checkpoint selection rules ===
-360 checkpoints over 36 runs; selection on odd images, ERL reported on even ones
+480 checkpoints over 48 runs; selection on odd images, ERL reported on even ones
 
 === A_dice (6 seeds) ===
   rule                                    epochs                      traced    vs (i)      t  gate

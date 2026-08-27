@@ -684,6 +684,13 @@ CONFIGS = {
     # up. The cheap competitor that could make the whole line unnecessary.
     "A_dice_clw": (False, None),
     "H_aug_clw": (False, None),
+    # D-B x D-E. The only question worth asking once both work: do they
+    # compose, or are they two routes to the same 3 points? One weights the
+    # centreline in the loss, the other spreads evidence along the axis at
+    # inference; if the gain is additive they are fixing different halves of
+    # the same error, and if it is not, the cheaper one wins outright.
+    "A_dice_clw_dir_prop": (False, None),
+    "H_aug_clw_dir_prop": (False, None),
 }
 
 # Which augmentations each config gets. Keeping this beside CONFIGS rather than
@@ -718,6 +725,7 @@ AUGMENTS = {
     "H_aug_dir_prop": ("dihedral", "jitter"),
     "H_aug_dir_prop_shuf": ("dihedral", "jitter"),
     "H_aug_clw": ("dihedral", "jitter"),
+    "H_aug_clw_dir_prop": ("dihedral", "jitter"),
 }
 
 

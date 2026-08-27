@@ -13,13 +13,31 @@ THE PRIZE, measured this morning on K_focal_aug at rule (iv):
     + every intact break filled from ground truth   +16.7  } the 21.8 points
     + every severing break filled                   + 5.1  } a method can win
 
-THE DICE FLOOR, and why it is zero. Filling the intact breaks from ground
-truth RAISED Dice, 0.8015 -> 0.8213: putting foreground on the centreline is
-not a trade, it is free. So a correction is only allowed to count if it costs
-no Dice at all. Isotropic dilation cannot meet that bar -- one pixel in every
-direction costs 0.14 Dice -- and that is the point of the bar, not an
-accident of it. Settings are chosen on the SELECTION half under this floor
-and reported on the other half.
+CORRECTED 2026-08-27, AFTER THE FIRST RUN. THE THRESHOLDS BELOW ARE
+UNCHANGED; what changed is the device that selects a setting to apply them to.
+
+The first version required a correction to cost NO Dice, reasoning that
+filling the intact breaks from ground truth RAISED Dice (0.8015 -> 0.8213).
+But that oracle PLACES PIXELS EXACTLY, and a dilation adds a whole
+neighbourhood; no dilation can ever be Dice-free. Every candidate of every
+source failed the floor, the table came back entirely empty, and gate_d1.py
+read "no arm produced a usable oracle setting" as a verdict and skipped four
+GPU hours of D-B. That is a script failing to RUN being reported as a
+mechanism failing to WORK, and the two are not the same answer.
+
+This is C1.0's first-run error in mirror image. There the closing baseline was
+free to spend unlimited foreground and beat an oracle that spent almost none;
+here nobody was allowed to spend any. Both are the same mistake: comparing
+operations at unmatched cost.
+
+THE DEVICE IS NOW A MATCHED BUDGET. Every source is given the same Dice
+allowance and asked how far it can trace within it. The allowance is
+DERIVED: 0.0187 is what K_focal_aug already surrenders against A_dice
+(0.8010 vs 0.8197) for its topology gain -- the trade this series has already
+made and published. Three budgets are reported, at that value and at 2.5x and
+5x it, because the verdict is sensitive to the choice and a single number
+would hide that. The verdict is taken at the TIGHTEST, which is the least
+favourable to the mechanism.
 
 WHAT IS COMPARED. `oracle` (ground-truth axis) minus `isotropic` (no axis),
 both at their own best setting under the floor. That difference is what
@@ -63,7 +81,10 @@ SCORES = selection.SWEEP / "direction_ceiling.csv"
 DEAD, CLEAR = 0.03, 0.08
 # The correction must cost no Dice. Derived, not chosen: the ground-truth
 # intact fill RAISED Dice by 0.0198.
-DICE_FLOOR = 0.0
+# Derived, not chosen: K_focal_aug gives up 0.0187 Dice against A_dice for
+# its topology gain, which is the trade this repo already publishes. The
+# verdict is read at the tightest.
+BUDGETS = (0.02, 0.05, 0.10)
 SOURCES = ("isotropic", "shuffled", "predicted", "oracle")
 
 
@@ -93,16 +114,18 @@ def by_setting(rows, config: str, source: str, metric: str) -> dict:
 
 
 def pick(selection_rows, config: str, source: str, raw_dice: float,
-         metric: str):
-    """The setting with the best metric whose Dice clears the floor.
+         metric: str, budget: float):
+    """Best setting for this source WITHIN a Dice budget, on the selection half.
 
-    None when nothing clears it: falling back to the unconstrained best would
-    restore exactly the comparison the floor exists to prevent, and a source
-    that cannot pay its own way should say so rather than be given a pass.
+    Every source gets the same budget, which is what makes the comparison a
+    comparison. None only when the source has no rows at all -- the
+    do-nothing setting always costs zero, so any source with data has at
+    least one admissible answer, and an empty column now means missing data
+    rather than a failed floor.
     """
     table = by_setting(selection_rows, config, source, metric)
     allowed = {key: value for key, value in table.items()
-               if value[1] >= raw_dice - DICE_FLOOR}
+               if value[1] >= raw_dice - budget}
     if not allowed:
         return None
     return max(allowed, key=lambda key: allowed[key][0])
@@ -125,16 +148,25 @@ def selftest() -> None:
         rows.append(make("A", "oracle", 1.0, 0.25, image, 0.60, 0.825))
         rows.append(make("A", "isotropic", 0.5, 0.5, image, 0.70, 0.690))
 
-    chosen = pick(rows, "A", "oracle", 0.820, "erl_split")
-    assert chosen == (1.0, 0.25), chosen
-    print(f"the Dice floor refuses the 0.90 setting that costs 0.12 Dice and "
-          f"takes {chosen} at 0.60 -- a gain bought with overlap is a trade")
+    # The budget is what makes it a comparison: at 0.05 the 0.90 setting is
+    # affordable, at 0.02 it is not and the source has to fall back.
+    assert pick(rows, "A", "oracle", 0.820, "erl_split", 0.02) == (1.0, 0.25)
+    assert pick(rows, "A", "oracle", 0.820, "erl_split", 0.20) == (2.0, 1.0)
+    print("the same source picks (1.0, 0.25) on a 0.02 budget and (2.0, 1.0) "
+          "on a 0.20 one -- the budget is the comparison")
 
-    # A source that cannot clear the floor at any setting returns None rather
-    # than its own best.
-    assert pick(rows, "A", "isotropic", 0.820, "erl_split") is None
-    print("  isotropic clears the floor at no setting, so it scores nothing "
-          "-- which is the finding, not a gap in the table")
+    # A source whose grid contains a free do-nothing setting must return it
+    # rather than None on any budget, however tight. In the real sweep every
+    # source has one -- the smallest radius rounds to a single pixel and costs
+    # nothing -- so after this fix an empty column means missing data and not
+    # a failed floor, which is what gate_d1 misread as a verdict.
+    for index in range(1, 21):
+        rows.append(make("A", "isotropic", 0.25, 0.25, f"{index:02d}",
+                         0.50, 0.820))
+    free = pick(rows, "A", "isotropic", 0.820, "erl_split", 0.0)
+    assert free == (0.25, 0.25), free
+    print(f"  at a budget of zero a source still returns its free setting "
+          f"{free}, never None")
 
     assert verdict(0.02).startswith("MECHANISM"), verdict(0.02)
     assert verdict(0.05).startswith("learn"), verdict(0.05)
@@ -156,41 +188,45 @@ def report(rows, metric: str, label: str) -> None:
     print(f"--- {label} ---")
     selection_rows, report_rows = half(rows, True), half(rows, False)
     configs = sorted({r["config"] for r in rows})
-    header = (f"  {'arm':<14}{'raw':>8}" +
-              "".join(f"{s:>12}" for s in SOURCES) + f"{'oracle-iso':>12}"
-              "   verdict")
-    print(header)
-    print("  " + "-" * (len(header) - 2))
     for config in configs:
         raw = by_setting(report_rows, config, "raw", metric).get((0.0, 0.0))
         if raw is None:
             continue
         raw_erl, raw_dice = raw
-        line = f"  {config:<14}{raw_erl:7.1%}"
-        got = {}
-        for source in SOURCES:
-            chosen = pick(selection_rows, config, source, raw_dice, metric)
-            if chosen is None:
-                line += f"{'--':>12}"
-                got[source] = None
-                continue
-            table = by_setting(report_rows, config, source, metric)
-            value = table[chosen][0]
-            got[source] = value
-            line += f"{value:11.1%}*"
-        if got.get("oracle") is not None:
-            gain = got["oracle"] - (got.get("isotropic") or raw_erl)
-            line += f"{gain:+11.1%}   {verdict(gain)}"
-        print(line)
-        for source in ("oracle", "predicted", "shuffled"):
-            chosen = pick(selection_rows, config, source, raw_dice, metric)
+        print(f"  {config}  raw {raw_erl:.1%} traced at Dice {raw_dice:.4f}")
+        header = (f"    {'budget':<10}" +
+                  "".join(f"{s:>13}" for s in SOURCES) +
+                  f"{'oracle-iso':>12}   verdict")
+        print(header)
+        print("    " + "-" * (len(header) - 4))
+        for budget in BUDGETS:
+            line = f"    -{budget:.2f}     "
+            got = {}
+            for source in SOURCES:
+                chosen = pick(selection_rows, config, source, raw_dice,
+                              metric, budget)
+                if chosen is None:
+                    line += f"{'--':>13}"
+                    got[source] = None
+                    continue
+                value = by_setting(report_rows, config, source,
+                                   metric)[chosen][0]
+                got[source] = (value, chosen)
+                line += f"{value:12.1%} "
+            if got.get("oracle") and got.get("isotropic"):
+                gain = got["oracle"][0] - got["isotropic"][0]
+                line += f"{gain:+11.1%}   {verdict(gain)}"
+            print(line)
+        # The geometry the oracle and the predicted field chose at the
+        # tightest budget: this is the handover to D-B, and it is also the
+        # answer to what the sweep was built to ask -- along, or across.
+        for source in ("oracle", "predicted"):
+            chosen = pick(selection_rows, config, source, raw_dice, metric,
+                          BUDGETS[0])
             if chosen is not None:
-                print(f"  {'':<14}{source} chose along={chosen[0]} "
-                      f"across={chosen[1]} widths")
-    print("  * best setting under the Dice floor, chosen on the selection "
-          "half, reported on the other. '--' = no setting cleared it.")
-    print()
-
+                print(f"    {source} chose along={chosen[0]} "
+                      f"across={chosen[1]} widths at the tightest budget")
+        print()
 
 def main() -> None:
     if "--selftest" in sys.argv:
@@ -209,6 +245,10 @@ def main() -> None:
     print("  oracle vs predicted: the part of the prize lost to the direction")
     print("    HEAD rather than to the mechanism. A large gap says the next")
     print("    effort is a better head; a small one says it is the layer.")
+    print()
+    print("The verdict is read at the TIGHTEST budget, which is the least")
+    print("favourable to the mechanism. If it changes across the three, say")
+    print("so rather than quoting the one that flatters.")
     print()
     print("The prize is 21.8 points: 16.7 for covering the centreline the")
     print("prediction runs beside, 5.1 for the severing breaks. The other")

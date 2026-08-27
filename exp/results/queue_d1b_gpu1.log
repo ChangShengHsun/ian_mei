@@ -1,0 +1,5 @@
+=== 2026-08-27 17:28:51 d1b gpu=1 12 runs -> exp/results/selection_sweep ===
+--- 2026-08-27 17:28:51 A_dice_dir_prop_shuf_s0 ---
+results -> exp/results/selection_sweep, keeping every validated epoch
+train norm mean 0.4177 std 0.1442
+[A_dice_dir_prop_shuf_s0] epoch  10 loss 0.5219 dice 0.8158 clDice 0.8270 b0err 70.0 95HD 4.48 (1 min)
