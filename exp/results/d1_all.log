@@ -1,0 +1,10 @@
+  taskb 15 runs @31M, taskc 30 runs @117k seeds 6-11
+  d1 12 runs: A_dice_dir_s0 .. H_aug_dir_s5, each carrying its namesake's augmentation
+  d1b 72 runs over reaches ('a050', 'a100', 'a200') (half the shuffled control), d1e 12, d1f 36
+  an empty queue prints zero lines, not one blank one
+  pending() answers about the root it is given, not a fixed one
+gate 2 runs, e13 15 runs, task1 25 runs, recover 87 runs (45 of them E13's narrow arms, first)
+  task1 seed 0: A_dice_w64_d5_s0, B_cldice_w64_d5_s0, H_aug_w64_d5_s0, G_focal_w64_d5_s0, K_focal_aug_w64_d5_s0
+all checks passed
+=== 2026-08-27 21:54:58 queue selftest passed ===
+=== 2026-08-27 21:55:01 pass 1: d1b, 72 run(s) pending ===

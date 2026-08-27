@@ -151,8 +151,10 @@ def stage(name: str) -> tuple[str, ...]:
     # queue stopped early still has both sides of the comparison at the seeds
     # it reached, rather than one arm measured and its control missing.
     if name == "d1b":
-        arms = ("A_dice_dir_prop", "A_dice_dir_prop_shuf",
-                "H_aug_dir_prop", "H_aug_dir_prop_shuf")
+        arms = tuple(f"{base}_dir_prop{shuffle}_{reach}_c025"
+                     for base in ("A_dice", "H_aug")
+                     for reach in train.PROPAGATION_REACHES
+                     for shuffle in ("", "_shuf"))
         return tuple(f"{arm}_s{seed}" for seed in range(6) for arm in arms)
     # D-E: the cheap competitor, no direction anywhere in it.
     if name == "d1e":
@@ -160,8 +162,10 @@ def stage(name: str) -> tuple[str, ...]:
                      for arm in ("A_dice_clw", "H_aug_clw"))
     # D-B x D-E: both interventions in one arm, six seeds.
     if name == "d1f":
-        return tuple(f"{arm}_s{seed}" for seed in range(6)
-                     for arm in ("A_dice_clw_dir_prop", "H_aug_clw_dir_prop"))
+        arms = tuple(f"{base}_clw_dir_prop_{reach}_c025"
+                     for base in ("A_dice", "H_aug")
+                     for reach in train.PROPAGATION_REACHES)
+        return tuple(f"{arm}_s{seed}" for seed in range(6) for arm in arms)
     if name == "curve":
         return tuple(run for run in stage("recover") if is_curve_arm(run))
     if name == "recover_rest":
@@ -290,7 +294,9 @@ def selftest() -> None:
           f"namesake's augmentation")
 
     d1b, d1e = stage("d1b"), stage("d1e")
-    assert len(d1b) == 24 and len(d1e) == 12, (len(d1b), len(d1e))
+    reaches = len(train.PROPAGATION_REACHES)
+    assert len(d1b) == 2 * reaches * 2 * 6, len(d1b)
+    assert len(d1e) == 12, len(d1e)
     for run_name in d1b + d1e:
         config = run_name.rsplit("_s", 1)[0]
         assert config in train.CONFIGS, config
@@ -298,18 +304,24 @@ def selftest() -> None:
         # The AUGMENTS trap again, in its D-B shape. Four of these six names
         # start with H_aug, and one missing from AUGMENTS trains unaugmented
         # while still answering to the augmented arm's name.
-        base = config.split("_")[0] + "_" + config.split("_")[1]
+        base = "_".join(config.split("_")[:2])
         assert train.AUGMENTS.get(config, ()) == train.AUGMENTS.get(base, ()),\
             f"{config} does not carry {base}'s augmentation tuple"
-    # Every _prop arm must have its shuffled control at the same seed, or the
-    # ablation is missing exactly where it is needed.
+        # A propagation arm must name a reach that builds a kernel bigger than
+        # one pixel. Checked here, before six hours of training, because the
+        # failure it guards is silent: the layer becomes the identity and the
+        # arm reports that propagation does nothing.
+        if train.uses_propagation(config):
+            along, _ = train.propagation_geometry(config)
+            assert along > 1.0, (config, along)
+    # Every reach must have its shuffled control at every seed, or the
+    # ablation is missing exactly where the answer would be read.
     for run_name in d1b:
         if "shuf" not in run_name:
-            partner = run_name.replace("_prop_s", "_prop_shuf_s")
-            assert partner in d1b, partner
+            assert run_name.replace("_prop_", "_prop_shuf_") in d1b, run_name
     assert sum("shuf" in r for r in d1b) == len(d1b) // 2
     d1f = stage("d1f")
-    assert len(d1f) == 12, len(d1f)
+    assert len(d1f) == 2 * reaches * 6, len(d1f)
     for run_name in d1f:
         config = run_name.rsplit("_s", 1)[0]
         assert config in train.CONFIGS, config
@@ -320,8 +332,9 @@ def selftest() -> None:
         assert train.uses_direction(config), config
         base = "_".join(config.split("_")[:2])
         assert train.AUGMENTS.get(config, ()) == train.AUGMENTS.get(base, ())
-    print(f"  d1b {len(d1b)} runs (half of them the shuffled control), "
-          f"d1e {len(d1e)} runs, d1f {len(d1f)} runs (both interventions)")
+        assert train.propagation_geometry(config)[0] > 1.0, config
+    print(f"  d1b {len(d1b)} runs over reaches {train.PROPAGATION_REACHES} "
+          f"(half the shuffled control), d1e {len(d1e)}, d1f {len(d1f)}")
 
     curve, rest = stage("curve"), stage("recover_rest")
     # The 27 published runs of E13's narrow arms are what turn a one-column

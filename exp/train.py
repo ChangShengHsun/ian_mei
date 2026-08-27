@@ -234,30 +234,17 @@ def uses_direction(config_name: str) -> bool:
     return "dir" in config_name.split("_")
 
 
-# Where phase 1's sweep leaves the geometry it chose. A _prop config refuses
-# to build without it: the along/across radii were selected on held-out images
-# under a Dice floor, and guessing them here would fit the same quantity twice
-# on 20 images -- which is the whole reason phase 1 runs first.
-GEOMETRY = RESULTS / "d1_geometry.txt"
-
-
 _WIDTH_CACHE: dict = {}
 
 
 def vessel_width() -> float:
     """Median vessel width of the TRAINING split, in pixels. Cached.
 
-    The geometry file is written in MULTIPLES of this, never in pixels --
-    CLAUDE.md's rule, and here it is load-bearing rather than tidy: HRF is
-    about six times DRIVE's resolution, so a layer built from a pixel count
-    would silently become a different operator on transfer while keeping the
-    same name. The conversion happens here, once, at the boundary.
-
-    The first version of this skipped the conversion entirely and handed
-    build_model the width multiples as if they were pixels. `along=1.0` then
-    produced a one-pixel kernel, the layer was the identity, and its gate saw
-    a gradient of 6e-10 -- a whole arm that would have trained, converged, and
-    reported "the propagation layer does nothing" while never having run.
+    The name carries MULTIPLES of this, never pixels -- CLAUDE.md's rule, and
+    here it is load-bearing rather than tidy: HRF is about six times DRIVE's
+    resolution, so a layer built from a pixel count would silently become a
+    different operator on transfer while keeping the same name. The conversion
+    happens here, once, at the boundary.
     """
     if "width" not in _WIDTH_CACHE:
         import cross_dataset
@@ -266,17 +253,38 @@ def vessel_width() -> float:
     return _WIDTH_CACHE["width"]
 
 
-def propagation_geometry() -> tuple[float, float]:
-    """(along, across) IN PIXELS, converted from the stored width multiples."""
-    if not GEOMETRY.exists():
-        raise FileNotFoundError(
-            f"{GEOMETRY} is missing: a _prop config needs the along/across "
-            f"radii phase 1 chose. Run exp/direction_ceiling.py and "
-            f"exp/gate_d1.py first, or this trains a made-up architecture "
-            f"under a name that claims otherwise.")
-    along, across = (float(value) for value in GEOMETRY.read_text().split())
-    width = vessel_width()
-    return along * width, across * width
+def propagation_geometry(config_name: str) -> tuple[float, float]:
+    """(along, across) IN PIXELS, read from the config NAME.
+
+    `a` and `c` are HUNDREDTHS of a vessel width, so `_a100_c025` is one
+    width along the vessel and a quarter of one across it. Same mechanism as
+    `w64` and `d5`, same parser, and unparseable suffixes raise for the same
+    reason.
+
+    THIS USED TO LIVE IN A FILE, exp/results/d1_geometry.txt, written by the
+    gate. That was wrong for the reason base_width exists: one config name has
+    to mean one architecture. With the geometry in a file, training the same
+    arm at two reaches produced two different networks under one name, into
+    one directory, and the second silently replaced the first. It also cost a
+    run: the file held width multiples and this function handed them to
+    build_model as pixels, so `along=1.0` built a one-pixel kernel and an
+    entire 24-run queue measured a layer that was the identity.
+    """
+    along = _shape_suffix(config_name, "a", 0)
+    across = _shape_suffix(config_name, "c", 0)
+    if along == 0 and across == 0:
+        # The same failure _shape_suffix raises for, one level up. A missing
+        # reach used to default to zero, which builds a one-pixel kernel: the
+        # layer is the identity, the arm trains for hours, and it reports that
+        # propagation does nothing. Refusing here is the whole point.
+        raise ShapeNameError(
+            f"{config_name!r} asks for the propagation layer but carries no "
+            f"reach. Write it as ..._prop_a<hundredths>_c<hundredths>, e.g. "
+            f"_prop_a100_c025 for one vessel width along and a quarter "
+            f"across. A missing reach would build a one-pixel kernel and the "
+            f"layer would be the identity.")
+    return (along / 100.0 * vessel_width(),
+            across / 100.0 * vessel_width())
 
 
 def uses_propagation(config_name: str) -> bool:
@@ -323,7 +331,7 @@ def build_model(config_name: str) -> "TinyUNet":
                     in_channels=len(liot.DIRECTIONS) if uses_liot(config_name)
                     else 1, depth=net_depth(config_name),
                     direction=uses_direction(config_name),
-                    propagation=(propagation_geometry()
+                    propagation=(propagation_geometry(config_name)
                                  if uses_propagation(config_name)
                                  else None),
                     shuffle=uses_shuffled_direction(config_name)).to(DEVICE)
@@ -668,30 +676,41 @@ CONFIGS = {
     # linker than 1-p.
     "A_dice_dir": (False, None),
     "H_aug_dir": (False, None),
-    # D-B (2026-08-27). The oriented propagation layer between trunk and head,
-    # driven by the model's OWN direction head, with the geometry phase 1
-    # chose. ONE extra parameter over the _dir arms -- the gate that opens the
-    # layer -- so capacity is not a confound in any direction.
-    "A_dice_dir_prop": (False, None),
-    "H_aug_dir_prop": (False, None),
-    # D-B's ablation: the same layer on a random axis field. The head still
-    # predicts direction and the auxiliary loss still sees it; nothing
-    # downstream uses it. If these match the _prop arms, the layer is a
-    # dilation and D-B measured nothing.
-    "A_dice_dir_prop_shuf": (False, None),
-    "H_aug_dir_prop_shuf": (False, None),
     # D-E. No direction at all: BCE with the ground-truth centreline weighted
     # up. The cheap competitor that could make the whole line unnecessary.
     "A_dice_clw": (False, None),
     "H_aug_clw": (False, None),
-    # D-B x D-E. The only question worth asking once both work: do they
-    # compose, or are they two routes to the same 3 points? One weights the
-    # centreline in the loss, the other spreads evidence along the axis at
-    # inference; if the gain is additive they are fixing different halves of
-    # the same error, and if it is not, the cheaper one wins outright.
-    "A_dice_clw_dir_prop": (False, None),
-    "H_aug_clw_dir_prop": (False, None),
 }
+
+# D-B, swept over the layer's REACH. The first attempt handed over a single
+# geometry, chosen at the tightest Dice budget of the post-hoc sweep, and it
+# built a 5x5 kernel holding three pixels per orientation. The gate opened for
+# a real field (0.15) and shut for a random one (0.03), so the network could
+# tell them apart -- but a three-pixel operator had nothing to give. The Dice
+# constraint had been applied twice: once when choosing the reach, and again
+# by the training loss, which is what the gate is for.
+#
+# So the reach is swept instead of chosen, and it is in the NAME, because one
+# config name must mean one architecture.
+#
+#   a050  half a vessel width along the vessel   (5x5 kernel)
+#   a100  one width                              (7x7)
+#   a200  two widths                             (13x13)
+#   c025  a quarter width across it, at every reach -- the post-hoc sweep
+#         chose 0.25 at every budget it was asked about
+#
+# Each reach gets its shuffled control: the same layer on a random axis field,
+# which is the comparison that says this is direction and not dilation.
+PROPAGATION_REACHES = ("a050", "a100", "a200")
+for _base, _extra in (("A_dice", None), ("H_aug", None)):
+    for _reach in PROPAGATION_REACHES:
+        for _shuffle in ("", "_shuf"):
+            CONFIGS[f"{_base}_dir_prop{_shuffle}_{_reach}_c025"] = (False,
+                                                                   _extra)
+        # D-B x D-E: both interventions at the same reach. The only question
+        # worth asking once each works alone -- do they compose, or are they
+        # two routes to the same points?
+        CONFIGS[f"{_base}_clw_dir_prop_{_reach}_c025"] = (False, _extra)
 
 # Which augmentations each config gets. Keeping this beside CONFIGS rather than
 # inside it leaves the (blurpool, extra) shape that eleven call sites unpack.
@@ -725,8 +744,15 @@ AUGMENTS = {
     "H_aug_dir_prop": ("dihedral", "jitter"),
     "H_aug_dir_prop_shuf": ("dihedral", "jitter"),
     "H_aug_clw": ("dihedral", "jitter"),
-    "H_aug_clw_dir_prop": ("dihedral", "jitter"),
 }
+
+# Every H_aug variant must carry H_aug's tuple exactly. Generated beside the
+# configs rather than typed out, because a name missing from here trains with
+# no augmentation at all and still answers to the augmented arm's name -- the
+# trap E13 already paid for once, and test_capacity.py asserts against it.
+for _name in list(CONFIGS):
+    if _name.startswith("H_aug_") and _name not in AUGMENTS:
+        AUGMENTS[_name] = AUGMENTS["H_aug"]
 
 
 def direction_loss(field, target) -> torch.Tensor:

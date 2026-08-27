@@ -41,9 +41,6 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import summarize_direction_ceiling as ceiling
-import train
-
-GEOMETRY = train.GEOMETRY
 # The arms D-B will be built on; their geometry is the geometry that matters.
 BUILD_ON = ("A_dice_dir", "H_aug_dir")
 
@@ -166,9 +163,14 @@ def main() -> None:
         print("D-B is NOT built. D-E (centreline weighting, no direction) "
               "still runs -- it does not depend on this mechanism.")
         sys.exit(1)
-    GEOMETRY.write_text(f"{geometry[0]} {geometry[1]}\n")
-    print(f"D-B builds. Wrote along={geometry[0]} across={geometry[1]} "
-          f"widths to {GEOMETRY}")
+    print(f"D-B builds. The post-hoc sweep liked along={geometry[0]} "
+          f"across={geometry[1]} widths at the tightest budget.")
+    print("That is REPORTED, not handed over. Handing over one reach was the "
+          "2026-08-27 error: the tightest budget's geometry built a "
+          "three-pixel kernel, and the Dice constraint had then been applied "
+          "twice -- once here and again by the training loss, which is what "
+          "the layer's gate is for. The reach is swept in the config NAME "
+          "instead; see train.PROPAGATION_REACHES.")
     sys.exit(0)
 
 

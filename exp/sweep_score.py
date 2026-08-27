@@ -107,6 +107,19 @@ def main() -> None:
     runs = wanted or sorted(
         path.name for path in SWEEP.iterdir()
         if path.is_dir() and checkpoints(path))
+    # A run directory whose config is no longer in CONFIGS is a superseded
+    # architecture, not an error to crash on -- and not something to score
+    # silently either, since its weights are still on disk and a reader would
+    # assume the table covers everything present. Named, then skipped.
+    known, retired = [], []
+    for run_name in runs:
+        (known if run_name.rsplit("_s", 1)[0] in train.CONFIGS
+         else retired).append(run_name)
+    if retired:
+        print(f"skipping {len(retired)} run(s) whose config is retired: "
+              f"{', '.join(sorted({r.rsplit('_s', 1)[0] for r in retired}))}",
+              flush=True)
+    runs = known
     if not runs:
         raise SystemExit(f"no swept runs under {SWEEP}")
 
