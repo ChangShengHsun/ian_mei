@@ -788,8 +788,17 @@ def compute_loss(logits, target, dist, extra, image=None):
 
 # --------------------------------------------------------------- data
 
-def stack_split(split: str) -> dict:
-    items = drive.load_split(split)
+def stack_split(split: str, items: list | None = None) -> dict:
+    """DRIVE's split by name, or an already-loaded list of items.
+
+    The `items` argument is what lets this trainer run on HRF, STARE and
+    VessMAP without a second copy of the training loop -- cross_dataset.py
+    has one, from before augmentation and the direction head existed, and a
+    transfer arm trained by it would differ from its DRIVE namesake in more
+    than the dataset.
+    """
+    if items is None:
+        items = drive.load_split(split)
     images = np.stack([item["image"] for item in items])
     labels = np.stack([item["label"] for item in items]).astype(np.float32)
     fovs = np.stack([item["fov"] for item in items])
@@ -1251,7 +1260,19 @@ def main() -> None:
           f"{', keeping every validated epoch' if KEEP_EPOCHS else ''}",
           flush=True)
 
-    train, val = stack_split("train"), stack_split("val")
+    if "--dataset" in argv:
+        index = argv.index("--dataset")
+        name = argv[index + 1]
+        del argv[index:index + 2]
+        import cross_dataset
+        train_items, val_items = cross_dataset.loader_for(name)()
+        print(f"dataset {name}: {len(train_items)} train / {len(val_items)} "
+              f"val, median width "
+              f"{cross_dataset.median_width(val_items):.2f} px", flush=True)
+        train = stack_split("train", train_items)
+        val = stack_split("val", val_items)
+    else:
+        train, val = stack_split("train"), stack_split("val")
     inside = train["images"][train["fovs"]]
     mean, std = float(inside.mean()), float(inside.std())
     print(f"train norm mean {mean:.4f} std {std:.4f}", flush=True)

@@ -3,3 +3,9 @@
 results -> exp/results/selection_sweep, keeping every validated epoch
 train norm mean 0.4177 std 0.1442
 [A_dice_dir_prop_shuf_s0] epoch  10 loss 0.5219 dice 0.8158 clDice 0.8270 b0err 70.0 95HD 4.48 (1 min)
+[A_dice_dir_prop_shuf_s0] epoch  20 loss 0.4954 dice 0.8182 clDice 0.8257 b0err 79.0 95HD 3.95 (2 min)
+[A_dice_dir_prop_shuf_s0] epoch  30 loss 0.4839 dice 0.8186 clDice 0.8284 b0err 64.7 95HD 4.08 (3 min)
+[A_dice_dir_prop_shuf_s0] epoch  40 loss 0.4763 dice 0.8167 clDice 0.8226 b0err 67.9 95HD 4.10 (4 min)
+[A_dice_dir_prop_shuf_s0] epoch  50 loss 0.4625 dice 0.8170 clDice 0.8260 b0err 67.5 95HD 4.21 (5 min)
+[A_dice_dir_prop_shuf_s0] epoch  60 loss 0.4625 dice 0.8165 clDice 0.8254 b0err 65.7 95HD 4.12 (5 min)
+[A_dice_dir_prop_shuf_s0] epoch  70 loss 0.4549 dice 0.8152 clDice 0.8209 b0err 65.5 95HD 4.29 (6 min)

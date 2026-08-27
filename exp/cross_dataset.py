@@ -153,6 +153,27 @@ def load_vessmap() -> tuple[list[dict], list[dict]]:
     return items[:80], items[80:]
 
 
+def load_stare() -> tuple[list[dict], list[dict]]:
+    """STARE's 20 fundus images, split 10/10 by sorted name.
+
+    Scored against annotator `ah`, which is the one E4 used; `vk` is the
+    second reading and exists for the agreement study, not as a target. The
+    split is by position in the sorted list and is fixed here rather than at a
+    call site, so train and test cannot drift apart between scripts.
+    """
+    import stare_agreement
+    # NOT through prepare(): stare_agreement.load_stare has already applied
+    # the same CLAHE and returns a float32 image in [0, 1], while prepare
+    # takes uint8. Passing it through would either raise (it does) or, with a
+    # cast, enhance an already enhanced image and quietly make STARE a
+    # different dataset from the one every earlier experiment scored.
+    items = []
+    for item in stare_agreement.load_stare():
+        items.append({"name": item["name"], "image": item["image"],
+                      "label": item["ah"] & item["fov"], "fov": item["fov"]})
+    return items[:10], items[10:]
+
+
 def loader_for(dataset: str):
     """`topomortar:noisy` trains on the noisy labels and still scores against
     the accurate ones. That is E5: how fast does each loss degrade as the
@@ -163,6 +184,8 @@ def loader_for(dataset: str):
         return lambda: load_topomortar(kind)
     if dataset == "vessmap":
         return load_vessmap
+    if dataset == "stare":
+        return load_stare
     return load_hrf
 
 

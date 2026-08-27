@@ -94,7 +94,10 @@ def main() -> None:
     rows = load()
     chosen_rows = [r for r in rows if is_selection(r["image"])]
     report_rows = [r for r in rows if not is_selection(r["image"])]
-    print("=== phase 3: does the geometry transfer? ===\n")
+    print("=== phase 3: does the geometry transfer? ===")
+    print("Each dataset scored with models trained on ITSELF; checkpoint is")
+    print("best.pt (highest whole-val Dice) everywhere, which is optimistic")
+    print("but identical across sources and so neutral to the question.\n")
     header = (f"  {'dataset':<10}{'width':>7}{'raw':>8}{'oracle':>9}"
               f"{'isotropic':>11}{'gain':>8}   chosen (along, across)")
     print(header)
