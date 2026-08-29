@@ -47,6 +47,24 @@ CKPT_EVERY = 5   # must divide VAL_EVERY; see the note in train_one
 # so the runs keep all of them and the selection rule is fitted afterwards on
 # the VALIDATION numbers only.
 KEEP_EPOCHS = False
+
+# Which images the model is fitted on and which ones choose its checkpoint.
+#
+#   legacy   fit on all 20 of DRIVE's train directory, select best.pt by Dice
+#            on the val directory -- which is DRIVE's official TEST set. Every
+#            run in exp/results predating 2026-08-28 was trained this way, so
+#            it stays the default until they are all superseded; changing it
+#            under a running queue would give one comparison two protocols.
+#   heldout  fit on 15 images, select on the 5 held out from the SAME train
+#            directory, and let the test set be read once, at scoring time.
+#
+# The leak legacy carries is not that the test set is scored -- it must be --
+# but that it CHOOSES. Selecting the best of ten epochs on the set you then
+# report makes the reported number the maximum of ten draws, not the model's
+# score. log.csv holds every validated epoch, so under heldout the same
+# selection rules can be recomputed honestly from the dev column.
+PROTOCOL = "legacy"
+PROTOCOL_SPLITS = {"legacy": ("train", "val"), "heldout": ("fit", "dev")}
 DIST_CLIP = 20.0  # px; caps the boundary loss's reach into open background
 
 torch.set_num_threads(6)
@@ -321,7 +339,25 @@ def uses_centreline_weight(config_name: str) -> bool:
     this arm captures the budget, D1 is an expensive route to something one
     weight map already does, and that has to be known before D-B is believed.
     """
-    return "clw" in config_name.split("_")
+    return any(token == "clw" or (token.startswith("clw")
+                                  and token[3:].isdigit())
+               for token in config_name.split("_"))
+
+
+def centreline_weight(config_name: str) -> float:
+    """The extra weight on centreline pixels, read from the config NAME.
+
+    `clw` alone is 2.0, the value the first twelve D-E runs were trained at,
+    so those runs keep meaning what they meant. `clw4` is 4.0. Same rule as
+    propagation_geometry: a number that changes the operator belongs in the
+    name, or one name means two models writing into one directory.
+    """
+    for token in config_name.split("_"):
+        if token == "clw":
+            return CENTRELINE_WEIGHT
+        if token.startswith("clw") and token[3:].isdigit():
+            return float(token[3:])
+    raise ShapeNameError(f"{config_name!r} has no clw token")
 
 
 def build_model(config_name: str) -> "TinyUNet":
@@ -712,6 +748,35 @@ for _base, _extra in (("A_dice", None), ("H_aug", None)):
         # two routes to the same points?
         CONFIGS[f"{_base}_clw_dir_prop_{_reach}_c025"] = (False, _extra)
 
+# D-E swept over its one number. The first twelve runs fixed the weight at 2
+# by an argument from vessel geometry -- a 2.83 px cross-section is about
+# three pixels of which one is centreline -- and that argument says nothing
+# about whether 2 is the best of the reachable values, only that it is not
+# absurd. H_aug_clw is the single intervention in this series that passed the
+# seed gate, and it is the least swept thing in it.
+#
+# K_focal_aug joins the sweep because it is the strongest arm measured and has
+# never been crossed with D-E at all. clw2 duplicates the published `clw` on
+# purpose: under the held-out protocol every arm is retrained, so the sweep
+# needs its own weight-2 point rather than a legacy one measured differently.
+# 2026-08-29: extended to 16 and 32. The first sweep ran 1/2/4/8 and the
+# response was MONOTONE INCREASING to its endpoint -- 8 was the best weight on
+# all three bases, at matched Dice as well as at rule (iv). A sweep whose best
+# value is its largest value has not found a peak, it has found the edge of
+# the range. The pre-registered prediction that the response would be
+# single-peaked and that 8 would cost Dice without buying run length was
+# simply wrong, and the honest repair is to keep going until it turns.
+#
+# 64 is in the list to BRACKET the peak rather than to win. At 64 the
+# centreline outweighs the vessel body 65:1, so the model should collapse
+# toward drawing the skeleton and nothing else. A sweep that ends before the
+# collapse cannot say where the peak is; one that contains the collapse can.
+CENTRELINE_WEIGHTS = (1, 2, 4, 8, 16, 32, 64)
+for _base, _extra in (("A_dice", None), ("H_aug", None),
+                      ("K_focal_aug", "focal")):
+    for _weight in CENTRELINE_WEIGHTS:
+        CONFIGS[f"{_base}_clw{_weight}"] = (False, _extra)
+
 # Which augmentations each config gets. Keeping this beside CONFIGS rather than
 # inside it leaves the (blurpool, extra) shape that eleven call sites unpack.
 AUGMENTS = {
@@ -750,9 +815,12 @@ AUGMENTS = {
 # configs rather than typed out, because a name missing from here trains with
 # no augmentation at all and still answers to the augmented arm's name -- the
 # trap E13 already paid for once, and test_capacity.py asserts against it.
+# K_focal_aug is in the prefix list because D-E's sweep is the first thing to
+# make a variant of it. Its tuple is H_aug's; the arm differs in its loss.
 for _name in list(CONFIGS):
-    if _name.startswith("H_aug_") and _name not in AUGMENTS:
-        AUGMENTS[_name] = AUGMENTS["H_aug"]
+    for _prefix in ("H_aug_", "K_focal_aug_"):
+        if _name.startswith(_prefix) and _name not in AUGMENTS:
+            AUGMENTS[_name] = AUGMENTS["H_aug"]
 
 
 def direction_loss(field, target) -> torch.Tensor:
@@ -774,7 +842,7 @@ def direction_loss(field, target) -> torch.Tensor:
     return (error * weight).sum() / total
 
 
-def centreline_loss(logits, target, skeleton) -> torch.Tensor:
+def centreline_loss(logits, target, skeleton, weight: float) -> torch.Tensor:
     """D-E. BCE with ground-truth centreline pixels weighted up.
 
     No direction anywhere in it. That is the point: it is the cheapest thing
@@ -782,8 +850,8 @@ def centreline_loss(logits, target, skeleton) -> torch.Tensor:
     misses its centreline -- and if it captures the budget then D1's field,
     head and layer are an expensive route to what one weight map does.
     """
-    weight = 1.0 + CENTRELINE_WEIGHT * skeleton
-    return F.binary_cross_entropy_with_logits(logits, target, weight=weight)
+    per_pixel = 1.0 + weight * skeleton
+    return F.binary_cross_entropy_with_logits(logits, target, weight=per_pixel)
 
 
 def compute_loss(logits, target, dist, extra, image=None):
@@ -1110,6 +1178,7 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     use_liot = uses_liot(config_name)
     use_direction = uses_direction(config_name)
     use_skeleton = uses_centreline_weight(config_name)
+    skel_weight = centreline_weight(config_name) if use_skeleton else 0.0
     if use_liot:
         # The grey mean/std main() computed are meaningless for a byte-code
         # input, so recompute here rather than making every caller know.
@@ -1142,6 +1211,17 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     # epoch's full metric row stays in log.csv, so the choice is auditable,
     # but a different rule needs a retrain: only one best.pt is kept.
     best_path = out_dir / "best.pt"
+
+    # A directory carries the protocol it was trained under. Resuming a
+    # legacy ckpt.pt with heldout data would produce one run fitted on two
+    # different image sets and named as if it were one -- silently, because
+    # nothing downstream reads anything but the weights.
+    stamp = out_dir / "protocol.txt"
+    if stamp.exists() and stamp.read_text().strip() != PROTOCOL:
+        raise SystemExit(
+            f"{out_dir} was trained under {stamp.read_text().strip()!r}, "
+            f"not {PROTOCOL!r}; use a different --results root")
+    stamp.write_text(PROTOCOL + "\n")
 
     if final_path.exists():
         print(f"[{run_name}] already finished, skipping", flush=True)
@@ -1206,7 +1286,7 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
                     # loss, so _clw differs from its namesake in exactly this
                     # term and the comparison isolates it.
                     loss = loss + centreline_loss(logits, labels,
-                                                  extras["skel"])
+                                                  extras["skel"], skel_weight)
             else:
                 images, labels, dists = sample_batch(
                     train, rng, mean, std, augments, inpainted, use_liot)
@@ -1268,7 +1348,7 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
 
 
 def main() -> None:
-    global RESULTS, KEEP_EPOCHS
+    global RESULTS, KEEP_EPOCHS, PROTOCOL
     argv = list(sys.argv[1:])
     if "--results" in argv:
         # A sweep must not overwrite the published runs: retraining into the
@@ -1286,19 +1366,41 @@ def main() -> None:
           f"{', keeping every validated epoch' if KEEP_EPOCHS else ''}",
           flush=True)
 
+    if "--protocol" in argv:
+        index = argv.index("--protocol")
+        PROTOCOL = argv[index + 1]
+        del argv[index:index + 2]
+        if PROTOCOL not in PROTOCOL_SPLITS:
+            raise SystemExit(f"--protocol must be one of "
+                             f"{sorted(PROTOCOL_SPLITS)}, got {PROTOCOL!r}")
+
     if "--dataset" in argv:
         index = argv.index("--dataset")
         name = argv[index + 1]
         del argv[index:index + 2]
         import cross_dataset
-        train_items, val_items = cross_dataset.loader_for(name)()
-        print(f"dataset {name}: {len(train_items)} train / {len(val_items)} "
-              f"val, median width "
-              f"{cross_dataset.median_width(val_items):.2f} px", flush=True)
+        train_items, test_items = cross_dataset.loader_for(name)()
+        if PROTOCOL == "heldout":
+            # Same defect as DRIVE's, one level up: this branch was handing
+            # the TEST list in as the validation set, so best.pt was chosen
+            # on the images the transfer numbers are reported from. The
+            # split rule is cross_dataset's, shared with DRIVE, so the two
+            # cannot drift apart.
+            train_items, val_items = cross_dataset.fit_dev(train_items)
+        else:
+            val_items = test_items
+        print(f"dataset {name} ({PROTOCOL}): {len(train_items)} fit / "
+              f"{len(val_items)} select / {len(test_items)} test, "
+              f"median width "
+              f"{cross_dataset.median_width(test_items):.2f} px", flush=True)
         train = stack_split("train", train_items)
         val = stack_split("val", val_items)
     else:
-        train, val = stack_split("train"), stack_split("val")
+        fit_split, dev_split = PROTOCOL_SPLITS[PROTOCOL]
+        train, val = stack_split(fit_split), stack_split(dev_split)
+        print(f"protocol {PROTOCOL}: fit on {fit_split} "
+              f"({len(train['images'])} images), select on {dev_split} "
+              f"({len(val['images'])} images)", flush=True)
     inside = train["images"][train["fovs"]]
     mean, std = float(inside.mean()), float(inside.std())
     print(f"train norm mean {mean:.4f} std {std:.4f}", flush=True)

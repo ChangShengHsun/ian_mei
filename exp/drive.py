@@ -38,15 +38,41 @@ def green_clahe(rgb: np.ndarray) -> np.ndarray:
     return equalised.astype(np.float32) / 255.0
 
 
+# Five of the twenty DRIVE training images, held out for model selection.
+# Every fourth image so the choice cannot follow acquisition order. Fixed by
+# id and not by a seed: a selection split that moves between runs is not a
+# selection split, it is another source of variance.
+DEV_IDS = ("24", "28", "32", "36", "40")
+
+# 'train'/'val' name the two DIRECTORIES DRIVE ships. 'val' is DRIVE's
+# official TEST set, so selecting a checkpoint on it leaks the test set into
+# the result. Training reads 'fit' and selects on 'dev'; only the final score
+# reads 'test'. The two directory names still work because every scoring
+# script uses them, and scoring on the test set is exactly right -- the sin
+# was ever CHOOSING on it.
+_ALIASES = {"fit": "train", "dev": "train", "test": "val"}
+
+
 def load_split(split: str) -> list[dict]:
-    """split is 'train' (images 21-40) or 'val' (images 01-20)."""
-    suffix = "" if split == "train" else "_manual1"
+    """'fit' (15 imgs), 'dev' (5, for selection), 'test' (20, report only).
+
+    'train' (all 20 of images 21-40) and 'val' (all 20 of images 01-20) are
+    the raw directories and stay available for scoring.
+    """
+    if split not in _ALIASES and split not in ("train", "val"):
+        raise ValueError(f"unknown split {split!r}")
+    directory = _ALIASES.get(split, split)
+    suffix = "" if directory == "train" else "_manual1"
+    keep = {"fit": lambda stem: stem not in DEV_IDS,
+            "dev": lambda stem: stem in DEV_IDS}.get(split, lambda stem: True)
     items = []
-    for image_path in sorted((ROOT / split / "input").glob("*.tif")):
+    for image_path in sorted((ROOT / directory / "input").glob("*.tif")):
+        if not keep(image_path.stem):
+            continue
         stem = image_path.stem
         rgb = np.asarray(Image.open(image_path))
         label = np.asarray(
-            Image.open(ROOT / split / "label" / f"{stem}{suffix}.png")) > 127
+            Image.open(ROOT / directory / "label" / f"{stem}{suffix}.png")) > 127
         items.append({
             "name": stem,
             "rgb": rgb,
@@ -71,3 +97,27 @@ if __name__ == "__main__":
             assert (item["label"] & ~item["fov"]).sum() < 10, item["name"]
             assert 0.70 < item["fov"].mean() < 0.78, item["name"]
         assert 0.10 < inside < 0.14, inside
+
+    # The selection split. What must hold is not "fit has 15 rows" -- that
+    # passes for any 15 -- but that fit and dev PARTITION the training
+    # directory and that neither can ever see a test image.
+    names = {s: [i["name"] for i in load_split(s)] for s in
+             ("fit", "dev", "test", "train", "val")}
+    for split in ("fit", "dev", "test"):
+        print(f"{split}: {len(names[split])} images "
+              f"[{', '.join(names[split][:6])}{'...' if len(names[split]) > 6 else ''}]")
+    assert set(names["dev"]) == set(DEV_IDS), names["dev"]
+    assert not set(names["fit"]) & set(names["dev"])
+    assert sorted(names["fit"] + names["dev"]) == sorted(names["train"])
+    assert names["test"] == names["val"]
+    # The whole point: no image the model is fitted or selected on may appear
+    # in the reported score.
+    assert not (set(names["fit"]) | set(names["dev"])) & set(names["test"])
+    assert load_split("dev")[0]["image"].shape == (584, 565)
+    for bad in ("valid", "Dev", ""):
+        try:
+            load_split(bad)
+        except ValueError:
+            continue
+        raise AssertionError(f"{bad!r} should not have loaded")
+    print("all checks passed")

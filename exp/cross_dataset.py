@@ -189,6 +189,41 @@ def loader_for(dataset: str):
     return load_hrf
 
 
+# The held-out selection split, for every dataset including DRIVE. Every
+# fourth image starting at the fourth, by position in the sorted list, so the
+# choice cannot follow acquisition order and does not move between runs.
+#
+# ONE function, not one rule per dataset. drive.DEV_IDS is asserted against
+# this in the selftest below: a split rule that exists in two places is a
+# split rule that will disagree in one of them.
+# A quarter of the training list, but never fewer than three images: STARE
+# and HRF train on ten, and a quarter of ten is two, which is too thin to
+# choose an epoch on. Expressed as a floor rather than a per-dataset special
+# case, so there is still one rule.
+DEV_FRACTION, DEV_MINIMUM = 4, 3
+
+
+def dev_indices(count: int) -> list[int]:
+    """Evenly spaced positions, ending on the last image.
+
+    On DRIVE's 20 this returns 3, 7, 11, 15, 19 -- exactly drive.DEV_IDS,
+    which the selftest asserts. The two must not be allowed to drift apart.
+    """
+    size = min(count, max(DEV_MINIMUM, count // DEV_FRACTION))
+    return [round((index + 1) * count / size) - 1 for index in range(size)]
+
+
+def fit_dev(items: list[dict]) -> tuple[list[dict], list[dict]]:
+    """Split a training list into (fitted on, selected on).
+
+    Takes the list the loader already returns, so the test half is untouched
+    and never reaches training under any protocol.
+    """
+    held = set(dev_indices(len(items)))
+    return ([item for index, item in enumerate(items) if index not in held],
+            [item for index, item in enumerate(items) if index in held])
+
+
 def median_width(items: list[dict]) -> float:
     radii = []
     for item in items[:8]:

@@ -1,0 +1,20 @@
+Traced fraction under three length conventions, rule (iv), report half.
+Every column is a fraction of what a PERFECT prediction scores on the same image.
+
+  arm                pixels    edges  diameter  edges/px  runs
+  ------------------------------------------------------------
+  A_dice             33.0%    32.8%     56.7%    0.993x  6
+  H_aug              35.0%    34.7%     58.1%    0.993x  6
+  G_focal            40.7%    40.3%     63.9%    0.991x  6
+  K_focal_aug        48.2%    48.0%     70.1%    0.995x  6
+
+  `edges` is the field's convention (the Allen implementation sums
+  physical edge lengths). `pixels` is what erl.py has always used;
+  it undercounts diagonal steps, but numerator and denominator
+  take the same correction, so the FRACTION barely moves.
+
+  `diameter` asks a different question: not how much wire is
+  connected, but how far ONE traversal gets. A tree cannot be
+  covered by one path, so it is reported against its own ceiling.
+  Where diameter falls much further than edges, the prediction is
+  keeping the tree connected but not keeping any long path clean.

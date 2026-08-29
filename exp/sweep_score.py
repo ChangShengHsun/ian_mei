@@ -100,10 +100,21 @@ def selftest() -> None:
 
 
 def main() -> None:
+    global SWEEP, OUT
     if "--selftest" in sys.argv:
         selftest()
         return
-    wanted = [a for a in sys.argv[1:] if not a.startswith("--")]
+    argv = sys.argv[1:]
+    if "--results" in argv:
+        # The held-out retrain writes to its own root, and its checkpoints
+        # must not be scored into the sweep's table: the two roots were
+        # trained under different protocols, so one row per checkpoint with
+        # no protocol column would silently mix them.
+        index = argv.index("--results")
+        SWEEP = Path(argv[index + 1])
+        OUT = SWEEP / "checkpoint_scores.csv"
+        del argv[index:index + 2]
+    wanted = [a for a in argv if not a.startswith("--")]
     runs = wanted or sorted(
         path.name for path in SWEEP.iterdir()
         if path.is_dir() and checkpoints(path))

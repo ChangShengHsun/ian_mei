@@ -50,6 +50,13 @@ REST_ARMS = ("G_focal_w64_d5", "K_focal_aug_w64_d5")
 GATE = ("A_dice_w64_d5_s0", "H_aug_w64_d5_s0")
 # Task 2: three cannot support the 44.7% headline; six can.
 TASK2_EXTRA = tuple(f"K_focal_aug_s{seed}" for seed in (3, 4, 5))
+# The three bases the held-out retrain and the D-E sweep are built on: the
+# plain loss, the augmented one, and the strongest arm in the series.
+HELDOUT_BASES = ("A_dice", "H_aug", "K_focal_aug")
+# Methods with a paper behind them, for the comparison table. B_cldice is
+# clDice (CVPR 2021), E_cbdice is cbDice, I_coletra is CoLeTra, J_liot is
+# LIOT; G_focal is ours and is here because the table needs it beside them.
+PUBLISHED_ARMS = ("B_cldice", "E_cbdice", "I_coletra", "J_liot", "G_focal")
 
 
 def existing_runs() -> tuple[str, ...]:
@@ -86,6 +93,30 @@ CURVE_ARMS = ("A_dice", "B_cldice", "H_aug",
 
 def is_curve_arm(run_name: str) -> bool:
     return run_name.rsplit("_s", 1)[0] in CURVE_ARMS
+
+
+def _seed_major(run_name: str) -> tuple:
+    return int(run_name.rsplit("_s", 1)[1]), run_name
+
+
+def contaminated_runs(path: Path = RESULTS / "erl_best.csv") -> tuple[str, ...]:
+    """Every run whose published number was read off best.pt.
+
+    Enumerated from the CSV that holds those numbers, so the repair cannot
+    cover fewer runs than the damage. A run whose config has since been
+    retired is dropped and named, not crashed on.
+    """
+    import csv
+    if not path.exists():
+        return ()
+    found = sorted({row["run"] for row in csv.DictReader(path.open())})
+    known = tuple(r for r in found if r.rsplit("_s", 1)[0] in train.CONFIGS)
+    missing = sorted({r.rsplit("_s", 1)[0] for r in found} -
+                     {r.rsplit("_s", 1)[0] for r in known})
+    if missing:
+        print(f"# retired configs not requeued: {', '.join(missing)}",
+              file=sys.stderr)
+    return known
 
 
 def stage(name: str) -> tuple[str, ...]:
@@ -166,12 +197,88 @@ def stage(name: str) -> tuple[str, ...]:
                      for base in ("A_dice", "H_aug")
                      for reach in train.PROPAGATION_REACHES)
         return tuple(f"{arm}_s{seed}" for seed in range(6) for arm in arms)
+    # ------------------------------------------------ the held-out protocol
+    # Everything below is retrained under --protocol heldout, into its own
+    # results root. The defect being repaired: drive.load_split("val") reads
+    # DRIVE's official TEST images, and best.pt was the epoch with the highest
+    # Dice on them. A checkpoint chosen as the best of ten epochs on the set
+    # it is then reported on is the maximum of ten draws.
+    #
+    # Every arm a conclusion rests on has to come back under one protocol --
+    # comparing a new arm measured honestly against a baseline measured with
+    # the leak is worse than either, because the difference then mixes the
+    # intervention with the protocol.
+    #
+    # HELDOUT_BASES are the three the D-E sweep is built on. K_focal_aug is
+    # the strongest arm measured in the series and has never been crossed with
+    # D-E at all; that cell is the one new question in this batch.
+    if name == "heldout":
+        arms = tuple(f"{base}_clw{weight}" for base in HELDOUT_BASES
+                     for weight in train.CENTRELINE_WEIGHTS)
+        return tuple(f"{arm}_s{seed}" for seed in range(6)
+                     for arm in HELDOUT_BASES + arms)
+    # The published methods, under the same protocol, so the comparison table
+    # has one row per method and one protocol for all of them. E_cbdice has no
+    # checkpoint on this machine at all, so it is retrained rather than scored.
+    # The cleanup half: every run whose number was read off best.pt, which is
+    # the one path that really leaks -- best.pt is the highest-Dice epoch over
+    # all 20 test images, so a result taken from it is the maximum of ten
+    # draws on the set it is reported on. erl.csv and stratify.csv are read
+    # off final.pt at a fixed epoch 100 and are NOT affected; erl_best.csv and
+    # stratify_best.csv are.
+    #
+    # The run list is READ OFF the contaminated CSV rather than typed here.
+    # A hand-written seed range is the E12 mistake this repo already paid for
+    # once, and it is worse in a repair: a cleanup that silently covers 45 of
+    # 72 runs looks exactly like one that covers all of them.
+    if name == "heldout_series":
+        runs = contaminated_runs()
+        already = set(stage("heldout"))
+        # E_cbdice has no checkpoint on this machine at all, so it never
+        # reached erl_best.csv and has to be added rather than recovered.
+        runs = runs + tuple(f"E_cbdice_s{seed}" for seed in range(6))
+        # The 117k arms go to six seeds whatever they had before. Half of
+        # them were measured at three, and a paired t on three seeds has two
+        # degrees of freedom -- it satisfies the gate's "at least three" and
+        # supports almost nothing. Since every one of them is being retrained
+        # anyway, the marginal cost of seeds 3-5 buys a table that can carry
+        # a claim. The wide arms keep the seeds they had: they cost five
+        # times as much each, and they are points on the capacity curve
+        # rather than arms a conclusion rests on.
+        narrow_arms = sorted({r.rsplit("_s", 1)[0] for r in runs
+                              if train.base_width(r.rsplit("_s", 1)[0]) == 16})
+        cheap = tuple(f"{arm}_s{seed}" for arm in narrow_arms
+                      for seed in range(6))
+        cheap = tuple(r for r in cheap if r not in already)
+        wide = tuple(r for r in runs if r not in already
+                     and train.base_width(r.rsplit("_s", 1)[0]) != 16)
+        # Narrow arms first: 45 of them cost what 9 wide ones do, and they
+        # carry every conclusion in the series up to E13.
+        return tuple(sorted(cheap, key=_seed_major)
+                     + sorted(wide, key=_seed_major))
+    # Seeds 6-11 of the D-E sweep. Queued because the gate that matters here
+    # is the SIGN rule, and six seeds is where it is weakest: on 2026-08-28
+    # A_dice_clw beat A_dice by +240.0 ERL at t 3.12 -- an effect the same
+    # size as H_aug_clw's +249.5, which HELD -- and failed on one seed of six
+    # coming back -201. That is not "no effect", it is "not enough seeds to
+    # tell". Twelve seeds settles it either way.
+    #
+    # Runs last, so it costs nothing if the first six seeds are unambiguous.
+    if name == "heldout_seeds":
+        arms = tuple(f"{base}_clw{weight}" for base in HELDOUT_BASES
+                     for weight in train.CENTRELINE_WEIGHTS)
+        return tuple(f"{arm}_s{seed}" for seed in range(6, 12)
+                     for arm in HELDOUT_BASES + arms)
+    if name == "heldout_published":
+        return tuple(f"{arm}_s{seed}" for seed in range(6)
+                     for arm in PUBLISHED_ARMS)
     if name == "curve":
         return tuple(run for run in stage("recover") if is_curve_arm(run))
     if name == "recover_rest":
         return tuple(run for run in stage("recover")
                      if not is_curve_arm(run))
-    raise SystemExit(f"unknown stage {name!r}; try gate, task1 or recover")
+    raise SystemExit(f"unknown stage {name!r}; try gate, task1, recover "
+                     f"or heldout")
 
 
 def shard(runs: tuple[str, ...], index: int, total: int) -> tuple[str, ...]:
@@ -373,6 +480,61 @@ def selftest() -> None:
                 print("\n".join(sample))
         assert len(captured.getvalue().splitlines()) == len(sample), sample
     print("  an empty queue prints zero lines, not one blank one")
+
+    # The held-out batch. Pinned to the quantities that carry the meaning --
+    # a baseline for every base, every swept weight present, and each seed a
+    # COMPLETE grid -- not to a total, which stays true while the grid rots.
+    heldout = stage("heldout")
+    assert len(set(heldout)) == len(heldout), "duplicate run in heldout"
+    per_seed = len(HELDOUT_BASES) * (1 + len(train.CENTRELINE_WEIGHTS))
+    for seed in range(6):
+        block = [r for r in heldout if r.endswith(f"_s{seed}")]
+        assert len(block) == per_seed, (seed, len(block))
+        # Every arm at this seed, and its own baseline with it: a sweep whose
+        # baseline lands three hours later cannot be read while it runs.
+        assert set(block[:len(HELDOUT_BASES)]) == {
+            f"{base}_s{seed}" for base in HELDOUT_BASES}, block[:3]
+    seeds = [int(r.rsplit("_s", 1)[1]) for r in heldout]
+    assert seeds == sorted(seeds), "heldout must be seed-major"
+    for run_name in heldout + stage("heldout_published"):
+        config = run_name.rsplit("_s", 1)[0]
+        assert config in train.CONFIGS, config
+        # The E13 trap: an augmented arm's variant missing from AUGMENTS
+        # trains unaugmented and still answers to the augmented arm's name.
+        base = config.split("_clw")[0]
+        assert train.AUGMENTS.get(config, ()) == train.AUGMENTS.get(base, ()), \
+            config
+    print(f"  heldout: {len(heldout)} runs, {per_seed} per seed, "
+          f"every arm carries its base's augmentation")
+
+    # The cleanup stage must cover the damage. Pinned to "every contaminated
+    # ARM comes back" rather than to a run count, which stays true while an
+    # arm silently drops out.
+    series = stage("heldout_series")
+    assert len(set(series)) == len(series), "duplicate run in heldout_series"
+    damaged = {r.rsplit("_s", 1)[0] for r in contaminated_runs()}
+    covered = {r.rsplit("_s", 1)[0] for r in series + stage("heldout")}
+    assert damaged <= covered, sorted(damaged - covered)
+    assert not set(series) & set(stage("heldout")), "a run queued twice"
+    # Six seeds for everything cheap enough to have them.
+    for arm in covered:
+        if train.base_width(arm) != 16:
+            continue
+        seeds = {r.rsplit("_s", 1)[1] for r in series + stage("heldout")
+                 if r.rsplit("_s", 1)[0] == arm}
+        assert seeds == {str(s) for s in range(6)}, (arm, sorted(seeds))
+    print(f"  heldout_series: {len(series)} runs covering all "
+          f"{len(damaged)} best.pt-contaminated arms, 117k arms at 6 seeds")
+
+    # The seed extension must continue the sweep, not restart it: the same
+    # arms at seeds the first batch does not have.
+    more = stage("heldout_seeds")
+    assert not set(more) & set(heldout), "a seed queued twice"
+    assert {r.rsplit("_s", 1)[0] for r in more} == \
+        {r.rsplit("_s", 1)[0] for r in heldout}, "different arms"
+    assert {int(r.rsplit("_s", 1)[1]) for r in more} == set(range(6, 12))
+    print(f"  heldout_seeds: {len(more)} runs, seeds 6-11 of the same "
+          f"{len(set(r.rsplit('_s', 1)[0] for r in more))} arms")
 
     # pending() must answer about the root the runs are actually written to.
     import tempfile

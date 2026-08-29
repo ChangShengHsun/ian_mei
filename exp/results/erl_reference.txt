@@ -1,0 +1,14 @@
+ERL under three conventions, rule (iv), report half.
+
+  arm                 ours  reference  bridged  coverage  runs
+  ------------------------------------------------------------
+  A_dice            32.4%      39.2%    59.8%     81.9%  6
+  H_aug             34.3%      41.4%    60.6%     81.9%  6
+  G_focal           39.9%      47.1%    63.2%     84.1%  6
+  K_focal_aug       47.4%      54.5%    67.3%     86.0%  6
+
+  ours = reference x coverage, exactly. The reference discards the
+  ground truth the prediction never found; we divide by all of it.
+  Both are defensible. Only one of them is what a reader comparing
+  against a published ERL will assume, so the paper has to say
+  which, and report the coverage column beside it.

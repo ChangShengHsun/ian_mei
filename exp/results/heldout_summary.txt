@@ -1,0 +1,32 @@
+protocol heldout: fit on 15 DRIVE training images, checkpoint chosen on the 5 held out from the same directory,
+reported on all 20 test images. NOT comparable in absolute value to the legacy runs.
+
+D-E's weight, at (iv) best clDice, ERL paired on (image, seed)
+
+  arm                        seeds      dERL      t    dDice  verdict
+  -------------------------------------------------------------------
+  A_dice_clw1 - A_dice           6     +35.1   0.65  -0.0010  fails
+                            per seed [-372 +31 +324 +218 -194 +204]
+  A_dice_clw2 - A_dice           6     +98.6   1.59  -0.0027  fails
+                            per seed [-106 +68 +232 +23 +379 -4]
+  A_dice_clw4 - A_dice           6    +436.2   7.23  -0.0038  HOLDS
+  A_dice_clw8 - A_dice           6    +614.5   8.71  -0.0092  HOLDS
+
+  H_aug_clw1 - H_aug             6      +7.9   0.14  -0.0000  fails
+                            per seed [+162 +21 -218 +104 +60 -83]
+  H_aug_clw2 - H_aug             6     +22.7   0.49  +0.0004  fails
+                            per seed [+58 +60 +248 +148 -89 -288]
+  H_aug_clw4 - H_aug             6    +278.0   5.78  -0.0020  HOLDS
+  H_aug_clw8 - H_aug             6    +586.3  11.64  -0.0062  HOLDS
+
+  K_focal_aug_clw1 - K_focal_aug     6    -820.2 -12.71  +0.0203  fails
+                            per seed [-525 -646 -861 -1041 -1061 -787]
+  K_focal_aug_clw2 - K_focal_aug     6    -566.1  -9.22  +0.0193  fails
+                            per seed [-249 -460 -604 -783 -837 -464]
+  K_focal_aug_clw4 - K_focal_aug     6    -398.5  -7.14  +0.0169  fails
+                            per seed [-231 -362 -432 -711 -487 -168]
+  K_focal_aug_clw8 - K_focal_aug     6    +153.1   2.17  +0.0101  fails
+                            per seed [+162 +487 -179 +131 +225 +94]
+
+  A Dice cost of -0.0009 is one seed standard deviation (0.00086). Run length bought at a Dice cost
+  is a trade to state, not a free win.

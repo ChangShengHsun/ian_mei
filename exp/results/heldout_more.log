@@ -1,0 +1,417 @@
+  taskb 15 runs @31M, taskc 30 runs @117k seeds 6-11
+  d1 12 runs: A_dice_dir_s0 .. H_aug_dir_s5, each carrying its namesake's augmentation
+  d1b 72 runs over reaches ('a050', 'a100', 'a200') (half the shuffled control), d1e 12, d1f 36
+  an empty queue prints zero lines, not one blank one
+  heldout: 90 runs, 15 per seed, every arm carries its base's augmentation
+  heldout_series: 72 runs covering all 16 best.pt-contaminated arms, 117k arms at 6 seeds
+  heldout_seeds: 90 runs, seeds 6-11 of the same 15 arms
+  pending() answers about the root it is given, not a fixed one
+gate 2 runs, e13 15 runs, task1 25 runs, recover 87 runs (45 of them E13's narrow arms, first)
+  task1 seed 0: A_dice_w64_d5_s0, B_cldice_w64_d5_s0, H_aug_w64_d5_s0, G_focal_w64_d5_s0, K_focal_aug_w64_d5_s0
+all checks passed
+test_centreline_weight_comes_from_the_name
+  12 swept arms carry their base's loss and augmentation
+test_directory_refuses_a_second_protocol
+  a run directory refuses a second protocol
+test_one_split_rule_for_every_dataset
+  DRIVE's DEV_IDS come back out of the shared rule: ('24', '28', '32', '36', '40')
+  stare    fit   7 / select  3 / test  10, disjoint
+  vessmap  fit  60 / select 20 / test  20, disjoint
+  hrf      fit  23 / select  7 / test  15, disjoint
+test_only_legacy_selects_on_test
+  legacy   selects on the test set: True
+  heldout  selects on the test set: False
+test_splits_partition
+  fit 15 + dev 5 partition train 20
+test_unknown_protocol_refused
+  unknown --protocol refused
+all checks passed
+=== 2026-08-28 18:22:50 selftests passed ===
+=== 2026-08-28 18:23:01 waiting: 161 run(s) left in the first batch (0h) ===
+=== 2026-08-28 19:24:12 waiting: 146 run(s) left in the first batch (1h) ===
+=== 2026-08-28 20:25:22 waiting: 132 run(s) left in the first batch (2h) ===
+=== 2026-08-28 21:26:31 waiting: 118 run(s) left in the first batch (3h) ===
+=== 2026-08-28 22:27:42 waiting: 104 run(s) left in the first batch (4h) ===
+=== 2026-08-28 23:28:52 waiting: 90 run(s) left in the first batch (5h) ===
+=== 2026-08-29 00:30:05 waiting: 76 run(s) left in the first batch (6h) ===
+=== 2026-08-29 01:31:15 waiting: 65 run(s) left in the first batch (7h) ===
+=== 2026-08-29 02:32:24 waiting: 54 run(s) left in the first batch (8h) ===
+=== 2026-08-29 03:33:32 waiting: 43 run(s) left in the first batch (9h) ===
+=== 2026-08-29 04:34:41 waiting: 33 run(s) left in the first batch (10h) ===
+=== 2026-08-29 05:35:49 waiting: 22 run(s) left in the first batch (11h) ===
+=== 2026-08-29 06:36:57 waiting: 12 run(s) left in the first batch (12h) ===
+=== 2026-08-29 07:38:03 waiting: 8 run(s) left in the first batch (13h) ===
+=== 2026-08-29 08:39:09 waiting: 4 run(s) left in the first batch (14h) ===
+=== 2026-08-29 09:30:00 first batch training done; starting ===
+=== 2026-08-29 09:30:02 pass 1: heldout_seeds, 90 run(s) pending ===
+=== 2026-08-29 16:22:15 heldout_seeds nothing pending ===
+=== 2026-08-29 16:22:15 rescoring the sweep at twelve seeds ===
+252 run(s), 20 images, component filter 17 px
+  A_dice_clw1_s0 epoch010.pt done
+  A_dice_clw1_s0 epoch020.pt done
+  A_dice_clw1_s0 epoch030.pt done
+  A_dice_clw1_s0 epoch040.pt done
+  A_dice_clw1_s0 epoch050.pt done
+  A_dice_clw1_s0 epoch060.pt done
+  A_dice_clw1_s0 epoch070.pt done
+  A_dice_clw1_s0 epoch080.pt done
+  A_dice_clw1_s0 epoch090.pt done
+  A_dice_clw1_s0 epoch100.pt done
+  A_dice_clw1_s1 epoch010.pt done
+  A_dice_clw1_s1 epoch020.pt done
+  A_dice_clw1_s1 epoch030.pt done
+  A_dice_clw1_s1 epoch040.pt done
+  A_dice_clw1_s1 epoch050.pt done
+  A_dice_clw1_s1 epoch060.pt done
+  A_dice_clw1_s1 epoch070.pt done
+  A_dice_clw1_s1 epoch080.pt done
+  A_dice_clw1_s1 epoch090.pt done
+  A_dice_clw1_s1 epoch100.pt done
+  A_dice_clw1_s10 epoch010.pt done
+  A_dice_clw1_s10 epoch020.pt done
+  A_dice_clw1_s10 epoch030.pt done
+  A_dice_clw1_s10 epoch040.pt done
+  A_dice_clw1_s10 epoch050.pt done
+  A_dice_clw1_s10 epoch060.pt done
+  A_dice_clw1_s10 epoch070.pt done
+  A_dice_clw1_s10 epoch080.pt done
+  A_dice_clw1_s10 epoch090.pt done
+  A_dice_clw1_s10 epoch100.pt done
+  A_dice_clw1_s11 epoch010.pt done
+  A_dice_clw1_s11 epoch020.pt done
+  A_dice_clw1_s11 epoch030.pt done
+  A_dice_clw1_s11 epoch040.pt done
+  A_dice_clw1_s11 epoch050.pt done
+  A_dice_clw1_s11 epoch060.pt done
+  A_dice_clw1_s11 epoch070.pt done
+  A_dice_clw1_s11 epoch080.pt done
+  A_dice_clw1_s11 epoch090.pt done
+  A_dice_clw1_s11 epoch100.pt done
+  A_dice_clw1_s2 epoch010.pt done
+  A_dice_clw1_s2 epoch020.pt done
+  A_dice_clw1_s2 epoch030.pt done
+  A_dice_clw1_s2 epoch040.pt done
+  A_dice_clw1_s2 epoch050.pt done
+  A_dice_clw1_s2 epoch060.pt done
+  A_dice_clw1_s2 epoch070.pt done
+  A_dice_clw1_s2 epoch080.pt done
+  A_dice_clw1_s2 epoch090.pt done
+  A_dice_clw1_s2 epoch100.pt done
+  A_dice_clw1_s3 epoch010.pt done
+  A_dice_clw1_s3 epoch020.pt done
+  A_dice_clw1_s3 epoch030.pt done
+  A_dice_clw1_s3 epoch040.pt done
+  A_dice_clw1_s3 epoch050.pt done
+  A_dice_clw1_s3 epoch060.pt done
+  A_dice_clw1_s3 epoch070.pt done
+  A_dice_clw1_s3 epoch080.pt done
+  A_dice_clw1_s3 epoch090.pt done
+  A_dice_clw1_s3 epoch100.pt done
+  A_dice_clw1_s4 epoch010.pt done
+  A_dice_clw1_s4 epoch020.pt done
+  A_dice_clw1_s4 epoch030.pt done
+  A_dice_clw1_s4 epoch040.pt done
+  A_dice_clw1_s4 epoch050.pt done
+  A_dice_clw1_s4 epoch060.pt done
+  A_dice_clw1_s4 epoch070.pt done
+  A_dice_clw1_s4 epoch080.pt done
+  A_dice_clw1_s4 epoch090.pt done
+  A_dice_clw1_s4 epoch100.pt done
+  A_dice_clw1_s5 epoch010.pt done
+  A_dice_clw1_s5 epoch020.pt done
+  A_dice_clw1_s5 epoch030.pt done
+  A_dice_clw1_s5 epoch040.pt done
+  A_dice_clw1_s5 epoch050.pt done
+  A_dice_clw1_s5 epoch060.pt done
+  A_dice_clw1_s5 epoch070.pt done
+  A_dice_clw1_s5 epoch080.pt done
+  A_dice_clw1_s5 epoch090.pt done
+  A_dice_clw1_s5 epoch100.pt done
+  A_dice_clw1_s6 epoch010.pt done
+  A_dice_clw1_s6 epoch020.pt done
+  A_dice_clw1_s6 epoch030.pt done
+  A_dice_clw1_s6 epoch040.pt done
+  A_dice_clw1_s6 epoch050.pt done
+  A_dice_clw1_s6 epoch060.pt done
+  A_dice_clw1_s6 epoch070.pt done
+  A_dice_clw1_s6 epoch080.pt done
+  A_dice_clw1_s6 epoch090.pt done
+  A_dice_clw1_s6 epoch100.pt done
+  A_dice_clw1_s7 epoch010.pt done
+  A_dice_clw1_s7 epoch020.pt done
+  A_dice_clw1_s7 epoch030.pt done
+  A_dice_clw1_s7 epoch040.pt done
+  A_dice_clw1_s7 epoch050.pt done
+  A_dice_clw1_s7 epoch060.pt done
+  A_dice_clw1_s7 epoch070.pt done
+  A_dice_clw1_s7 epoch080.pt done
+  A_dice_clw1_s7 epoch090.pt done
+  A_dice_clw1_s7 epoch100.pt done
+  A_dice_clw1_s8 epoch010.pt done
+  A_dice_clw1_s8 epoch020.pt done
+  A_dice_clw1_s8 epoch030.pt done
+  A_dice_clw1_s8 epoch040.pt done
+  A_dice_clw1_s8 epoch050.pt done
+  A_dice_clw1_s8 epoch060.pt done
+  A_dice_clw1_s8 epoch070.pt done
+  A_dice_clw1_s8 epoch080.pt done
+  A_dice_clw1_s8 epoch090.pt done
+  A_dice_clw1_s8 epoch100.pt done
+  A_dice_clw1_s9 epoch010.pt done
+  A_dice_clw1_s9 epoch020.pt done
+  A_dice_clw1_s9 epoch030.pt done
+  A_dice_clw1_s9 epoch040.pt done
+  A_dice_clw1_s9 epoch050.pt done
+  A_dice_clw1_s9 epoch060.pt done
+  A_dice_clw1_s9 epoch070.pt done
+  A_dice_clw1_s9 epoch080.pt done
+  A_dice_clw1_s9 epoch090.pt done
+  A_dice_clw1_s9 epoch100.pt done
+  A_dice_clw2_s0 epoch010.pt done
+  A_dice_clw2_s0 epoch020.pt done
+  A_dice_clw2_s0 epoch030.pt done
+  A_dice_clw2_s0 epoch040.pt done
+  A_dice_clw2_s0 epoch050.pt done
+  A_dice_clw2_s0 epoch060.pt done
+  A_dice_clw2_s0 epoch070.pt done
+  A_dice_clw2_s0 epoch080.pt done
+  A_dice_clw2_s0 epoch090.pt done
+  A_dice_clw2_s0 epoch100.pt done
+  A_dice_clw2_s1 epoch010.pt done
+  A_dice_clw2_s1 epoch020.pt done
+  A_dice_clw2_s1 epoch030.pt done
+  A_dice_clw2_s1 epoch040.pt done
+  A_dice_clw2_s1 epoch050.pt done
+  A_dice_clw2_s1 epoch060.pt done
+  A_dice_clw2_s1 epoch070.pt done
+  A_dice_clw2_s1 epoch080.pt done
+  A_dice_clw2_s1 epoch090.pt done
+  A_dice_clw2_s1 epoch100.pt done
+  A_dice_clw2_s10 epoch010.pt done
+  A_dice_clw2_s10 epoch020.pt done
+  A_dice_clw2_s10 epoch030.pt done
+  A_dice_clw2_s10 epoch040.pt done
+  A_dice_clw2_s10 epoch050.pt done
+  A_dice_clw2_s10 epoch060.pt done
+  A_dice_clw2_s10 epoch070.pt done
+  A_dice_clw2_s10 epoch080.pt done
+  A_dice_clw2_s10 epoch090.pt done
+  A_dice_clw2_s10 epoch100.pt done
+  A_dice_clw2_s11 epoch010.pt done
+  A_dice_clw2_s11 epoch020.pt done
+  A_dice_clw2_s11 epoch030.pt done
+  A_dice_clw2_s11 epoch040.pt done
+  A_dice_clw2_s11 epoch050.pt done
+  A_dice_clw2_s11 epoch060.pt done
+  A_dice_clw2_s11 epoch070.pt done
+  A_dice_clw2_s11 epoch080.pt done
+  A_dice_clw2_s11 epoch090.pt done
+  A_dice_clw2_s11 epoch100.pt done
+  A_dice_clw2_s2 epoch010.pt done
+  A_dice_clw2_s2 epoch020.pt done
+  A_dice_clw2_s2 epoch030.pt done
+  A_dice_clw2_s2 epoch040.pt done
+  A_dice_clw2_s2 epoch050.pt done
+  A_dice_clw2_s2 epoch060.pt done
+  A_dice_clw2_s2 epoch070.pt done
+  A_dice_clw2_s2 epoch080.pt done
+  A_dice_clw2_s2 epoch090.pt done
+  A_dice_clw2_s2 epoch100.pt done
+  A_dice_clw2_s3 epoch010.pt done
+  A_dice_clw2_s3 epoch020.pt done
+  A_dice_clw2_s3 epoch030.pt done
+  A_dice_clw2_s3 epoch040.pt done
+  A_dice_clw2_s3 epoch050.pt done
+  A_dice_clw2_s3 epoch060.pt done
+  A_dice_clw2_s3 epoch070.pt done
+  A_dice_clw2_s3 epoch080.pt done
+  A_dice_clw2_s3 epoch090.pt done
+  A_dice_clw2_s3 epoch100.pt done
+  A_dice_clw2_s4 epoch010.pt done
+  A_dice_clw2_s4 epoch020.pt done
+  A_dice_clw2_s4 epoch030.pt done
+  A_dice_clw2_s4 epoch040.pt done
+  A_dice_clw2_s4 epoch050.pt done
+  A_dice_clw2_s4 epoch060.pt done
+  A_dice_clw2_s4 epoch070.pt done
+  A_dice_clw2_s4 epoch080.pt done
+  A_dice_clw2_s4 epoch090.pt done
+  A_dice_clw2_s4 epoch100.pt done
+  A_dice_clw2_s5 epoch010.pt done
+  A_dice_clw2_s5 epoch020.pt done
+  A_dice_clw2_s5 epoch030.pt done
+  A_dice_clw2_s5 epoch040.pt done
+  A_dice_clw2_s5 epoch050.pt done
+  A_dice_clw2_s5 epoch060.pt done
+  A_dice_clw2_s5 epoch070.pt done
+  A_dice_clw2_s5 epoch080.pt done
+  A_dice_clw2_s5 epoch090.pt done
+  A_dice_clw2_s5 epoch100.pt done
+  A_dice_clw2_s6 epoch010.pt done
+  A_dice_clw2_s6 epoch020.pt done
+  A_dice_clw2_s6 epoch030.pt done
+  A_dice_clw2_s6 epoch040.pt done
+  A_dice_clw2_s6 epoch050.pt done
+  A_dice_clw2_s6 epoch060.pt done
+  A_dice_clw2_s6 epoch070.pt done
+  A_dice_clw2_s6 epoch080.pt done
+  A_dice_clw2_s6 epoch090.pt done
+  A_dice_clw2_s6 epoch100.pt done
+  A_dice_clw2_s7 epoch010.pt done
+  A_dice_clw2_s7 epoch020.pt done
+  A_dice_clw2_s7 epoch030.pt done
+  A_dice_clw2_s7 epoch040.pt done
+  A_dice_clw2_s7 epoch050.pt done
+  A_dice_clw2_s7 epoch060.pt done
+  A_dice_clw2_s7 epoch070.pt done
+  A_dice_clw2_s7 epoch080.pt done
+  A_dice_clw2_s7 epoch090.pt done
+  A_dice_clw2_s7 epoch100.pt done
+  A_dice_clw2_s8 epoch010.pt done
+  A_dice_clw2_s8 epoch020.pt done
+  A_dice_clw2_s8 epoch030.pt done
+  A_dice_clw2_s8 epoch040.pt done
+  A_dice_clw2_s8 epoch050.pt done
+  A_dice_clw2_s8 epoch060.pt done
+  A_dice_clw2_s8 epoch070.pt done
+  A_dice_clw2_s8 epoch080.pt done
+  A_dice_clw2_s8 epoch090.pt done
+  A_dice_clw2_s8 epoch100.pt done
+  A_dice_clw2_s9 epoch010.pt done
+  A_dice_clw2_s9 epoch020.pt done
+  A_dice_clw2_s9 epoch030.pt done
+  A_dice_clw2_s9 epoch040.pt done
+  A_dice_clw2_s9 epoch050.pt done
+  A_dice_clw2_s9 epoch060.pt done
+  A_dice_clw2_s9 epoch070.pt done
+  A_dice_clw2_s9 epoch080.pt done
+  A_dice_clw2_s9 epoch090.pt done
+  A_dice_clw2_s9 epoch100.pt done
+  A_dice_clw4_s0 epoch010.pt done
+  A_dice_clw4_s0 epoch020.pt done
+  A_dice_clw4_s0 epoch030.pt done
+  A_dice_clw4_s0 epoch040.pt done
+  A_dice_clw4_s0 epoch050.pt done
+  A_dice_clw4_s0 epoch060.pt done
+  A_dice_clw4_s0 epoch070.pt done
+  A_dice_clw4_s0 epoch080.pt done
+  A_dice_clw4_s0 epoch090.pt done
+  A_dice_clw4_s0 epoch100.pt done
+  A_dice_clw4_s1 epoch010.pt done
+  A_dice_clw4_s1 epoch020.pt done
+  A_dice_clw4_s1 epoch030.pt done
+  A_dice_clw4_s1 epoch040.pt done
+  A_dice_clw4_s1 epoch050.pt done
+  A_dice_clw4_s1 epoch060.pt done
+  A_dice_clw4_s1 epoch070.pt done
+  A_dice_clw4_s1 epoch080.pt done
+  A_dice_clw4_s1 epoch090.pt done
+  A_dice_clw4_s1 epoch100.pt done
+  A_dice_clw4_s10 epoch010.pt done
+  A_dice_clw4_s10 epoch020.pt done
+  A_dice_clw4_s10 epoch030.pt done
+  A_dice_clw4_s10 epoch040.pt done
+  A_dice_clw4_s10 epoch050.pt done
+  A_dice_clw4_s10 epoch060.pt done
+  A_dice_clw4_s10 epoch070.pt done
+  A_dice_clw4_s10 epoch080.pt done
+  A_dice_clw4_s10 epoch090.pt done
+  A_dice_clw4_s10 epoch100.pt done
+  A_dice_clw4_s11 epoch010.pt done
+  A_dice_clw4_s11 epoch020.pt done
+  A_dice_clw4_s11 epoch030.pt done
+  A_dice_clw4_s11 epoch040.pt done
+  A_dice_clw4_s11 epoch050.pt done
+  A_dice_clw4_s11 epoch060.pt done
+  A_dice_clw4_s11 epoch070.pt done
+  A_dice_clw4_s11 epoch080.pt done
+  A_dice_clw4_s11 epoch090.pt done
+  A_dice_clw4_s11 epoch100.pt done
+  A_dice_clw4_s2 epoch010.pt done
+  A_dice_clw4_s2 epoch020.pt done
+  A_dice_clw4_s2 epoch030.pt done
+  A_dice_clw4_s2 epoch040.pt done
+  A_dice_clw4_s2 epoch050.pt done
+  A_dice_clw4_s2 epoch060.pt done
+  A_dice_clw4_s2 epoch070.pt done
+  A_dice_clw4_s2 epoch080.pt done
+  A_dice_clw4_s2 epoch090.pt done
+  A_dice_clw4_s2 epoch100.pt done
+  A_dice_clw4_s3 epoch010.pt done
+  A_dice_clw4_s3 epoch020.pt done
+  A_dice_clw4_s3 epoch030.pt done
+  A_dice_clw4_s3 epoch040.pt done
+  A_dice_clw4_s3 epoch050.pt done
+  A_dice_clw4_s3 epoch060.pt done
+  A_dice_clw4_s3 epoch070.pt done
+  A_dice_clw4_s3 epoch080.pt done
+  A_dice_clw4_s3 epoch090.pt done
+  A_dice_clw4_s3 epoch100.pt done
+  A_dice_clw4_s4 epoch010.pt done
+  A_dice_clw4_s4 epoch020.pt done
+  A_dice_clw4_s4 epoch030.pt done
+  A_dice_clw4_s4 epoch040.pt done
+  A_dice_clw4_s4 epoch050.pt done
+  A_dice_clw4_s4 epoch060.pt done
+  A_dice_clw4_s4 epoch070.pt done
+  A_dice_clw4_s4 epoch080.pt done
+  A_dice_clw4_s4 epoch090.pt done
+  A_dice_clw4_s4 epoch100.pt done
+  A_dice_clw4_s5 epoch010.pt done
+  A_dice_clw4_s5 epoch020.pt done
+  A_dice_clw4_s5 epoch030.pt done
+  A_dice_clw4_s5 epoch040.pt done
+  A_dice_clw4_s5 epoch050.pt done
+  A_dice_clw4_s5 epoch060.pt done
+  A_dice_clw4_s5 epoch070.pt done
+  A_dice_clw4_s5 epoch080.pt done
+  A_dice_clw4_s5 epoch090.pt done
+  A_dice_clw4_s5 epoch100.pt done
+  A_dice_clw4_s6 epoch010.pt done
+  A_dice_clw4_s6 epoch020.pt done
+  A_dice_clw4_s6 epoch030.pt done
+  A_dice_clw4_s6 epoch040.pt done
+  A_dice_clw4_s6 epoch050.pt done
+  A_dice_clw4_s6 epoch060.pt done
+  A_dice_clw4_s6 epoch070.pt done
+  A_dice_clw4_s6 epoch080.pt done
+  A_dice_clw4_s6 epoch090.pt done
+  A_dice_clw4_s6 epoch100.pt done
+  A_dice_clw4_s7 epoch010.pt done
+  A_dice_clw4_s7 epoch020.pt done
+  A_dice_clw4_s7 epoch030.pt done
+  A_dice_clw4_s7 epoch040.pt done
+  A_dice_clw4_s7 epoch050.pt done
+  A_dice_clw4_s7 epoch060.pt done
+  A_dice_clw4_s7 epoch070.pt done
+  A_dice_clw4_s7 epoch080.pt done
+  A_dice_clw4_s7 epoch090.pt done
+  A_dice_clw4_s7 epoch100.pt done
+  A_dice_clw4_s8 epoch010.pt done
+  A_dice_clw4_s8 epoch020.pt done
+  A_dice_clw4_s8 epoch030.pt done
+  A_dice_clw4_s8 epoch040.pt done
+  A_dice_clw4_s8 epoch050.pt done
+  A_dice_clw4_s8 epoch060.pt done
+  A_dice_clw4_s8 epoch070.pt done
+  A_dice_clw4_s8 epoch080.pt done
+  A_dice_clw4_s8 epoch090.pt done
+  A_dice_clw4_s8 epoch100.pt done
+  A_dice_clw4_s9 epoch010.pt done
+  A_dice_clw4_s9 epoch020.pt done
+  A_dice_clw4_s9 epoch030.pt done
+  A_dice_clw4_s9 epoch040.pt done
+  A_dice_clw4_s9 epoch050.pt done
+  A_dice_clw4_s9 epoch060.pt done
+  A_dice_clw4_s9 epoch070.pt done
+  A_dice_clw4_s9 epoch080.pt done
+  A_dice_clw4_s9 epoch090.pt done
+  A_dice_clw4_s9 epoch100.pt done
+  A_dice_clw8_s0 epoch010.pt done
+  A_dice_clw8_s0 epoch020.pt done
+  A_dice_clw8_s0 epoch030.pt done
+  A_dice_clw8_s0 epoch040.pt done
+  A_dice_clw8_s0 epoch050.pt done
+  A_dice_clw8_s0 epoch060.pt done
+  A_dice_clw8_s0 epoch070.pt done
+  A_dice_clw8_s0 epoch080.pt done

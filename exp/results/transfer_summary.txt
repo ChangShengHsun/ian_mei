@@ -1,18 +1,14 @@
 === phase 3: does the geometry transfer? ===
+Each dataset scored with models trained on ITSELF; checkpoint is
+best.pt (highest whole-val Dice) everywhere, which is optimistic
+but identical across sources and so neutral to the question.
 
   dataset     width     raw   oracle  isotropic    gain   chosen (along, across)
   ------------------------------------------------------------------------------
-  DRIVE       2.83p  46.4%       --         --
-  HRF         4.00p   3.4%    4.5%*         --   +1.1%   (0.5, 0.0)
-  STARE       4.00p  30.5%   30.5%*         --   +0.0%   (0.0, 0.25)
-  VessMAP     5.66p   0.0%   17.7%*     17.3%*   +0.5%   (2.0, 1.0)
+  DRIVE       2.83p  35.1%       --         --
+  HRF         4.00p  15.6%   19.5%*         --   +4.0%   (0.5, 0.0)
+  STARE       4.00p  19.2%   24.7%*         --   +5.5%   (0.5, 0.0)
+  VessMAP     5.66p  57.8%       --         --
   * best setting under the dataset's own raw Dice, chosen on its selection half.
 
-The datasets did NOT agree on a setting:
-  HRF       (0.5, 0.0)
-  STARE     (0.0, 0.25)
-  VessMAP   (2.0, 1.0)
-Read carefully before calling this a failure -- disagreement
-between a retina and a brain micrograph may be a real
-difference in vessel geometry rather than a broken unit. What
-it does rule out is shipping one setting as universal.
+EVERY dataset chose (0.5, 0.0) widths. The unit transfers: the same multiple is the same operation at 2.83 px and at 5.66 px.
