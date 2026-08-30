@@ -69,6 +69,7 @@ import speckle
 import train
 
 OUT = heldout.ROOT / "frontier.csv"
+DEV = heldout.ROOT / "frontier_dev.csv"
 # Wide enough to bracket the Dice peak from both sides at every arm measured
 # so far, fine enough that a target is usually hit without interpolation.
 THRESHOLDS = tuple(round(0.10 + 0.025 * step, 3) for step in range(33))
@@ -106,33 +107,69 @@ def curve_for(model, items, geometry, mean: float, std: float,
     return rows
 
 
-def pick(rows: list[dict], target: float) -> dict | None:
-    """The conservative branch: highest threshold within TOLERANCE of target.
+def pick(rows: list[dict], target: float,
+         branch: str = "conservative") -> dict | None:
+    """The threshold that reaches `target` Dice, on one named branch.
 
-    Never the one that traces furthest. Choosing the branch by the metric
-    under comparison is the post-hoc threshold this file exists to avoid.
+    Dice rises, peaks and falls with threshold, so a target is usually reached
+    TWICE. Which one is taken must be decided by the THRESHOLD, never by the
+    metric under comparison -- picking whichever traces further is choosing
+    the flattering branch after seeing the answer.
+
+      conservative  the higher threshold: less foreground than the Dice peak.
+      generous      the lower threshold: more foreground than the peak. This
+                    is where connectivity is bought, and it is the branch a
+                    practitioner would actually move onto.
+
+    Both are reported. `conservative` is the pre-registered one; `generous`
+    was added on 2026-08-30 AFTER seeing that the pre-registered rule answers
+    "how bad is over-thresholding" rather than "what does spending Dice on
+    connectivity buy". It is labelled as an amendment rather than swapped in,
+    because a rule changed after seeing the result is exactly what this repo's
+    pre-registration discipline exists to make visible.
     """
     near = [row for row in rows if abs(row["dice"] - target) <= TOLERANCE]
     if not near:
         return None
-    return max(near, key=lambda row: row["threshold"])
+    if branch == "conservative":
+        return max(near, key=lambda row: row["threshold"])
+    if branch == "generous":
+        return min(near, key=lambda row: row["threshold"])
+    raise ValueError(f"unknown branch {branch!r}")
 
 
-def load_curves(path: Path = OUT) -> dict:
-    """{arm: {target: [traced per run]}} from the CSV."""
+def _by_run(path: Path) -> dict:
     if not path.exists():
         return {}
-    by_run = defaultdict(list)
+    out = defaultdict(list)
     for row in csv.DictReader(path.open()):
-        by_run[row["run"]].append({"threshold": float(row["threshold"]),
-                                   "dice": float(row["dice"]),
-                                   "traced": float(row["traced"])})
+        out[row["run"]].append({"threshold": float(row["threshold"]),
+                                "dice": float(row["dice"]),
+                                "traced": float(row["traced"])})
+    return out
+
+
+def load_curves(branch: str = "conservative") -> dict:
+    """{arm: {target: [traced per run]}} -- threshold chosen on DEV.
+
+    The first version of this file chose the threshold on the test curve.
+    That is the same defect the held-out protocol was built to remove, one
+    knob further down: a threshold tuned on the reported set makes the
+    reported number the best of thirty-three draws. The threshold is now
+    picked from the dev curve and only READ OUT on test.
+    """
+    test, dev = _by_run(OUT), _by_run(DEV)
     out = defaultdict(lambda: defaultdict(list))
-    for run, rows in by_run.items():
+    for run, dev_rows in dev.items():
+        test_rows = {round(row["threshold"], 4): row
+                     for row in test.get(run, [])}
         for target in TARGETS:
-            chosen = pick(rows, target)
-            if chosen is not None:
-                out[run.rsplit("_s", 1)[0]][target].append(chosen["traced"])
+            chosen = pick(dev_rows, target, branch)
+            if chosen is None:
+                continue
+            on_test = test_rows.get(round(chosen["threshold"], 4))
+            if on_test is not None:
+                out[run.rsplit("_s", 1)[0]][target].append(on_test["traced"])
     return out
 
 
@@ -207,7 +244,8 @@ def main() -> None:
         selftest()
         return
     if "--report" in sys.argv:
-        report()
+        for branch in ("conservative", "generous"):
+            report(branch)
         return
     wanted = [a for a in sys.argv[1:] if not a.startswith("--")]
     epochs = heldout.chosen_epochs()
@@ -223,24 +261,27 @@ def main() -> None:
     if unfinished:
         print(f"skipping {unfinished} run(s) still training", flush=True)
     done = set()
-    if OUT.exists():
-        done = {row["run"] for row in csv.DictReader(OUT.open())}
+    out_path = DEV if "--dev" in sys.argv else OUT
+    if out_path.exists():
+        done = {row["run"] for row in csv.DictReader(out_path.open())}
     runs = [r for r in runs if r not in done]
     if not runs:
         print("nothing to do")
         return
 
-    items = drive.load_split("test")
+    split = "dev" if "--dev" in sys.argv else "test"
+    out_path = DEV if split == "dev" else OUT
+    items = drive.load_split(split)
     data = train.stack_split("fit")
     width = cross_dataset.median_width(items)
     component_px = int(round(hole_sweep.E4_COMPONENT_MULTIPLE * width * width))
     geometry = [{"skel": skeletonize(i["label"] & i["fov"])} for i in items]
-    print(f"{len(runs)} run(s), {len(items)} images, "
+    print(f"{len(runs)} run(s), {len(items)} {split} images, "
           f"{len(THRESHOLDS)} thresholds, component filter {component_px} px",
           flush=True)
 
-    fresh = not OUT.exists()
-    with OUT.open("a", newline="") as handle:
+    fresh = not out_path.exists()
+    with out_path.open("a", newline="") as handle:
         writer = csv.DictWriter(
             handle, fieldnames=["run", "config", "seed", "epoch",
                                 "threshold", "dice", "traced"])
@@ -263,19 +304,24 @@ def main() -> None:
                                  "epoch": epochs[run], **row})
             handle.flush()
             print(f"  {run} done", flush=True)
-    report()
+    if split == "test":
+        report()
 
 
-def report() -> None:
-    curves = load_curves()
+def report(branch: str = "conservative") -> None:
+    curves = load_curves(branch)
     if not curves:
         raise SystemExit(f"{OUT} is empty")
     arms = [a for a in ("A_dice", "H_aug", "K_focal_aug") if a in curves]
     arms += sorted(a for a in curves if a not in arms)
-    print("\nTraced fraction on the frontier, at a matched Dice reached by "
-          "THRESHOLD.")
-    print("Conservative branch (highest threshold within "
-          f"{TOLERANCE} of the target).\n")
+    print(f"\nTraced fraction at a matched Dice reached by THRESHOLD, "
+          f"{branch.upper()} branch.")
+    print(f"Threshold chosen on the 5 DEV images, traced fraction read on the "
+          f"20 TEST images.")
+    print("  conservative = less foreground than the Dice peak "
+          "(pre-registered)")
+    print("  generous     = more foreground than the peak, where connectivity "
+          "is bought\n")
     header = "  " + f"{'arm':<24}" + "".join(f"{t:>9.3f}" for t in TARGETS)
     print(header)
     print("  " + "-" * (len(header) - 2))

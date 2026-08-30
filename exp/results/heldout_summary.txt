@@ -5,28 +5,38 @@ D-E's weight, at (iv) best clDice, ERL paired on (image, seed)
 
   arm                        seeds      dERL      t    dDice  verdict
   -------------------------------------------------------------------
-  A_dice_clw1 - A_dice           6     +35.1   0.65  -0.0010  fails
-                            per seed [-372 +31 +324 +218 -194 +204]
-  A_dice_clw2 - A_dice           6     +98.6   1.59  -0.0027  fails
-                            per seed [-106 +68 +232 +23 +379 -4]
-  A_dice_clw4 - A_dice           6    +436.2   7.23  -0.0038  HOLDS
-  A_dice_clw8 - A_dice           6    +614.5   8.71  -0.0092  HOLDS
+  A_dice_clw1 - A_dice          12     +30.7   0.81  -0.0007  fails
+                            per seed [-372 +31 +59 +10 +324 +218 -194 +204 +293 +455 -576 -83]
+  A_dice_clw2 - A_dice          12    +113.1   2.63  -0.0019  fails
+                            per seed [-106 +68 -126 +147 +232 +23 +379 -4 +602 +383 -47 -194]
+  A_dice_clw4 - A_dice          12    +423.9  10.28  -0.0037  fails
+                            per seed [+163 +177 +443 +412 +679 +373 +605 +620 +889 +755 +3 -31]
+  A_dice_clw8 - A_dice          12    +640.8  12.94  -0.0088  HOLDS
+  A_dice_clw16 - A_dice         12    +702.7  14.01  -0.0160  HOLDS
+  A_dice_clw32 - A_dice         12    +885.5  15.93  -0.0191  HOLDS
+  A_dice_clw64 - A_dice         12   +1361.2  22.79  -0.0290  HOLDS
 
-  H_aug_clw1 - H_aug             6      +7.9   0.14  -0.0000  fails
-                            per seed [+162 +21 -218 +104 +60 -83]
-  H_aug_clw2 - H_aug             6     +22.7   0.49  +0.0004  fails
-                            per seed [+58 +60 +248 +148 -89 -288]
-  H_aug_clw4 - H_aug             6    +278.0   5.78  -0.0020  HOLDS
-  H_aug_clw8 - H_aug             6    +586.3  11.64  -0.0062  HOLDS
+  H_aug_clw1 - H_aug            12     +77.7   1.92  +0.0002  fails
+                            per seed [+162 +21 +341 +329 -218 +104 +60 -83 -100 +256 +130 -71]
+  H_aug_clw2 - H_aug            12    +133.3   3.74  -0.0001  fails
+                            per seed [+58 +60 +481 +88 +248 +148 -89 -288 +105 +367 +363 +59]
+  H_aug_clw4 - H_aug            12    +340.6   9.18  -0.0019  HOLDS
+  H_aug_clw8 - H_aug            12    +721.9  16.86  -0.0059  HOLDS
+  H_aug_clw16 - H_aug           12   +1232.2  27.36  -0.0166  HOLDS
+  H_aug_clw32 - H_aug           12   +1849.3  32.41  -0.0351  HOLDS
+  H_aug_clw64 - H_aug           12   +2773.6  40.96  -0.0682  HOLDS
 
-  K_focal_aug_clw1 - K_focal_aug     6    -820.2 -12.71  +0.0203  fails
-                            per seed [-525 -646 -861 -1041 -1061 -787]
-  K_focal_aug_clw2 - K_focal_aug     6    -566.1  -9.22  +0.0193  fails
-                            per seed [-249 -460 -604 -783 -837 -464]
-  K_focal_aug_clw4 - K_focal_aug     6    -398.5  -7.14  +0.0169  fails
-                            per seed [-231 -362 -432 -711 -487 -168]
-  K_focal_aug_clw8 - K_focal_aug     6    +153.1   2.17  +0.0101  fails
-                            per seed [+162 +487 -179 +131 +225 +94]
+  K_focal_aug_clw1 - K_focal_aug    12    -766.0 -15.86  +0.0213  fails
+                            per seed [-525 -646 -950 -512 -861 -1041 -1061 -787 -619 -460 -1031 -699]
+  K_focal_aug_clw2 - K_focal_aug    12    -576.7 -12.14  +0.0202  fails
+                            per seed [-249 -460 -707 -653 -604 -783 -837 -464 -564 -653 -440 -506]
+  K_focal_aug_clw4 - K_focal_aug    12    -336.2  -7.73  +0.0181  fails
+                            per seed [-231 -362 -314 -28 -432 -711 -487 -168 -340 -410 -283 -269]
+  K_focal_aug_clw8 - K_focal_aug    12    +200.4   3.76  +0.0113  fails
+                            per seed [+162 +487 +305 +290 -179 +131 +225 +94 +74 +216 +360 +241]
+  K_focal_aug_clw16 - K_focal_aug    12    +824.9  14.19  -0.0036  HOLDS
+  K_focal_aug_clw32 - K_focal_aug    12   +1358.3  20.96  -0.0220  HOLDS
+  K_focal_aug_clw64 - K_focal_aug    12   +2193.7  29.15  -0.0532  HOLDS
 
   A Dice cost of -0.0009 is one seed standard deviation (0.00086). Run length bought at a Dice cost
   is a trade to state, not a free win.

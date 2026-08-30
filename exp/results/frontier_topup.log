@@ -1,0 +1,197 @@
+108 run(s), 20 test images, 33 thresholds, component filter 17 px
+  A_dice_clw16_s0 done
+  A_dice_clw16_s1 done
+  A_dice_clw16_s10 done
+  A_dice_clw16_s11 done
+  A_dice_clw16_s2 done
+  A_dice_clw16_s3 done
+  A_dice_clw16_s4 done
+  A_dice_clw16_s5 done
+  A_dice_clw16_s6 done
+  A_dice_clw16_s7 done
+  A_dice_clw16_s8 done
+  A_dice_clw16_s9 done
+  A_dice_clw32_s0 done
+  A_dice_clw32_s1 done
+  A_dice_clw32_s10 done
+  A_dice_clw32_s11 done
+  A_dice_clw32_s2 done
+  A_dice_clw32_s3 done
+  A_dice_clw32_s4 done
+  A_dice_clw32_s5 done
+  A_dice_clw32_s6 done
+  A_dice_clw32_s7 done
+  A_dice_clw32_s8 done
+  A_dice_clw32_s9 done
+  A_dice_clw64_s0 done
+  A_dice_clw64_s1 done
+  A_dice_clw64_s10 done
+  A_dice_clw64_s11 done
+  A_dice_clw64_s2 done
+  A_dice_clw64_s3 done
+  A_dice_clw64_s4 done
+  A_dice_clw64_s5 done
+  A_dice_clw64_s6 done
+  A_dice_clw64_s7 done
+  A_dice_clw64_s8 done
+  A_dice_clw64_s9 done
+  H_aug_clw16_s0 done
+  H_aug_clw16_s1 done
+  H_aug_clw16_s10 done
+  H_aug_clw16_s11 done
+  H_aug_clw16_s2 done
+  H_aug_clw16_s3 done
+  H_aug_clw16_s4 done
+  H_aug_clw16_s5 done
+  H_aug_clw16_s6 done
+  H_aug_clw16_s7 done
+  H_aug_clw16_s8 done
+  H_aug_clw16_s9 done
+  H_aug_clw32_s0 done
+  H_aug_clw32_s1 done
+  H_aug_clw32_s10 done
+  H_aug_clw32_s11 done
+  H_aug_clw32_s2 done
+  H_aug_clw32_s3 done
+  H_aug_clw32_s4 done
+  H_aug_clw32_s5 done
+  H_aug_clw32_s6 done
+  H_aug_clw32_s7 done
+  H_aug_clw32_s8 done
+  H_aug_clw32_s9 done
+  H_aug_clw64_s0 done
+  H_aug_clw64_s1 done
+  H_aug_clw64_s10 done
+  H_aug_clw64_s11 done
+  H_aug_clw64_s2 done
+  H_aug_clw64_s3 done
+  H_aug_clw64_s4 done
+  H_aug_clw64_s5 done
+  H_aug_clw64_s6 done
+  H_aug_clw64_s7 done
+  H_aug_clw64_s8 done
+  H_aug_clw64_s9 done
+  K_focal_aug_clw16_s0 done
+  K_focal_aug_clw16_s1 done
+  K_focal_aug_clw16_s10 done
+  K_focal_aug_clw16_s11 done
+  K_focal_aug_clw16_s2 done
+  K_focal_aug_clw16_s3 done
+  K_focal_aug_clw16_s4 done
+  K_focal_aug_clw16_s5 done
+  K_focal_aug_clw16_s6 done
+  K_focal_aug_clw16_s7 done
+  K_focal_aug_clw16_s8 done
+  K_focal_aug_clw16_s9 done
+  K_focal_aug_clw32_s0 done
+  K_focal_aug_clw32_s1 done
+  K_focal_aug_clw32_s10 done
+  K_focal_aug_clw32_s11 done
+  K_focal_aug_clw32_s2 done
+  K_focal_aug_clw32_s3 done
+  K_focal_aug_clw32_s4 done
+  K_focal_aug_clw32_s5 done
+  K_focal_aug_clw32_s6 done
+  K_focal_aug_clw32_s7 done
+  K_focal_aug_clw32_s8 done
+  K_focal_aug_clw32_s9 done
+  K_focal_aug_clw64_s0 done
+  K_focal_aug_clw64_s1 done
+  K_focal_aug_clw64_s10 done
+  K_focal_aug_clw64_s11 done
+  K_focal_aug_clw64_s2 done
+  K_focal_aug_clw64_s3 done
+  K_focal_aug_clw64_s4 done
+  K_focal_aug_clw64_s5 done
+  K_focal_aug_clw64_s6 done
+  K_focal_aug_clw64_s7 done
+  K_focal_aug_clw64_s8 done
+  K_focal_aug_clw64_s9 done
+
+Traced fraction at a matched Dice reached by THRESHOLD, CONSERVATIVE branch.
+Threshold chosen on the 5 DEV images, traced fraction read on the 20 TEST images.
+  conservative = less foreground than the Dice peak (pre-registered)
+  generous     = more foreground than the peak, where connectivity is bought
+
+  arm                         0.780    0.790    0.800    0.810    0.815    0.820
+  ------------------------------------------------------------------------------
+  A_dice                     10.5%    12.8%    15.1%    19.2%    21.0%    23.6%
+  H_aug                      11.3%    13.7%    16.4%    19.6%    21.1%    23.5%
+  K_focal_aug                26.0%    25.1%    24.7%    18.9%    20.7%    23.9%
+  A_dice_clw1                11.3%    13.6%    15.6%    18.8%    21.3%    23.9%
+  A_dice_clw16               32.3%    26.7%    18.6%    23.5%    26.8%    31.5%
+  A_dice_clw2                11.6%    13.2%    15.9%    19.3%    21.6%    24.5%
+  A_dice_clw32               28.5%    24.5%    21.3%    26.7%    30.5%       -- 
+  A_dice_clw4                20.0%    28.4%    20.6%    20.6%    23.4%    26.4%
+  A_dice_clw64               52.9%    25.3%    27.2%    34.3%       --        -- 
+  A_dice_clw8                34.1%    27.6%    18.1%    22.2%    24.1%    27.8%
+  A_dice_w32                    --        --     17.3%    20.1%    22.4%    24.2%
+  A_dice_w64_d5                 --     13.6%    16.4%    19.6%    21.4%    23.9%
+  B_cldice                   20.8%    31.0%    15.8%    19.9%    22.0%    24.9%
+  B_cldice_w32                  --        --     16.1%    20.0%    21.5%    24.5%
+  B_cldice_w64_d5            12.2%    13.8%    16.8%    19.5%    21.4%    24.3%
+  C_boundary                 10.6%    12.3%    21.5%    18.7%    20.8%    23.2%
+  D_blurpool                    --     14.1%    16.7%    20.4%    22.4%    24.5%
+  E_cbdice                   13.3%    15.0%    17.8%    20.1%    22.1%    24.7%
+  F_gated                    20.5%    20.0%    16.9%    20.4%    23.0%    27.0%
+  G_focal                    21.4%    13.6%    15.8%    18.6%    21.7%    24.3%
+  H_aug_clw1                 13.0%    19.5%    16.8%    20.5%    22.1%    23.8%
+  H_aug_clw16                44.0%    45.4%    36.6%    24.2%    27.0%    31.3%
+  H_aug_clw2                 12.8%    36.4%    24.7%    19.7%    21.4%    23.8%
+  H_aug_clw32                33.3%    36.9%    26.7%    29.5%    33.5%       -- 
+  H_aug_clw4                 18.0%    19.5%    17.3%    20.5%    22.2%    25.1%
+  H_aug_clw64                63.0%    41.6%    29.7%       --        --        -- 
+  H_aug_clw8                 34.3%    30.9%    32.3%    21.4%    23.6%    26.5%
+  H_aug_w32                     --        --        --     19.5%    22.1%    24.4%
+  H_aug_w64_d5                  --     30.5%    28.0%    20.9%    22.7%    24.3%
+  I_coletra                     --     13.7%    15.3%    18.2%    20.5%    23.3%
+  J_liot                     10.8%    13.5%    16.4%    20.4%    25.2%    30.4%
+  K_focal_aug_clw1           39.1%    34.8%    16.1%    19.4%    21.0%    24.2%
+  K_focal_aug_clw16          35.9%    32.7%    33.0%    24.3%    26.8%    30.7%
+  K_focal_aug_clw2           26.9%    26.5%    26.7%    20.0%    22.4%    24.6%
+  K_focal_aug_clw32          33.2%    37.4%    24.1%    31.1%    34.5%       -- 
+  K_focal_aug_clw4           40.6%    39.8%    17.3%    20.3%    22.1%    25.0%
+  K_focal_aug_clw64          56.9%    27.4%    31.3%       --        --        -- 
+  K_focal_aug_clw8           32.0%    27.9%    25.4%    22.3%    24.5%    27.6%
+
+  Against A_dice:
+
+  H_aug                      +0.7%    +0.7%    +1.7%    +0.4%    +0.2%    -0.1% 
+  K_focal_aug                +9.3%   +10.0%    +9.6%    -0.3%    -0.2%    +0.2% 
+  A_dice_clw1                +1.1%    +0.8%    +0.4%    -0.3%    +0.3%    +0.3% 
+  A_dice_clw16              +19.0%   +10.6%    +3.4%*   +4.4%*   +5.8%*   +8.4%*
+  A_dice_clw2                +1.5%    +0.4%    +0.8%    +0.1%    +0.6%    +0.9% 
+  A_dice_clw32              +11.4%    +8.6%*   +6.2%*   +7.6%*   +9.5%*       --
+  A_dice_clw4               +11.0%   +15.7%    +5.5%    +1.4%    +2.5%*   +2.8% 
+  A_dice_clw64              +35.3%*  +13.0%*  +12.1%*  +15.4%*       --       --
+  A_dice_clw8               +27.2%*  +16.0%    +3.0%    +3.1%    +3.1%    +4.2% 
+  A_dice_w32                     --       --   +1.5%    +1.3%    +2.1%    +1.1% 
+  A_dice_w64_d5                  --   +0.6%    +0.9%    +1.4%    +1.4%    +0.9% 
+  B_cldice                  +10.3%   +18.0%    +0.6%    +1.5%    +1.8%*   +1.8%*
+  B_cldice_w32                   --       --   +0.3%    +1.1%    +1.2%*   +1.3% 
+  B_cldice_w64_d5            +2.0%    +0.8%    +1.5%*   +1.3%    +1.4%    +1.2% 
+  C_boundary                 -0.6%    -0.7%    +6.3%    +0.3%    +0.5%    +0.1% 
+  D_blurpool                     --   +1.3%*   +1.5%    +1.9%*   +2.1%*   +1.4% 
+  E_cbdice                   +3.0%    +2.0%*   +2.6%    +1.6%    +1.8%    +1.6% 
+  F_gated                    +9.9%    +7.6%    +1.7%    +2.0%    +2.7%*   +3.9%*
+  G_focal                   +10.8%    +0.6%    +0.6%    +0.1%    +1.4%    +1.2% 
+  H_aug_clw1                 +2.4%*   +6.8%    +1.7%    +1.4%    +1.1%    +0.1% 
+  H_aug_clw16               +30.1%*  +33.4%   +21.5%*   +5.0%*   +6.0%*   +7.7%*
+  H_aug_clw2                 +2.3%   +23.6%*   +9.4%    +0.5%    +0.5%    +0.2% 
+  H_aug_clw32               +21.9%*  +27.4%*  +11.6%*  +10.3%*  +12.7%*       --
+  H_aug_clw4                +10.9%    +1.9%*   +2.1%    +1.4%    +1.3%    +1.5% 
+  H_aug_clw64               +52.0%*  +28.7%*  +14.6%*       --       --       --
+  H_aug_clw8                +21.7%   +18.2%   +17.1%*   +2.3%    +2.6%    +2.9%*
+  H_aug_w32                      --       --       --   +0.6%    +1.9%*   +1.2% 
+  H_aug_w64_d5                   --  +17.5%   +12.5%    +2.7%    +2.7%*   +1.3% 
+  I_coletra                      --   +0.9%*   +0.1%    -0.2%    +0.3%    +0.2% 
+  J_liot                     +0.2%    +0.5%    +1.2%    +2.0%    +4.9%*   +7.2%*
+  K_focal_aug_clw1          +28.6%   +26.4%    +0.9%    +0.2%    +0.1%    +0.5% 
+  K_focal_aug_clw16         +38.3%*  +23.0%   +17.9%*   +5.1%*   +5.8%*   +7.1%*
+  K_focal_aug_clw2          +19.7%   +16.2%   +11.5%    +0.8%    +1.5%    +1.0% 
+  K_focal_aug_clw32         +30.4%*  +23.9%*   +8.9%*  +11.9%*  +13.9%*       --
+  K_focal_aug_clw4          +39.2%*  +27.1%*   +2.2%    +1.2%    +1.2%    +1.4% 
+  K_focal_aug_clw64         +39.3%*  +15.2%*  +16.2%*       --       --       --
+  K_focal_aug_clw8          +11.6%   +12.4%   +10.3%    +3.1%*   +3.5%*   +3.9%*
+
+  * passes the seed gate at that Dice.
