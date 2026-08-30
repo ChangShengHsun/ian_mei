@@ -27,6 +27,7 @@ import augment
 import direction
 import drive
 import propagate
+import snake
 import liot
 import metrics
 
@@ -305,6 +306,45 @@ def propagation_geometry(config_name: str) -> tuple[float, float]:
             across / 100.0 * vessel_width())
 
 
+# D-C. Taps each way, so k08 spans 17 px of ARC and k16 spans 33 px. Chosen
+# to bracket the thing the operator exists for: the missed-centreline runs
+# have a p90 length of 21 px. They are also exactly the lengths at which a
+# STRAIGHT kernel provably leaves the vessel -- 24.9% of segments at 4 vessel
+# widths, 73.3% at 8 -- which is why D-B's straight ellipse could not simply
+# have been made longer, and why the straight arm is kept as the control.
+SNAKE_TAPS = (8, 16)
+SNAKE_STEPS = (1, 2)
+
+
+def uses_snake(config_name: str) -> bool:
+    """D-C: the propagation kernel that follows the vessel instead of
+    crossing it. See exp/snake.py for what D-B got wrong and how."""
+    return any(token in ("snake", "snkstr", "snkshf")
+               for token in config_name.split("_"))
+
+
+def snake_geometry(config_name: str) -> dict:
+    """(taps, steps, straight, shuffle) read from the config NAME.
+
+    In the name, never in a file: propagation_geometry already paid for that
+    lesson, where one config name meant two architectures writing into one
+    directory.
+    """
+    tokens = config_name.split("_")
+    taps = steps = None
+    for token in tokens:
+        if token.startswith("k") and token[1:].isdigit():
+            taps = int(token[1:])
+        if token.startswith("t") and token[1:].isdigit():
+            steps = int(token[1:])
+    if taps is None or steps is None:
+        raise ShapeNameError(
+            f"{config_name!r} asks for the snake layer but carries no "
+            f"k<taps>_t<steps>; a missing shape must raise, not default")
+    return {"taps": taps, "steps": steps,
+            "straight": "snkstr" in tokens, "shuffle": "snkshf" in tokens}
+
+
 def uses_propagation(config_name: str) -> bool:
     """D-B: the oriented propagation layer, inside the network."""
     return "prop" in config_name.split("_")
@@ -367,6 +407,8 @@ def build_model(config_name: str) -> "TinyUNet":
                     in_channels=len(liot.DIRECTIONS) if uses_liot(config_name)
                     else 1, depth=net_depth(config_name),
                     direction=uses_direction(config_name),
+                    snake_shape=(snake_geometry(config_name)
+                                 if uses_snake(config_name) else None),
                     propagation=(propagation_geometry(config_name)
                                  if uses_propagation(config_name)
                                  else None),
@@ -390,7 +432,7 @@ class TinyUNet(nn.Module):
     def __init__(self, base: int = 16, blurpool: bool = False,
                  in_channels: int = 1, depth: int = 3,
                  direction: bool = False, propagation: tuple | None = None,
-                 shuffle: bool = False):
+                 shuffle: bool = False, snake_shape: dict | None = None):
         super().__init__()
         self.depth = depth
         channels = [base * 2 ** level for level in range(depth)]
@@ -415,6 +457,14 @@ class TinyUNet(nn.Module):
         # output, so a wrong field costs segmentation accuracy directly.
         self.propagation = (propagate.OrientedPropagation(*propagation)
                             if propagation is not None else None)
+        # D-C. Takes the trunk's features as well as the logits, because its
+        # gate is per pixel: D-B had one scalar for the whole image and so
+        # could only dilate everywhere or nowhere.
+        self.snake = (snake.SnakePropagation(
+            taps=snake_shape["taps"], steps=snake_shape["steps"],
+            channels=base, straight=snake_shape["straight"])
+            if snake_shape is not None else None)
+        self.snake_shuffle = bool(snake_shape and snake_shape["shuffle"])
         # D-B's ablation. The layer runs on a random axis field instead of the
         # head's, so the head predicts direction (the auxiliary loss still
         # sees it) but nothing downstream uses it. Set on the MODEL rather
@@ -442,7 +492,7 @@ class TinyUNet(nn.Module):
         is exactly the segmentation model it would have been, so every
         existing script scores it correctly with no edit.
         """
-        if self.propagation is None:
+        if self.propagation is None and self.snake is None:
             return self.head(self.features(x))
         # A _prop model's segmentation is not defined without its field, so
         # forward() computes both and returns only the logits -- every
@@ -463,6 +513,17 @@ class TinyUNet(nn.Module):
                 driving = torch.cat([torch.sin(2 * angle),
                                      torch.cos(2 * angle)], dim=1)
             logits = self.propagation(logits, driving)
+        if self.snake is not None:
+            driving = field
+            if self.snake_shuffle:
+                # The control that separates direction from smoothing: the
+                # same walk on a random axis field. Set on the MODEL, so it
+                # holds at inference too -- an ablation that only applies
+                # during training is not one.
+                angle = torch.rand_like(field[:, :1]) * torch.pi
+                driving = torch.cat([torch.sin(2 * angle),
+                                     torch.cos(2 * angle)], dim=1)
+            logits = self.snake(logits, driving, shared)
         return logits, field
 
 
@@ -776,6 +837,27 @@ for _base, _extra in (("A_dice", None), ("H_aug", None),
                       ("K_focal_aug", "focal")):
     for _weight in CENTRELINE_WEIGHTS:
         CONFIGS[f"{_base}_clw{_weight}"] = (False, _extra)
+
+# D-C, the redesign of D-B. Three arms at each length, so curvature and
+# direction are each isolated by a control trained the same way:
+#
+#   snake    the walk: the step direction is re-read from the field at every
+#            new point, so the kernel bends with the vessel.
+#   snkstr   the SAME operator with the walk switched off -- a straight line
+#            along the field's axis at the centre pixel. This is D-B's
+#            geometry at D-C's length, so `snake - snkstr` is curvature and
+#            nothing else.
+#   snkshf   the walk on a RANDOM axis field. `snake - snkshf` is direction
+#            and nothing else; without it, any gain could be smoothing.
+#
+# k16_t2 asks whether iterating helps, since following a curve is inherently
+# sequential and D-B applied its operator exactly once.
+for _base, _extra in (("A_dice", None), ("H_aug", None)):
+    for _taps in SNAKE_TAPS:
+        for _kind in ("snake", "snkstr", "snkshf"):
+            CONFIGS[f"{_base}_dir_{_kind}_k{_taps:02d}_t1"] = (False, _extra)
+    for _kind in ("snake", "snkshf"):
+        CONFIGS[f"{_base}_dir_{_kind}_k16_t2"] = (False, _extra)
 
 # Which augmentations each config gets. Keeping this beside CONFIGS rather than
 # inside it leaves the (blurpool, extra) shape that eleven call sites unpack.

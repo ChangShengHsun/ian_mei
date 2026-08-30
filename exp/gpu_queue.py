@@ -269,6 +269,20 @@ def stage(name: str) -> tuple[str, ...]:
                      for weight in train.CENTRELINE_WEIGHTS)
         return tuple(f"{arm}_s{seed}" for seed in range(6, 12)
                      for arm in HELDOUT_BASES + arms)
+    # D-C, the redesign of D-B. Every length carries its two controls, so a
+    # queue stopped early still has curvature and direction isolated at the
+    # lengths it reached rather than one arm measured and its controls
+    # missing -- the shape D-B's queue already used, for the same reason.
+    if name == "snake":
+        out = []
+        for seed in range(6):
+            for base in ("A_dice", "H_aug"):
+                for taps in train.SNAKE_TAPS:
+                    for kind in ("snake", "snkstr", "snkshf"):
+                        out.append(f"{base}_dir_{kind}_k{taps:02d}_t1_s{seed}")
+                for kind in ("snake", "snkshf"):
+                    out.append(f"{base}_dir_{kind}_k16_t2_s{seed}")
+        return tuple(out)
     if name == "heldout_published":
         return tuple(f"{arm}_s{seed}" for seed in range(6)
                      for arm in PUBLISHED_ARMS)
@@ -535,6 +549,26 @@ def selftest() -> None:
     assert {int(r.rsplit("_s", 1)[1]) for r in more} == set(range(6, 12))
     print(f"  heldout_seeds: {len(more)} runs, seeds 6-11 of the same "
           f"{len(set(r.rsplit('_s', 1)[0] for r in more))} arms")
+
+    # D-C. Pinned to "every arm has both of its controls at the same seed",
+    # which is what makes the comparison readable, not to a total.
+    snake_runs = stage("snake")
+    assert len(set(snake_runs)) == len(snake_runs), "duplicate in snake"
+    for seed in range(6):
+        block = {r for r in snake_runs if r.endswith(f"_s{seed}")}
+        for run in list(block):
+            if "_snake_" not in run:
+                continue
+            assert run.replace("_snake_", "_snkshf_") in block, run
+            if "_t1" in run:
+                assert run.replace("_snake_", "_snkstr_") in block, run
+    for run in snake_runs:
+        config = run.rsplit("_s", 1)[0]
+        assert config in train.CONFIGS, config
+        base = config.split("_dir_")[0]
+        assert train.AUGMENTS.get(config, ()) == train.AUGMENTS.get(base, ())
+    print(f"  snake: {len(snake_runs)} runs, every arm with its controls at "
+          f"the same seed")
 
     # pending() must answer about the root the runs are actually written to.
     import tempfile
