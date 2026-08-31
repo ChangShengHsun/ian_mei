@@ -74,6 +74,7 @@ import numpy as np
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import select_checkpoint as rules_module
+import calibration
 import summarize_selection as selection
 
 SCORES = selection.SWEEP / "direction_ceiling.csv"
@@ -113,6 +114,47 @@ def by_setting(rows, config: str, source: str, metric: str) -> dict:
             for key, these in grouped.items()}
 
 
+def at_setting(report_rows, config: str, source: str, setting: tuple,
+               metric: str) -> dict:
+    """{(seed, image): value} at one chosen geometry, on the report half.
+
+    Keyed by (seed, image) and not averaged, because the gate needs the pairs.
+    by_setting() collapsed 6 seeds x 20 images into one np.mean, which is the
+    E5 failure shape: a mean can be large while one seed of six disagrees in
+    sign, and that case has to fail.
+    """
+    out = {}
+    for row in report_rows:
+        if (row["config"] == config and row["source"] == source
+                and (row["along"], row["across"]) == setting):
+            out[(row["seed"], row["image"])] = row[metric]
+    return out
+
+
+def gate_pair(report_rows, config: str, metric: str, mine: str,
+              theirs: str, settings: dict) -> dict | None:
+    """The repo's gate on `mine - theirs`, paired on (image, seed).
+
+    Each source keeps its OWN geometry, chosen on the selection half under the
+    same Dice budget -- that is what makes this a comparison of sources rather
+    than of settings.
+    """
+    if settings.get(mine) is None or settings.get(theirs) is None:
+        return None
+    a = at_setting(report_rows, config, mine, settings[mine], metric)
+    b = at_setting(report_rows, config, theirs, settings[theirs], metric)
+    keys = sorted(set(a) & set(b))
+    if not keys:
+        return None
+    seeds = sorted({seed for seed, _ in keys})
+    if len(seeds) < 3:
+        return None
+    paired = [(a[k], b[k]) for k in keys]
+    per_seed = [float(np.mean([a[k] - b[k] for k in keys if k[0] == seed]))
+                for seed in seeds]
+    return calibration.decide(paired, per_seed)
+
+
 def pick(selection_rows, config: str, source: str, raw_dice: float,
          metric: str, budget: float):
     """Best setting for this source WITHIN a Dice budget, on the selection half.
@@ -132,8 +174,9 @@ def pick(selection_rows, config: str, source: str, raw_dice: float,
 
 
 def selftest() -> None:
-    def make(config, source, along, across, image, erl, dice):
-        return {"config": config, "run": f"{config}_s0", "seed": "0",
+    def make(config, source, along, across, image, erl, dice, seed=0):
+        return {"config": config, "run": f"{config}_s{seed}",
+                "seed": str(seed),
                 "source": source, "along": along, "across": across,
                 "image": image, "erl_split": erl, "erl_bridged": erl,
                 "dice": dice, "fg": 1000}
@@ -167,6 +210,48 @@ def selftest() -> None:
     assert free == (0.25, 0.25), free
     print(f"  at a budget of zero a source still returns its free setting "
           f"{free}, never None")
+
+    # THE GATE. by_setting() collapsed 6 seeds x 20 images into one np.mean,
+    # which is the E5 failure shape: a large mean and a large t with one seed
+    # of six pointing the other way. Built here so the failure is asserted,
+    # not hoped for.
+    gated = []
+    for seed in range(6):
+        # Five seeds up by 0.05, the sixth down by 0.02. Mean positive, t
+        # large, and it MUST fail.
+        offset = 0.05 if seed < 5 else -0.02
+        for index in range(1, 21):
+            gated.append(make("G", "predicted", 1.0, 0.25, f"{index:02d}",
+                              0.50 + offset, 0.820, seed=seed))
+            gated.append(make("G", "isotropic", 1.0, 0.25, f"{index:02d}",
+                              0.50, 0.820, seed=seed))
+    report_half = half(gated, False)
+    settings = {"predicted": (1.0, 0.25), "isotropic": (1.0, 0.25)}
+    got = gate_pair(report_half, "G", "erl_split", "predicted", "isotropic",
+                    settings)
+    assert got is not None and got["seeds"] == 6, got
+    assert got["mean"] > 0 and got["t"] > 2, got
+    assert not got["holds"], "a split-sign effect passed the gate"
+    print(f"  the gate refuses a split-sign effect (mean {got['mean']:+.3f}, "
+          f"t {got['t']:.1f}, 5 seeds of 6 positive)")
+
+    # And an effect every seed agrees on must pass, or the gate is just a
+    # rejection machine.
+    clean = [r for r in gated
+             if r["seed"] != "5" or r["source"] != "predicted"]
+    clean += [make("G", "predicted", 1.0, 0.25, f"{i:02d}", 0.55, 0.820,
+                   seed=5) for i in range(1, 21)]
+    got = gate_pair(half(clean, False), "G", "erl_split", "predicted",
+                    "isotropic", settings)
+    assert got["holds"], got
+    print(f"  and passes it when all six agree ({got['mean']:+.3f}, "
+          f"t {got['t']:.1f})")
+
+    # Fewer than three seeds is not a verdict, whatever the effect size.
+    thin = [r for r in clean if int(r["seed"]) < 2]
+    assert gate_pair(half(thin, False), "G", "erl_split", "predicted",
+                     "isotropic", settings) is None
+    print("  two seeds return None, not a passing verdict")
 
     assert verdict(0.02).startswith("MECHANISM"), verdict(0.02)
     assert verdict(0.05).startswith("learn"), verdict(0.05)
@@ -217,6 +302,31 @@ def report(rows, metric: str, label: str) -> None:
                 gain = got["oracle"][0] - got["isotropic"][0]
                 line += f"{gain:+11.1%}   {verdict(gain)}"
             print(line)
+        # THE HEADLINE, gated. `predicted - isotropic` is the method: the
+        # model's own tangent field against plain dilation at the same Dice
+        # cost. The oracle column above is the bound and is context, not
+        # result -- a post-processing paper cannot claim a number it can only
+        # reach with the ground truth.
+        print(f"    {'':<10}{'predicted - isotropic':>30}"
+              f"{'shuffled - isotropic':>26}")
+        for budget in BUDGETS:
+            settings = {source: pick(selection_rows, config, source, raw_dice,
+                                     metric, budget)
+                        for source in SOURCES}
+            cells = []
+            for other in ("predicted", "shuffled"):
+                got = gate_pair(report_rows, config, metric, other,
+                                "isotropic", settings)
+                cells.append("--" if got is None else
+                             f"{got['mean']:+.1%} t{got['t']:.2f} "
+                             f"{'HOLDS' if got['holds'] else 'fails'}")
+            print(f"    -{budget:.2f}     {cells[0]:>30}{cells[1]:>26}")
+            got = gate_pair(report_rows, config, metric, "predicted",
+                            "isotropic", settings)
+            if got is not None and not got["holds"]:
+                print(f"    {'':<10}per seed "
+                      f"[{' '.join(f'{d:+.3f}' for d in got['per_seed'])}]")
+
         # The geometry the oracle and the predicted field chose at the
         # tightest budget: this is the handover to D-B, and it is also the
         # answer to what the sweep was built to ask -- along, or across.

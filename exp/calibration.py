@@ -76,19 +76,34 @@ def collect() -> tuple[dict, dict]:
     return fixed, tuned
 
 
+def decide(paired: list, per_seed: list) -> dict:
+    """THE gate. One definition, so two scripts cannot drift apart.
+
+    `paired` is the list of (mine, theirs) values the t-test runs on -- pairs
+    of seeds in this file, pairs of (image, seed) in
+    summarize_direction_ceiling.py, because that table has a value per image.
+    `per_seed` is the mean difference within each seed, and it carries the
+    sign rule: a mean and a t can both be large while one seed of six points
+    the other way, which is the shape E5 was caught by.
+    """
+    diffs = np.array([a - b for a, b in paired], dtype=float)
+    result = stats.ttest_rel([a for a, _ in paired], [b for _, b in paired])
+    statistic = float(result.statistic)
+    return {"mean": float(np.mean(per_seed)), "t": statistic,
+            "seeds": len(per_seed), "per_seed": [float(d) for d in per_seed],
+            "pairs": len(paired),
+            "holds": bool(diffs.mean() > 0 and statistic > 2
+                          and all(d > 0 for d in per_seed)
+                          and len(per_seed) >= 3)}
+
+
 def gate(mine: dict, theirs: dict, key: str = "traced") -> dict | None:
     """The repo's gate, paired on seed."""
     seeds = sorted(set(mine) & set(theirs))
     if len(seeds) < 3:
         return None
-    per_seed = [mine[s][key] - theirs[s][key] for s in seeds]
-    result = stats.ttest_rel([mine[s][key] for s in seeds],
-                             [theirs[s][key] for s in seeds])
-    return {"mean": float(np.mean(per_seed)), "t": float(result.statistic),
-            "seeds": len(seeds),
-            "holds": bool(np.mean(per_seed) > 0 and result.statistic > 2
-                          and all(d > 0 for d in per_seed)
-                          and len(seeds) >= 3)}
+    paired = [(mine[s][key], theirs[s][key]) for s in seeds]
+    return decide(paired, [a - b for a, b in paired])
 
 
 def selftest() -> None:

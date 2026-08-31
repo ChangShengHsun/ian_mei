@@ -283,6 +283,18 @@ def stage(name: str) -> tuple[str, ...]:
                 for kind in ("snake", "snkshf"):
                     out.append(f"{base}_dir_{kind}_k16_t2_s{seed}")
         return tuple(out)
+    # Task 1 of prompt_postproc.md. ONE direction predictor whose field is
+    # then applied to every arm's output -- the tangent is a property of the
+    # image, not of the segmenter, and that is what makes the claim
+    # architecture-agnostic rather than an auxiliary-task result.
+    #
+    # Two arms and not one, so "does the field depend on which arm trained
+    # it" is answerable rather than assumed. Under --protocol heldout,
+    # because exp/results/heldout holds no plain _dir head at all: the twelve
+    # that exist are in the legacy sweep, selected on the test set.
+    if name == "dirhead":
+        return tuple(f"{arm}_s{seed}" for seed in range(6)
+                     for arm in ("A_dice_dir", "H_aug_dir"))
     if name == "heldout_published":
         return tuple(f"{arm}_s{seed}" for seed in range(6)
                      for arm in PUBLISHED_ARMS)
@@ -569,6 +581,22 @@ def selftest() -> None:
         assert train.AUGMENTS.get(config, ()) == train.AUGMENTS.get(base, ())
     print(f"  snake: {len(snake_runs)} runs, every arm with its controls at "
           f"the same seed")
+
+    # The direction heads must be the PLAIN ones -- no propagation, no snake.
+    # A _dir arm carrying a layer is a different experiment wearing the same
+    # name, which is the trap _prop and _snake were both named to avoid.
+    heads = stage("dirhead")
+    assert len(set(heads)) == len(heads), "duplicate in dirhead"
+    for run in heads:
+        config = run.rsplit("_s", 1)[0]
+        assert config in train.CONFIGS, config
+        assert train.uses_direction(config), config
+        assert not train.uses_propagation(config), config
+        assert not train.uses_snake(config), config
+        base = config.rsplit("_dir", 1)[0]
+        assert train.AUGMENTS.get(config, ()) == train.AUGMENTS.get(base, ())
+    print(f"  dirhead: {len(heads)} runs, plain direction heads with no "
+          f"propagation or snake layer")
 
     # pending() must answer about the root the runs are actually written to.
     import tempfile
