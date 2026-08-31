@@ -66,11 +66,11 @@ METRICS = (("erl_split", "erl.py as written (a bridged gap splits a run)"),
 SOURCES = ("isotropic", "shuffled", "predicted", "oracle")
 
 
-def load() -> list[dict]:
-    """Every shard, merged. Globbed rather than listed: a shard that failed to
-    start is then visibly absent instead of silently excluded."""
+def load(stem: str = "postproc_ceiling") -> list[dict]:
+    """Every shard of one split, merged. Globbed rather than listed: a shard
+    that failed to start is then visibly absent, not silently excluded."""
     rows = []
-    for path in sorted(sweep.OUT.parent.glob("postproc_ceiling*.csv")):
+    for path in sorted(sweep.OUT.parent.glob(f"{stem}*.csv")):
         for row in csv.DictReader(path.open()):
             for key in ("along", "across", "erl_split", "erl_bridged", "dice"):
                 row[key] = float(row[key])
@@ -88,7 +88,15 @@ def raw_of(rows, config: str) -> tuple:
 
 def pick(rows, config: str, source: str, raw_dice: float, metric: str,
          budget: float):
-    """Best geometry for one source within a Dice budget.
+    """Best geometry for one source within a Dice budget, on the DEV rows.
+
+    CAUGHT 2026-09-01, after the first sweep had already produced a table.
+    The first version passed the TEST rows here, so the geometry was chosen
+    on the twenty images it was then reported on -- the same leak as
+    selecting a checkpoint on the test set and selecting a threshold on the
+    test curve, one level further down, and the third time this project has
+    made it. The numbers in that first table are optimistic by an unknown
+    amount and are superseded.
 
     Every source gets the SAME budget, which is what makes this a comparison
     of sources rather than of settings. The do-nothing setting always costs
@@ -189,12 +197,48 @@ def selftest() -> None:
                      {"predicted": None, "isotropic": (0.0, 0.0)}) is None
     print("  a missing source reports None, not a false negative")
 
-    for config in sweep.CONTROL + sweep.FRONTIER + sweep.RETIRED:
-        assert config in sweep.CONTROL + sweep.FRONTIER + sweep.RETIRED
+    # 5. THE LEAK THIS FILE ALREADY HAD. The geometry must come from the DEV
+    #    rows and the value from the TEST rows. Built so that a script which
+    #    silently reverted to picking on test would FAIL: dev prefers the
+    #    small geometry, test prefers the large one, and reading test's own
+    #    favourite would give the larger number.
+    dev, test = [], []
+    for seed in range(6):
+        for i in range(1, 6):
+            dev.append(make("L", "raw", 0.0, 0.0, f"d{i}", 0.50, 0.820,
+                            seed=seed))
+            dev.append(make("L", "predicted", 0.5, 0.25, f"d{i}", 0.60,
+                            0.815, seed=seed))
+            dev.append(make("L", "predicted", 2.0, 1.0, f"d{i}", 0.55,
+                            0.815, seed=seed))
+            dev.append(make("L", "isotropic", 0.5, 0.5, f"d{i}", 0.50,
+                            0.815, seed=seed))
+        for i in range(1, 21):
+            test.append(make("L", "raw", 0.0, 0.0, f"{i:02d}", 0.50, 0.820,
+                             seed=seed))
+            # On TEST the ranking is reversed: the big geometry looks best.
+            test.append(make("L", "predicted", 0.5, 0.25, f"{i:02d}", 0.56,
+                             0.815, seed=seed))
+            test.append(make("L", "predicted", 2.0, 1.0, f"{i:02d}", 0.70,
+                             0.815, seed=seed))
+            test.append(make("L", "isotropic", 0.5, 0.5, f"{i:02d}", 0.50,
+                             0.815, seed=seed))
+    chosen = pick(dev, "L", "predicted", 0.820, "erl_split", 0.02)
+    assert chosen == (0.5, 0.25), chosen
+    got = gate_pair(test, "L", "erl_split", "predicted", "isotropic",
+                    {"predicted": chosen,
+                     "isotropic": pick(dev, "L", "isotropic", 0.820,
+                                       "erl_split", 0.02)})
+    assert abs(got["mean"] - 0.06) < 1e-9, got["mean"]
+    leaked = gate_pair(test, "L", "erl_split", "predicted", "isotropic",
+                       {"predicted": (2.0, 1.0), "isotropic": (0.5, 0.5)})
+    assert leaked["mean"] > got["mean"], (leaked["mean"], got["mean"])
+    print(f"  dev picks (0.5, 0.25) and reads {got['mean']:+.2f} on test; "
+          f"picking on test itself would read {leaked['mean']:+.2f}")
     print("all checks passed")
 
 
-def report(rows, metric: str, label: str) -> None:
+def report(rows, dev_rows, metric: str, label: str) -> None:
     print(f"\n--- {label} ---")
     groups = (("control", sweep.CONTROL), ("frontier", sweep.FRONTIER),
               ("retired (negative control)", sweep.RETIRED))
@@ -202,17 +246,20 @@ def report(rows, metric: str, label: str) -> None:
         print(f"\n  [{group}]")
         for config in configs:
             raw = raw_of(rows, config)
-            if raw is None:
+            dev_raw = raw_of(dev_rows, config)
+            if raw is None or dev_raw is None:
                 continue
             _, raw_dice = raw
+            _, dev_dice = dev_raw
             traced = float(np.mean([r[metric] for r in rows
                                     if r["config"] == config
                                     and r["source"] == "raw"]))
             print(f"    {config}  raw {traced:.1%} traced at Dice "
                   f"{raw_dice:.4f}")
             for budget in BUDGETS:
-                settings = {s: pick(rows, config, s, raw_dice, metric, budget)
-                            for s in SOURCES}
+                # Chosen on dev against dev's own raw Dice, read on test.
+                settings = {s: pick(dev_rows, config, s, dev_dice, metric,
+                                    budget) for s in SOURCES}
                 cells = []
                 for other in ("predicted", "shuffled", "oracle"):
                     got = gate_pair(rows, config, metric, other, "isotropic",
@@ -242,8 +289,15 @@ def main() -> None:
     print("NOT comparable to pre-heldout runs or to published figures.\n")
     print("Headline is `predicted - isotropic`: the model's own field against")
     print("plain dilation at the same Dice cost. `shuffled` is the control.")
+    dev_rows = load("postproc_dev")
+    if not dev_rows:
+        raise SystemExit(
+            "no postproc_dev*.csv -- the geometry must be chosen on the dev\n"
+            "images and read on test. Run: exp/postproc_ceiling.py --dev")
+    print(f"geometry chosen on {len({r['image'] for r in dev_rows})} dev "
+          f"images, read on {len({r['image'] for r in rows})} test images\n")
     for metric, label in METRICS:
-        report(rows, metric, label)
+        report(rows, dev_rows, metric, label)
     print("\nThe verdict is read at the TIGHTEST budget under the second")
     print("convention. If the three budgets or the two conventions disagree,")
     print("that disagreement is the result -- do not quote the one that")

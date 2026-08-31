@@ -62,11 +62,12 @@ import train
 OUT = heldout.ROOT / "postproc_ceiling.csv"
 
 
-def out_path(shard) -> Path:
-    """One file per shard. Merged by summarize_postproc.py, which globs."""
+def out_path(shard, split: str = "test") -> Path:
+    """One file per shard and split. Merged by summarize_postproc.py."""
+    stem = "postproc_ceiling" if split == "test" else "postproc_dev"
     if shard is None:
-        return OUT
-    return OUT.with_name(f"postproc_ceiling.shard{shard[0]}of{shard[1]}.csv")
+        return OUT.with_name(f"{stem}.csv")
+    return OUT.with_name(f"{stem}.shard{shard[0]}of{shard[1]}.csv")
 # The same grid the legacy sweep used, so the two tables are comparable in
 # geometry even though their protocols differ. Both are in multiples of median
 # vessel width, which is what lets task 3 apply the same numbers to HRF at six
@@ -225,7 +226,14 @@ def main() -> None:
         list(CONTROL + FRONTIER + RETIRED)
 
     epochs = heldout.chosen_epochs()
-    items = drive.load_split("test")
+    # The geometry has to be CHOSEN somewhere other than where it is
+    # reported. This project has now made that mistake three times at three
+    # levels -- the checkpoint on the test set, the threshold on the test
+    # curve, and (caught 2026-09-01, after the first sweep had already run)
+    # the dilation geometry on the reported images. Scoring dev as well is
+    # what lets summarize_postproc.py pick on dev and read on test.
+    split = "dev" if "--dev" in sys.argv else "test"
+    items = drive.load_split(split)
     data = train.stack_split("fit")
     width = cross_dataset.median_width(items)
     component_px = int(round(hole_sweep.E4_COMPONENT_MULTIPLE * width * width))
@@ -234,14 +242,15 @@ def main() -> None:
     oracle = {item["name"]: direction.tangent_field(item["label"] & item["fov"])
               for item in items}
 
-    target = out_path(shard)
+    target = out_path(shard, split)
+    stem = "postproc_ceiling" if split == "test" else "postproc_dev"
     done = set()
-    for existing in sorted(OUT.parent.glob("postproc_ceiling*.csv")):
+    for existing in sorted(OUT.parent.glob(f"{stem}*.csv")):
         done |= {(r["config"], r["seed"], r["field_arm"])
                  for r in csv.DictReader(existing.open())}
     seeds = sorted({run.rsplit("_s", 1)[1] for run in epochs
                     if run.rsplit("_s", 1)[0] == field_arm})
-    print(f"{len(wanted)} arm(s), field from {field_arm} "
+    print(f"{split}: {len(wanted)} arm(s), field from {field_arm} "
           f"({len(seeds)} seeds), width {width:.2f} px, filter "
           f"{component_px} px", flush=True)
     fields = shared_fields(field_arm, epochs, items, data, seeds)
