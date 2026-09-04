@@ -1,0 +1,32 @@
+=== the layer against simply lowering the threshold ===
+
+3729 test rows, 3729 dev rows, 151200 postproc rows
+Both sides pick on the 5 dev images and are read on the 20 test
+images. The layer's Dice is the floor the threshold must clear.
+
+--- convention A (a bridged gap splits) ---
+    arm                    +layer    Dice  threshold      ERL    Dice   verdict
+    A_dice                  45.1%  0.7980      0.100    49.6%  0.7960   threshold (-4.5%)
+    H_aug                   47.6%  0.8033      0.100    53.3%  0.7978   threshold (-5.8%)
+    H_aug_clw2              49.7%  0.8009      0.125    59.1%  0.7861   threshold (-9.4%)
+    H_aug_clw8              48.1%  0.8010      0.200    60.3%  0.7872   threshold (-12.2%)
+    H_aug_clw16             54.7%  0.7860      0.225    65.8%  0.7712   threshold (-11.1%)
+    H_aug_clw64             65.1%  0.7523      0.350    72.3%  0.7282   threshold (-7.2%)
+    K_focal_aug_clw32       61.5%  0.7669      0.300    70.8%  0.7446   threshold (-9.3%)
+    K_focal_aug_clw64       70.4%  0.7297      0.300    76.7%  0.7046   threshold (-6.3%)
+    A_dice_clw64            51.7%  0.7688      0.125    61.8%  0.7503   threshold (-10.0%)
+    H_aug_w64_d5            45.6%  0.8101      0.125    56.8%  0.8012   threshold (-11.1%)
+
+--- convention B (it does not) ---
+    arm                    +layer    Dice  threshold      ERL    Dice   verdict
+    A_dice                  63.0%  0.7980      0.100    66.4%  0.7960   threshold (-3.4%)
+    H_aug                   65.7%  0.8033      0.100    69.8%  0.7978   threshold (-4.0%)
+    H_aug_clw2              68.5%  0.8009      0.125    74.8%  0.7861   threshold (-6.4%)
+    H_aug_clw8              69.9%  0.8010      0.200    76.2%  0.7872   threshold (-6.3%)
+    H_aug_clw16             73.5%  0.7860      0.225    79.1%  0.7712   threshold (-5.6%)
+    H_aug_clw64             81.5%  0.7523      0.350    83.6%  0.7282   threshold (-2.1%)
+    K_focal_aug_clw32       76.7%  0.7669      0.300    80.4%  0.7446   threshold (-3.7%)
+    K_focal_aug_clw64       81.3%  0.7297      0.300    84.2%  0.7046   threshold (-2.9%)
+    A_dice_clw64            70.0%  0.7688      0.125    74.4%  0.7503   threshold (-4.3%)
+    H_aug_w64_d5            67.1%  0.8101      0.125    72.0%  0.8012   threshold (-4.8%)
+

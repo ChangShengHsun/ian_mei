@@ -10,6 +10,23 @@ re-score anything and can never accidentally select on the reported half.
 
 Writes results/selection_sweep/checkpoint_scores.csv.
 
+TWO PROTOCOLS, TWO NORMALISATIONS. `--results` points this at the held-out
+retrain's root, whose runs were fit on 15 images with 5 held back for
+selection; the sweep's own runs were trained on all 20. The inference
+normalisation must come from the images the run was FIT on, so the stack is
+chosen from the root rather than hardwired.
+
+CAUGHT 2026-09-04. This was hardwired to stack_split("train") and never
+updated when the held-out protocol landed on 09-01 -- so every held-out row
+was normalised with constants computed partly from the 5 selection images.
+frontier.py, composition.py, threshold_control.py and postproc_ceiling.py all
+use "fit"; this file was the only one left. Measured cost on three runs at
+threshold 0.5: A_dice +0.40, H_aug_clw64 +0.06, K_focal_aug_clw64 +0.14 ERL
+points, always in favour of the leaked stack, against a +1.4-point bar for
+the largest honest effect in this repo. The GAPS the leak ledger reports are
+nearly unaffected (both sides shared the constant); the absolute columns were
+optimistic by up to 0.4.
+
 The geometry -- skeleton, contrast bands, component filter -- is built exactly
 as erl.py builds it, by calling into erl.py, so a number here is comparable
 with erl.csv rather than merely similar to it. The component filter is E4's
@@ -30,11 +47,22 @@ import drive
 import erl
 import hole_sweep
 import metrics
+import select_heldout as heldout
 import speckle
 import train
 
 SWEEP = Path(__file__).resolve().parent / "results" / "selection_sweep"
 OUT = SWEEP / "checkpoint_scores.csv"
+
+
+def stack_for(root: Path) -> str:
+    """Which images a run under `root` was fit on.
+
+    The held-out root's runs saw 15; the sweep's saw all 20. Normalising with
+    images a run never trained on is a protocol impurity, and in this repo's
+    case it is one that flatters the score.
+    """
+    return "fit" if root.resolve() == heldout.ROOT.resolve() else "train"
 
 
 def checkpoints(run_dir: Path) -> list[Path]:
@@ -135,13 +163,29 @@ def main() -> None:
         raise SystemExit(f"no swept runs under {SWEEP}")
 
     items = drive.load_split("val")
-    stacked = train.stack_split("train")
+    split = stack_for(SWEEP)
+    stacked = train.stack_split(split)
     width = cross_dataset.median_width(items)
     component_px = int(round(hole_sweep.E4_COMPONENT_MULTIPLE * width * width))
     geometry = [{"skel": skeletonize(item["label"] & item["fov"])}
                 for item in items]
     print(f"{len(runs)} run(s), {len(items)} images, "
-          f"component filter {component_px} px", flush=True)
+          f"component filter {component_px} px, "
+          f"normalised on the {split} split "
+          f"({stacked['images'].shape[0]} images)", flush=True)
+
+    # THE TRAP THIS GUARD EXISTS FOR. This file takes run names on the
+    # command line, which reads as "score these and add them" -- but it
+    # writes with "w". On 2026-09-03 exp/run_paper.sh called it in a loop,
+    # once per run, and each call truncated the table; 460 runs became 1.
+    # Naming a subset while a table already exists is now refused unless the
+    # caller says which it means.
+    if wanted and OUT.exists() and "--merge" not in sys.argv:
+        raise SystemExit(
+            f"{OUT} already exists and you named {len(wanted)} run(s).\n"
+            f"This file REBUILDS the table; it does not append. Either pass\n"
+            f"every run you want in the table (one invocation, no --merge),\n"
+            f"or pass --merge to keep the rows already there.")
 
     rows = []
     for run_name in runs:
@@ -149,6 +193,12 @@ def main() -> None:
                               stacked))
     if not rows:
         raise SystemExit("no checkpoints scored")
+    if "--merge" in sys.argv and OUT.exists():
+        rescored = {row["run"] for row in rows}
+        kept = [row for row in csv.DictReader(OUT.open())
+                if row["run"] not in rescored]
+        print(f"merging: {len(kept)} rows kept, {len(rows)} rescored")
+        rows = kept + rows
     with OUT.open("w", newline="") as handle:
         writer = csv.DictWriter(handle, fieldnames=list(rows[0]))
         writer.writeheader()

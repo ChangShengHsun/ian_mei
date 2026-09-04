@@ -68,11 +68,17 @@ def out_path(shard, split: str = "test") -> Path:
     if shard is None:
         return OUT.with_name(f"{stem}.csv")
     return OUT.with_name(f"{stem}.shard{shard[0]}of{shard[1]}.csv")
-# The same grid the legacy sweep used, so the two tables are comparable in
-# geometry even though their protocols differ. Both are in multiples of median
-# vessel width, which is what lets task 3 apply the same numbers to HRF at six
-# times DRIVE's resolution.
-ALONG = (0.0, 0.5, 1.0, 1.5, 2.0)
+# In multiples of median vessel width, which is what lets task 3 apply the
+# same numbers to HRF at six times DRIVE's resolution.
+#
+# EXTENDED TO 4.0 ON 2026-09-01, with anisotropic.axis_element. The old grid
+# stopped at 2.0 and the old structuring element delivered only 78% of even
+# that (0% on diagonal vessels at the setting the sweep actually picked --
+# see axis_element's docstring). So the reachable half of the range was never
+# tested. The measured break stretches have a 90th percentile of 21 px, about
+# 7 widths, and a dilation closes half a gap from each side, so the grid has
+# to run to at least 3.5 widths for the question to have been asked.
+ALONG = (0.0, 0.5, 1.0, 1.5, 2.0, 3.0, 4.0)
 ACROSS = (0.0, 0.25, 0.5, 1.0)
 ISOTROPIC = (0.0, 0.25, 0.5, 0.75, 1.0, 1.5)
 DEFAULT_FIELD = "H_aug_dir"

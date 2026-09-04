@@ -1,0 +1,128 @@
+=== post-processing: one shared field, every arm ===
+
+293740 rows from 6 file(s), field(s) A_dice_dir, H_aug_dir
+Protocol heldout: fit on 15 DRIVE training images, epoch chosen on
+the 5 held out, scored on all 20 test images. Absolute values are
+NOT comparable to pre-heldout runs or to published figures.
+
+Headline is `predicted - isotropic`: the model's own field against
+plain dilation at the same Dice cost. `shuffled` is the control.
+geometry chosen on 5 dev images, read on 20 test images
+
+
+--- erl.py as written (a bridged gap splits a run) ---
+
+  [control]
+    A_dice  raw 30.3% traced at Dice 0.8166
+      -0.02  pred    +15.2% t21.63 HOLDS   shuf     +0.0% t  nan fails   oracle    +19.9% t28.27 HOLDS
+      -0.05  pred    +25.9% t24.73 HOLDS   shuf     +7.8% t20.42 HOLDS   oracle    +26.1% t32.32 HOLDS
+      -0.10  pred    +30.6% t27.32 HOLDS   shuf     +7.8% t20.42 HOLDS   oracle    +36.9% t43.68 HOLDS
+    H_aug  raw 33.2% traced at Dice 0.8223
+      -0.02  pred    +14.3% t21.25 HOLDS   shuf     +0.0% t  nan fails   oracle    +18.1% t28.87 HOLDS
+      -0.05  pred    +18.8% t22.86 HOLDS   shuf     +7.1% t19.54 HOLDS   oracle    +25.6% t34.38 HOLDS
+      -0.10  pred    +29.9% t26.34 HOLDS   shuf     +7.1% t19.54 HOLDS   oracle    +36.2% t39.70 HOLDS
+
+  [frontier]
+    H_aug_clw2  raw 34.2% traced at Dice 0.8223
+      -0.02  pred    +16.1% t22.51 HOLDS   shuf     +0.0% t  nan fails   oracle    +10.0% t23.95 HOLDS
+      -0.05  pred    +21.6% t23.34 HOLDS   shuf     +7.7% t23.11 HOLDS   oracle    +27.3% t37.41 HOLDS
+      -0.10  pred    +33.1% t28.02 HOLDS   shuf     +7.7% t23.11 HOLDS   oracle    +37.9% t43.08 HOLDS
+    H_aug_clw8  raw 40.7% traced at Dice 0.8168
+      -0.02  pred     +9.0% t15.07 HOLDS   shuf     +0.0% t  nan fails   oracle    +10.6% t23.11 HOLDS
+      -0.05  pred    +22.0% t21.41 HOLDS   shuf     +8.7% t20.73 HOLDS   oracle    +28.4% t37.33 HOLDS
+      -0.10  pred    +31.0% t27.79 HOLDS   shuf     +8.7% t20.73 HOLDS   oracle    +35.4% t42.36 HOLDS
+    H_aug_clw16  raw 46.5% traced at Dice 0.8066
+      -0.02  pred     +9.1% t13.91 HOLDS   shuf     +0.0% t  nan fails   oracle    +11.1% t18.72 HOLDS
+      -0.05  pred    +17.2% t18.75 HOLDS   shuf     +9.1% t16.40 HOLDS   oracle    +19.6% t26.57 HOLDS
+      -0.10  pred    +26.3% t23.27 HOLDS   shuf     +9.1% t16.40 HOLDS   oracle    +31.2% t33.21 HOLDS
+    H_aug_clw64  raw 64.0% traced at Dice 0.7576
+      -0.02  pred     +0.0% t  nan fails   shuf     +0.0% t  nan fails   oracle     +0.0% t  nan fails
+      -0.05  pred     +6.7% t10.77 HOLDS   shuf     +4.4% t11.47 HOLDS   oracle     +8.4% t15.28 HOLDS
+      -0.10  pred    +15.7% t13.49 HOLDS   shuf     +6.8% t13.40 HOLDS   oracle    +18.3% t22.14 HOLDS
+    K_focal_aug_clw32  raw 58.4% traced at Dice 0.7786
+      -0.02  pred     +4.1% t 8.01 HOLDS   shuf     +0.0% t  nan fails   oracle     +5.0% t10.27 HOLDS
+      -0.05  pred    +11.8% t13.75 HOLDS   shuf     +6.4% t12.58 HOLDS   oracle    +13.6% t19.25 HOLDS
+      -0.10  pred    +19.3% t15.75 HOLDS   shuf     +6.4% t12.58 HOLDS   oracle    +21.2% t22.82 HOLDS
+    K_focal_aug_clw64  raw 68.9% traced at Dice 0.7466
+      -0.02  pred     +2.2% t17.55 HOLDS   shuf     +0.0% t  nan fails   oracle     +2.7% t14.14 HOLDS
+      -0.05  pred     +4.5% t 8.58 HOLDS   shuf     +3.0% t 9.04 HOLDS   oracle     +5.1% t15.33 HOLDS
+      -0.10  pred    +11.4% t10.44 HOLDS   shuf     +4.1% t14.12 HOLDS   oracle    +13.9% t18.14 HOLDS
+    A_dice_clw64  raw 44.6% traced at Dice 0.7901
+      -0.02  pred     +8.2% t11.04 HOLDS   shuf     +0.0% t  nan fails   oracle    +10.5% t16.14 HOLDS
+      -0.05  pred    +14.9% t15.74 HOLDS   shuf     +7.4% t17.08 HOLDS   oracle    +17.3% t24.08 HOLDS
+      -0.10  pred    +23.6% t18.41 HOLDS   shuf     +7.4% t17.08 HOLDS   oracle    +28.5% t28.38 HOLDS
+    H_aug_w64_d5  raw 37.8% traced at Dice 0.8254
+      -0.02  pred     +8.0% t12.48 HOLDS   shuf     +0.0% t  nan fails   oracle    +10.2% t13.64 HOLDS
+      -0.05  pred    +19.8% t18.75 HOLDS   shuf     +8.1% t11.88 HOLDS   oracle    +23.9% t22.37 HOLDS
+      -0.10  pred    +28.8% t23.70 HOLDS   shuf     +8.1% t11.88 HOLDS   oracle    +34.0% t26.57 HOLDS
+
+  [retired (negative control)]
+    K_focal_aug  raw 43.8% traced at Dice 0.7991
+      -0.02  pred     +7.5% t13.58 HOLDS   shuf     +0.0% t  nan fails   oracle     +8.7% t17.03 HOLDS
+      -0.05  pred    +16.1% t15.48 HOLDS   shuf     +6.5% t16.17 HOLDS   oracle    +22.1% t25.39 HOLDS
+      -0.10  pred    +24.7% t17.79 HOLDS   shuf     +6.5% t16.17 HOLDS   oracle    +29.5% t28.80 HOLDS
+    G_focal  raw 37.2% traced at Dice 0.8089
+      -0.02  pred     +6.7% t11.98 HOLDS   shuf     +0.0% t  nan fails   oracle     +8.8% t13.46 HOLDS
+      -0.05  pred    +17.3% t18.35 HOLDS   shuf     +7.0% t12.23 HOLDS   oracle    +22.2% t21.85 HOLDS
+      -0.10  pred    +26.3% t22.77 HOLDS   shuf     +7.0% t12.23 HOLDS   oracle    +32.3% t25.63 HOLDS
+
+--- not splitting runs the prediction bridges ---
+
+  [control]
+    A_dice  raw 55.4% traced at Dice 0.8166
+      -0.02  pred     +7.4% t15.03 HOLDS   shuf     +0.0% t  nan fails   oracle     +9.1% t22.96 HOLDS
+      -0.05  pred    +12.6% t19.48 HOLDS   shuf     +5.4% t18.49 HOLDS   oracle    +12.6% t28.11 HOLDS
+      -0.10  pred    +13.8% t21.10 HOLDS   shuf     +5.4% t18.49 HOLDS   oracle    +16.4% t34.87 HOLDS
+    H_aug  raw 58.7% traced at Dice 0.8223
+      -0.02  pred     +6.7% t21.02 HOLDS   shuf     +0.0% t  nan fails   oracle     +8.2% t28.28 HOLDS
+      -0.05  pred     +8.7% t26.29 HOLDS   shuf     +5.2% t22.04 HOLDS   oracle    +11.1% t36.45 HOLDS
+      -0.10  pred    +11.9% t32.15 HOLDS   shuf     +5.2% t22.04 HOLDS   oracle    +14.6% t44.29 HOLDS
+
+  [frontier]
+    H_aug_clw2  raw 61.3% traced at Dice 0.8223
+      -0.02  pred     +6.3% t34.23 HOLDS   shuf     +0.0% t  nan fails   oracle     +4.0% t43.59 HOLDS
+      -0.05  pred     +8.3% t40.66 HOLDS   shuf     +4.8% t46.12 HOLDS   oracle    +10.9% t35.96 HOLDS
+      -0.10  pred    +11.7% t31.25 HOLDS   shuf     +4.8% t46.12 HOLDS   oracle    +14.3% t41.20 HOLDS
+    H_aug_clw8  raw 66.9% traced at Dice 0.8168
+      -0.02  pred     +3.0% t36.74 HOLDS   shuf     +0.0% t  nan fails   oracle     +3.7% t27.22 HOLDS
+      -0.05  pred     +7.2% t25.55 HOLDS   shuf     +4.3% t30.14 HOLDS   oracle     +9.4% t44.10 HOLDS
+      -0.10  pred    +10.0% t32.11 HOLDS   shuf     +4.3% t30.14 HOLDS   oracle    +12.4% t48.98 HOLDS
+    H_aug_clw16  raw 71.3% traced at Dice 0.8066
+      -0.02  pred     +2.6% t35.46 HOLDS   shuf     +0.0% t  nan fails   oracle     +3.2% t44.15 HOLDS
+      -0.05  pred     +4.7% t41.30 HOLDS   shuf     +3.7% t44.68 HOLDS   oracle     +6.0% t54.24 HOLDS
+      -0.10  pred     +7.5% t43.28 HOLDS   shuf     +3.7% t44.68 HOLDS   oracle    +10.6% t34.48 HOLDS
+    H_aug_clw64  raw 80.8% traced at Dice 0.7576
+      -0.02  pred     +0.0% t  nan fails   shuf     +0.0% t  nan fails   oracle     +0.0% t  nan fails
+      -0.05  pred     +1.9% t18.68 HOLDS   shuf     +1.7% t28.89 HOLDS   oracle     +2.2% t35.17 HOLDS
+      -0.10  pred     +4.3% t24.88 HOLDS   shuf     +2.4% t26.08 HOLDS   oracle     +5.7% t35.27 HOLDS
+    K_focal_aug_clw32  raw 75.9% traced at Dice 0.7786
+      -0.02  pred     +1.3% t 4.23 HOLDS   shuf     +0.0% t  nan fails   oracle     +1.5% t 8.67 HOLDS
+      -0.05  pred     +3.7% t10.86 HOLDS   shuf     +2.6% t14.06 HOLDS   oracle     +4.5% t21.83 HOLDS
+      -0.10  pred     +5.9% t16.19 HOLDS   shuf     +2.6% t14.06 HOLDS   oracle     +7.3% t30.79 HOLDS
+    K_focal_aug_clw64  raw 80.8% traced at Dice 0.7466
+      -0.02  pred     +0.8% t17.06 HOLDS   shuf     +0.0% t  nan fails   oracle     +1.2% t24.06 HOLDS
+      -0.05  pred     +1.4% t15.64 HOLDS   shuf     +1.4% t22.25 HOLDS   oracle     +1.8% t28.69 HOLDS
+      -0.10  pred     +3.6% t22.38 HOLDS   shuf     +2.0% t25.89 HOLDS   oracle     +5.1% t33.62 HOLDS
+    A_dice_clw64  raw 67.6% traced at Dice 0.7901
+      -0.02  pred     +2.7% t 9.90 HOLDS   shuf     +0.0% t  nan fails   oracle     +3.1% t11.99 HOLDS
+      -0.05  pred     +4.7% t16.28 HOLDS   shuf     +3.3% t12.89 HOLDS   oracle     +5.8% t21.63 HOLDS
+      -0.10  pred     +8.7% t16.17 HOLDS   shuf     +3.3% t12.89 HOLDS   oracle    +10.7% t29.07 HOLDS
+    H_aug_w64_d5  raw 63.9% traced at Dice 0.8254
+      -0.02  pred     +3.4% t35.36 HOLDS   shuf     +0.0% t  nan fails   oracle     +3.9% t37.49 HOLDS
+      -0.05  pred     +7.4% t45.66 HOLDS   shuf     +4.6% t36.34 HOLDS   oracle     +9.5% t52.66 HOLDS
+      -0.10  pred    +10.2% t55.06 HOLDS   shuf     +4.6% t36.34 HOLDS   oracle    +12.6% t57.81 HOLDS
+
+  [retired (negative control)]
+    K_focal_aug  raw 63.4% traced at Dice 0.7991
+      -0.02  pred     +2.7% t 7.19 HOLDS   shuf     +0.0% t  nan fails   oracle     +3.2% t11.00 HOLDS
+      -0.05  pred     +6.0% t15.56 HOLDS   shuf     +3.6% t12.53 HOLDS   oracle     +8.4% t26.37 HOLDS
+      -0.10  pred     +9.0% t18.04 HOLDS   shuf     +3.6% t12.53 HOLDS   oracle    +11.8% t28.70 HOLDS
+    G_focal  raw 57.8% traced at Dice 0.8089
+      -0.02  pred     +3.9% t 7.18 HOLDS   shuf     +0.0% t  nan fails   oracle     +4.5% t 8.25 HOLDS
+      -0.05  pred     +9.0% t14.11 HOLDS   shuf     +5.0% t 9.13 HOLDS   oracle    +11.1% t17.06 HOLDS
+      -0.10  pred    +12.4% t17.67 HOLDS   shuf     +5.0% t 9.13 HOLDS   oracle    +14.7% t21.02 HOLDS
+
+The verdict is read at the TIGHTEST budget under the second
+convention. If the three budgets or the two conventions disagree,
+that disagreement is the result -- do not quote the one that
+flatters.

@@ -69,6 +69,51 @@ def ellipse(along: float, across: float, angle: float) -> np.ndarray:
     return inside
 
 
+def axis_element(along: float, across: float, angle: float) -> np.ndarray:
+    """A structuring element that ACTUALLY reaches `along` at `angle`.
+
+    REPLACES ellipse() inside oriented_dilation on 2026-09-01. The ellipse
+    tested each lattice point for `(u/a)^2 + (v/b)^2 <= 1`, which is exact in
+    continuous space and badly wrong on a grid: the lattice point nearest the
+    axis at distance `a` sits up to 0.71 px off it, so with a thin `b` the tip
+    fails the test and the element is silently shorter than asked. Measured
+    over the sweep's own grid at DRIVE's 2.83 px width:
+
+        ALONG=0.5 ACROSS=0.25 (the geometry the sweep PICKED): asked 1.41 px,
+        delivered a mean of 0.71, and EXACTLY 0.00 in 4 of the 16 orientation
+        bins -- the two diagonal bands. Diagonal vessels received no growth
+        along their axis at all.
+        ALONG=2.0 ACROSS=0.25: asked 5.66 px, delivered 3.98-5.00 (78%).
+
+    So `along` did not mean what it said, the shortfall depended on the
+    vessel's orientation, and it was worst exactly where it was smallest.
+    Every postproc/direction_ceiling CSV written before 2026-09-01 carries it.
+
+    The fix is to rasterise the axis instead of testing membership: step along
+    the segment at half-pixel intervals and round, which puts a lattice point
+    within 0.5 px of every point on it, then thicken by `across`. Reach is
+    then exact by construction rather than by luck, at every angle.
+    """
+    reach = int(np.ceil(max(along, across)))
+    if reach < 1:
+        return np.ones((1, 1), dtype=bool)
+    size = 2 * reach + 1
+    out = np.zeros((size, size), dtype=bool)
+    out[reach, reach] = True
+    if along >= 0.5:
+        steps = max(int(np.ceil(along * 2)), 1)
+        for step in range(-steps, steps + 1):
+            distance = along * step / steps
+            row = int(round(reach + distance * np.sin(angle)))
+            column = int(round(reach + distance * np.cos(angle)))
+            out[row, column] = True
+    if across >= 0.5:
+        yy, xx = np.mgrid[-reach:reach + 1, -reach:reach + 1]
+        out = ndimage.binary_dilation(
+            out, structure=(xx * xx + yy * yy) <= across * across)
+    return out
+
+
 def bin_index(sin2: np.ndarray, cos2: np.ndarray) -> np.ndarray:
     """Which orientation bin each pixel's axis falls in.
 
@@ -100,7 +145,7 @@ def oriented_dilation(mask: np.ndarray, sin2: np.ndarray, cos2: np.ndarray,
             continue
         angle = (index + 0.5) / BINS * np.pi
         out |= ndimage.binary_dilation(
-            source, structure=ellipse(along, across, angle))
+            source, structure=axis_element(along, across, angle))
     return out
 
 
@@ -128,7 +173,34 @@ def shuffled_field(shape: tuple, seed: int) -> tuple:
     return np.sin(2 * theta), np.cos(2 * theta)
 
 
+def _bin_angles():
+    return [(index + 0.5) / BINS * np.pi for index in range(BINS)]
+
+
+def _reach_of(element: np.ndarray, angle: float) -> float:
+    """How far the element actually extends along `angle`."""
+    radius = element.shape[0] // 2
+    rows, columns = np.nonzero(element)
+    return float(np.max((columns - radius) * np.cos(angle)
+                        + (rows - radius) * np.sin(angle)))
+
+
 def selftest() -> None:
+    # THE REACH MUST BE THE REACH, AT EVERY ORIENTATION. This is the check
+    # that was missing while the sweep ran, and its absence is why the
+    # picked geometry delivered zero growth on diagonal vessels.
+    print("delivered reach vs asked, worst orientation bin:")
+    for along, across in ((1.41, 0.71), (2.83, 0.71), (5.66, 0.71),
+                          (5.66, 0.0)):
+        worst = min(_reach_of(axis_element(along, across, ang), ang)
+                    for ang in _bin_angles())
+        old = min(_reach_of(ellipse(along, across, ang), ang)
+                  for ang in _bin_angles())
+        print(f"  along {along:5.2f} across {across:4.2f}: "
+              f"axis_element {worst:5.2f}  (ellipse was {old:5.2f})")
+        assert worst >= along - 1.0, (along, across, worst)
+        assert worst >= old, (worst, old)
+
     # An ellipse aligned with the x axis must be wide in x and thin in y.
     flat = ellipse(4.0, 1.0, 0.0)
     assert flat.shape == (9, 9), flat.shape
