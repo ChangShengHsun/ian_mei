@@ -55,3 +55,21 @@ desktop.ini
 *.tmp
 scratch/
 tmp/
+
+# ------------------------------------------------------------ results
+# UNTRACKED FROM 2026-09-06, by Ivan's decision. exp/results/ was moved to
+# /tmp2/ivanchang/ian_mei_results on 2026-09-03 to free 30 GB on the repo
+# disk and replaced by a symlink; git then read all 2193 tracked result files
+# as deleted on every status.
+#
+# WHAT THIS COSTS. `git show HEAD:exp/results/...` no longer recovers a
+# damaged table. That recovery was used for real on 2026-09-03, when a loop
+# truncated checkpoint_scores.csv down to 1 run of 460.
+#
+# WHAT STILL WORKS. History is not rewritten. Everything committed up to
+# 6f9a4ed is reachable by naming that commit:
+#     git show 6f9a4ed:exp/results/heldout/checkpoint_scores.csv > out.csv
+# (verified 2026-09-06: 72001 lines came back.) So the net is FROZEN, not
+# gone. Results produced after 6f9a4ed live only on /tmp2 and git does not
+# back them up -- treat that directory as the only copy.
+exp/results
