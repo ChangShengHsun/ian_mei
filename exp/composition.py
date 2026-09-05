@@ -30,12 +30,26 @@ images -- the third level of the protocol leak, caught 2026-09-01.
   python exp/composition.py --selftest
   python exp/composition.py --dev --shard 0/4
   python exp/composition.py --shard 0/4
+  python exp/composition.py --lower --dev --shard 0/4
+  python exp/composition.py --lower --shard 0/4
   python exp/composition.py --report
 
-Writes results/heldout/composition[_dev][.shardIofN].csv.
+Writes results/heldout/composition[_dev][_lower][.shardIofN].csv.
+
+ADDED 2026-09-03, after the endpoint controls came back dead: `endpoint_shuf`
+matched or beat `endpoint` in 7 of 10 arms at convention B, so the endpoint
+result is about the RESTRICTION and not the field. That leaves one comparator
+missing from this file. Every source here spends its Dice budget on an
+operator; none of them spends it the way threshold_control showed was best,
+which is simply moving the threshold down again. `lower` is that arm: the
+same base mask, the same budget, spent on the threshold instead of on
+morphology. If it matches endpoint growth, the endpoint restriction is not a
+method either -- it is the fourth artefact, and the whole post-processing
+layer is a budget illusion rather than a place where geometry helps.
 """
 import csv
 import sys
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -67,6 +81,40 @@ ISOTROPIC = sweep.ISOTROPIC
 # is about what each does with it.
 BASE_BUDGET = 0.02
 
+# The thresholds `lower` is allowed to move to. Two pieces on purpose.
+#
+# frontier.THRESHOLDS stops at 0.10, and the base threshold picked at
+# BASE_BUDGET already SITS on that floor for A_dice, H_aug and H_aug_w64_d5
+# (measured from the existing composition csvs, 2026-09-03). Offering those
+# three arms only the standard grid would hand them an empty comparator and
+# the table would read "thresholding has nothing left" when the real cause is
+# that the grid ran out. So the comparator extends below the floor; where the
+# extension is what wins, the table says so and that is itself a finding
+# about the grid, not about the operator.
+EXTENDED = tuple(round(0.010 + 0.010 * step, 3) for step in range(9))
+
+
+def lower_grid(base: float) -> tuple[float, ...]:
+    """Every threshold strictly below `base`, standard grid plus extension.
+
+    Strictly below: `base` itself is already measured as `raw`, and a `lower`
+    row at the base threshold would be a duplicate of it under another name.
+    """
+    both = set(control.THRESHOLDS) | set(EXTENDED)
+    return tuple(sorted(t for t in both if t < base - 1e-9))
+
+
+def stable_seed(*parts) -> int:
+    """A reproducible seed for the shuffled control.
+
+    zlib.crc32, not hash(): Python randomises str/tuple hashes per process, so
+    the same run scored twice drew a DIFFERENT random field and the control
+    column could not be reproduced. Same defect as the sharding bug of
+    2026-09-01, in a place where it degraded reproducibility rather than
+    coverage.
+    """
+    return zlib.crc32("|".join(str(part) for part in parts).encode())
+
 
 def endpoints_of(mask: np.ndarray) -> np.ndarray:
     """Skeleton pixels with exactly one neighbour -- where a break shows.
@@ -88,6 +136,26 @@ def endpoint_growth(mask, ends, sin2, cos2, along, across, fov):
         return mask.copy()
     grown = anisotropic.oriented_dilation(ends, sin2, cos2, along, across)
     return (mask | grown) & fov
+
+
+def endpoint_disc(mask, ends, radius, fov):
+    """The mask, plus an ISOTROPIC disc at each endpoint.
+
+    THE CONTROL THAT SEPARATES THE TWO CLAIMS. `endpoint` beating `raw` can
+    mean either of two things and they need different papers:
+
+      the endpoints are the right PLACE to spend the Dice budget, or
+      the field is the right DIRECTION to spend it in.
+
+    This arm keeps the place and throws away the direction. If it scores like
+    `endpoint`, the contribution is the restriction and the field is decoration
+    -- which is the same shape as the closing baseline that beat the C1 oracle
+    until its cost was matched. `endpoint_shuf` (the field replaced by noise,
+    the restriction kept) is the third corner of the same square.
+    """
+    if radius < 0.5:
+        return mask.copy()
+    return (mask | anisotropic.isotropic_dilation(ends, radius)) & fov
 
 
 def base_threshold(dev_rows, config: str, metric: str) -> float:
@@ -112,6 +180,14 @@ def base_threshold(dev_rows, config: str, metric: str) -> float:
 def selftest() -> None:
     for config in ARMS:
         assert config in train.CONFIGS, config
+    # The shared partition check, run here too: this file was one of the four
+    # that silently lost seeds to hash-based sharding on 2026-09-01.
+    work = [f"a_s{index}" for index in range(17)]
+    for total in (2, 4, 5):
+        flat = [r for i in range(total)
+                for r in sweep.shard_filter(work, (i, total))]
+        assert sorted(flat) == sorted(work) and len(flat) == len(set(flat))
+    print("sharding is an exact partition over 2/4/5 shards")
     assert 0.0 in ALONG and 0.0 in ACROSS
 
     # 1. AN ENDPOINT IS AN ENDPOINT. A straight segment has exactly two; a
@@ -171,7 +247,18 @@ def selftest() -> None:
           f"foreground (whole-mask needs {added_full} px for the same close)")
     assert after < before, (before, after)
 
-    # 4. THE BASE THRESHOLD IS PICKED ON DEV, AND IT IS THE ARM'S OWN. Build
+    # 4. THE CONTROLS MUST BE DISTINGUISHABLE FROM THE THING THEY CONTROL.
+    #    At the same endpoint restriction, a disc must spend MORE foreground
+    #    than the oriented growth for the same reach -- if it did not, the
+    #    direction would be buying nothing and `endpoint` could not be read
+    #    as a claim about direction.
+    disc = endpoint_disc(broken, ends, 4.0, fov)
+    print(f"at the same endpoints and the same reach 4: oriented adds "
+          f"{added_tips} px, an isotropic disc adds "
+          f"{int(disc.sum() - broken.sum())} px")
+    assert int(disc.sum() - broken.sum()) > added_tips, disc.sum()
+
+    # 5. THE BASE THRESHOLD IS PICKED ON DEV, AND IT IS THE ARM'S OWN. Build
     #    a curve where 0.5 is not the best and check it moves.
     rows = []
     for threshold, dice, traced in ((0.5, 0.820, 0.40), (0.3, 0.805, 0.55),
@@ -182,6 +269,28 @@ def selftest() -> None:
     print(f"base threshold on this dev curve: {got} "
           f"(0.1 costs {0.820 - 0.780:.3f} Dice, over the {BASE_BUDGET} budget)")
     assert got == 0.3, got
+
+    # 6. `lower` MUST ACTUALLY LOWER, AND MUST REACH BELOW THE GRID FLOOR.
+    #    The rule this repo adopted on 2026-09-02 after three silent
+    #    instrument bugs: assert the operator delivers what its name promises,
+    #    do not infer it from the results looking sensible.
+    floor_grid = lower_grid(0.1)
+    assert floor_grid and max(floor_grid) < 0.1, floor_grid
+    assert min(floor_grid) < min(control.THRESHOLDS), floor_grid
+    wide = lower_grid(0.4)
+    assert all(t < 0.4 for t in wide) and 0.375 in wide, wide
+    assert list(wide) == sorted(set(wide)), wide
+    print(f"lower grid below 0.1: {len(floor_grid)} thresholds, "
+          f"min {min(floor_grid)} (grid floor is {min(control.THRESHOLDS)}); "
+          f"below 0.4: {len(wide)}")
+
+    #    And a lower threshold must produce MORE foreground, or the source is
+    #    measuring something other than what it is named.
+    prob = np.zeros((40, 40), dtype=np.float32)
+    prob[10:30, 10:30] = np.linspace(0.0, 1.0, 20, dtype=np.float32)
+    sizes = [int((prob >= t).sum()) for t in (0.4, 0.2, 0.05)]
+    assert sizes[0] < sizes[1] < sizes[2], sizes
+    print(f"foreground at thresholds 0.40/0.20/0.05: {sizes} (monotone)")
     print("all checks passed")
 
 
@@ -230,6 +339,28 @@ def pick(rows, config, source, floor, metric, budget):
     return None if best is None else best[0]
 
 
+def pick_lower(rows, config, floor, metric, budget):
+    """Best threshold BELOW the base one within the same Dice budget, on dev.
+
+    Returns the threshold as the STRING the csv stores, because that is what
+    the test rows are matched on -- 0.075 and '0.075' are not the same key and
+    a float round-trip through csv is exactly how a silent empty column
+    happens.
+    """
+    best = None
+    for value in sorted({r["threshold"] for r in rows
+                         if r["config"] == config and r["source"] == "lower"}):
+        cells = [r for r in rows if r["config"] == config
+                 and r["source"] == "lower" and r["threshold"] == value]
+        dice = float(np.mean([r["dice"] for r in cells]))
+        if dice < floor - budget:
+            continue
+        traced = float(np.mean([r[metric] for r in cells]))
+        if best is None or traced > best[1]:
+            best = (value, traced)
+    return None if best is None else best[0]
+
+
 def report() -> None:
     import calibration
     rows, dev_rows = load("test"), load("dev")
@@ -249,7 +380,8 @@ def report() -> None:
             if floor is None or raw_of(rows, config) is None:
                 continue
             base = sorted({r["threshold"] for r in rows
-                           if r["config"] == config})
+                           if r["config"] == config
+                           and r["source"] == "raw"})
             traced = float(np.mean([r[metric] for r in rows
                                     if r["config"] == config
                                     and r["source"] == "raw"]))
@@ -258,17 +390,21 @@ def report() -> None:
                   f"{raw_of(rows, config):.4f}")
             for budget in (0.02, 0.05):
                 cells = []
-                for source in ("predicted", "endpoint", "isotropic",
+                for source in ("lower", "predicted", "endpoint",
+                               "endpoint_shuf", "endpoint_iso", "isotropic",
                                "shuffled"):
-                    setting = pick(dev_rows, config, source, floor, metric,
-                                   budget)
+                    setting = (pick_lower(dev_rows, config, floor, metric,
+                                          budget) if source == "lower" else
+                               pick(dev_rows, config, source, floor, metric,
+                                    budget))
                     if setting is None:
                         cells.append(f"{source} {'--':>18}")
                         continue
                     mine = {(r["seed"], r["image"]): r[metric] for r in rows
                             if r["config"] == config
                             and r["source"] == source
-                            and (r["along"], r["across"]) == setting}
+                            and (r["threshold"] == setting if source == "lower"
+                                 else (r["along"], r["across"]) == setting)}
                     theirs = {(r["seed"], r["image"]): r[metric] for r in rows
                               if r["config"] == config
                               and r["source"] == "raw"}
@@ -291,6 +427,11 @@ def report() -> None:
     print("threshold, not on top of 0.5. `shuffled` is the control and must")
     print("fail; `isotropic` is what direction has to beat; `raw` winning")
     print("everywhere means the field spends Dice worse than the threshold.")
+    print("`lower` spends the SAME budget by moving the threshold down again")
+    print("instead of dilating. It is not one of the operators -- it is the")
+    print("question of whether any operator is needed. `lower` matching or")
+    print("beating `endpoint` means the endpoint restriction buys nothing")
+    print("that the threshold does not already buy more cheaply.")
 
 
 # -------------------------------------------------------------------- main
@@ -308,7 +449,10 @@ def main() -> None:
             part, total = sys.argv[index + 1].split("/")
             shard = (int(part), int(total))
     split = "dev" if "--dev" in sys.argv else "test"
+    only_lower = "--lower" in sys.argv
     stem = "composition" if split == "test" else "composition_dev"
+    if only_lower:
+        stem += "_lower"
     target = heldout.ROOT / (f"{stem}.csv" if shard is None else
                              f"{stem}.shard{shard[0]}of{shard[1]}.csv")
 
@@ -318,7 +462,13 @@ def main() -> None:
                          "is chosen from it. Run exp/threshold_control.py "
                          "--dev first.")
     epochs = heldout.chosen_epochs()
+    # Keyed on the stem, so the --lower pass resumes against its OWN csvs.
+    # Globbing "composition*" here would find the finished ordinary pass,
+    # read every (config, seed) as done, and write an empty file in seconds --
+    # the same defect threshold_control.files_for was written to prevent.
     found = sorted(heldout.ROOT.glob(f"{stem}*.csv"))
+    if not only_lower:
+        found = [p for p in found if "_lower" not in p.name]
     is_dev = [p for p in found if p.name.startswith("composition_dev")]
     done = set()
     for existing in (is_dev if split == "dev" else
@@ -346,12 +496,10 @@ def main() -> None:
             runs = sorted(r for r in epochs
                           if r.rsplit("_s", 1)[0] == config
                           and (heldout.ROOT / r / "final.pt").exists())
-            for run in runs:
+            # Stride over a sorted list, never hash(): see sweep.shard_filter.
+            for run in sweep.shard_filter(runs, shard):
                 seed = run.rsplit("_s", 1)[1]
                 if (config, seed) in done or seed not in seeds:
-                    continue
-                if shard is not None and \
-                        abs(hash((config, seed))) % shard[1] != shard[0]:
                     continue
                 model, mean, std = sweep.load_model(run, config, epochs, data)
                 if model is None:
@@ -369,6 +517,16 @@ def main() -> None:
                                 "across": 0.0,
                                 **sweep.measure(pred, geo["skel"],
                                                 geo["truth"])})
+                    if only_lower:
+                        for value in lower_grid(base):
+                            down = speckle.drop_small(
+                                (prob >= value) & item["fov"], component_px)
+                            out.append({**common, "source": "lower",
+                                        "threshold": value, "along": 0.0,
+                                        "across": 0.0,
+                                        **sweep.measure(down, geo["skel"],
+                                                        geo["truth"])})
+                        continue
                     for radius in ISOTROPIC:
                         if radius == 0.0:
                             continue
@@ -383,7 +541,7 @@ def main() -> None:
                         continue
                     shuffled = anisotropic.shuffled_field(
                         item["label"].shape,
-                        seed=abs(hash((run, item["name"]))) % 2**31)
+                        seed=stable_seed(run, item["name"]))
                     for source, (sin2, cos2) in (("predicted", predicted),
                                                  ("shuffled", shuffled)):
                         for along in ALONG:
@@ -397,18 +555,29 @@ def main() -> None:
                                             "along": along, "across": across,
                                             **sweep.measure(grown, geo["skel"],
                                                             geo["truth"])})
-                    sin2, cos2 = predicted
-                    for along in ALONG:
-                        for across in ACROSS:
-                            if along == 0.0 and across == 0.0:
-                                continue
-                            grown = endpoint_growth(
-                                pred, ends, sin2, cos2, along * width,
-                                across * width, item["fov"])
-                            out.append({**common, "source": "endpoint",
-                                        "along": along, "across": across,
-                                        **sweep.measure(grown, geo["skel"],
-                                                        geo["truth"])})
+                    for source, field in (("endpoint", predicted),
+                                          ("endpoint_shuf", shuffled)):
+                        sin2, cos2 = field
+                        for along in ALONG:
+                            for across in ACROSS:
+                                if along == 0.0 and across == 0.0:
+                                    continue
+                                grown = endpoint_growth(
+                                    pred, ends, sin2, cos2, along * width,
+                                    across * width, item["fov"])
+                                out.append({**common, "source": source,
+                                            "along": along, "across": across,
+                                            **sweep.measure(grown, geo["skel"],
+                                                            geo["truth"])})
+                    for radius in ISOTROPIC:
+                        if radius == 0.0:
+                            continue
+                        grown = endpoint_disc(pred, ends, radius * width,
+                                              item["fov"])
+                        out.append({**common, "source": "endpoint_iso",
+                                    "along": radius, "across": radius,
+                                    **sweep.measure(grown, geo["skel"],
+                                                    geo["truth"])})
                 if writer is None:
                     writer = csv.DictWriter(handle, fieldnames=list(out[0]))
                     if fresh:

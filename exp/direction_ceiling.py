@@ -52,6 +52,7 @@ Writes results/selection_sweep/direction_ceiling.csv.
 """
 import csv
 import sys
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -87,13 +88,25 @@ ACROSS = (0.0, 0.25, 0.5, 1.0)
 ISOTROPIC = (0.0, 0.25, 0.5, 0.75, 1.0, 1.5)
 
 
+def stable_seed(*parts) -> int:
+    """A reproducible seed for the shuffled control.
+
+    zlib.crc32, not hash(): Python randomises str/tuple hashes per process, so
+    the same run scored twice drew a DIFFERENT random field and the control
+    column could not be reproduced. Same defect as the sharding bug of
+    2026-09-01, in a place where it degraded reproducibility rather than
+    coverage.
+    """
+    return zlib.crc32("|".join(str(part) for part in parts).encode())
+
+
 def fields_for(run: str, config: str, item: dict, model, data,
                mean, std) -> dict:
     """The three axis fields this run is scored under."""
     truth = direction.tangent_field(item["label"] & item["fov"])
     out = {"oracle": (truth[0], truth[1]),
            "shuffled": anisotropic.shuffled_field(
-               item["label"].shape, seed=abs(hash((run, item["name"]))) % 2**31)}
+               item["label"].shape, seed=stable_seed(run, item["name"]))}
     if train.uses_direction(config):
         out["predicted"] = score_direction.predict_field(
             model, item["image"], mean, std)

@@ -40,6 +40,7 @@ being true here, the sweep is measuring dilation and not direction.
 """
 import csv
 import sys
+import zlib
 from pathlib import Path
 
 import numpy as np
@@ -91,6 +92,44 @@ FRONTIER = ("H_aug_clw2", "H_aug_clw8", "H_aug_clw16", "H_aug_clw64",
 RETIRED = ("K_focal_aug", "G_focal")
 
 
+def stable_seed(*parts) -> int:
+    """A reproducible seed for the shuffled control.
+
+    zlib.crc32, not hash(): Python randomises str/tuple hashes per process, so
+    the same run scored twice drew a DIFFERENT random field and the control
+    column could not be reproduced. Same defect as the sharding bug of
+    2026-09-01, in a place where it degraded reproducibility rather than
+    coverage.
+    """
+    return zlib.crc32("|".join(str(part) for part in parts).encode())
+
+
+def shard_filter(items: list, shard) -> list:
+    """One shard's slice of a work list. THE PARTITION MUST BE EXACT.
+
+    CAUGHT 2026-09-01. Every sharded sweep in this repo used
+    `abs(hash((config, seed))) % total`, and Python randomises the hash of a
+    str or a tuple PER PROCESS unless PYTHONHASHSEED is set. So each shard
+    computed a DIFFERENT partition: some runs were claimed by two shards (the
+    resume set caught those) and some by none (nothing caught those). The
+    damage was silent and everywhere --
+
+        postproc_ceiling   A_dice had 10 of 12 seeds, H_aug_clw16 had 9
+        composition        A_dice, H_aug_clw2, H_aug_clw16 had 3 of 6
+        terminal_anatomy   H_aug had 7 of 12
+        transfer_calibration  stare/A_dice had 2 of 3, which is under the
+                              gate's minimum, so every cell of that table
+                              printed "--" and the stage looked merely
+                              unfinished rather than wrong.
+
+    Slicing a SORTED list by stride is deterministic, needs no hash, and is a
+    partition by construction. There is no reason the other form ever existed.
+    """
+    if shard is None:
+        return list(items)
+    return sorted(items)[shard[0]::shard[1]]
+
+
 def measure(mask, skel, truth) -> dict:
     return {"erl_split": round(
                 erl.expected_run_length(skel, mask) / skel.sum(), 5),
@@ -136,6 +175,18 @@ def shared_fields(field_arm: str, epochs: dict, items: list, data: dict,
 
 
 def selftest() -> None:
+    # 0. SHARDING MUST BE A PARTITION, AND IT MUST NOT DEPEND ON hash().
+    #    This is the check whose absence let four tables run with missing
+    #    seeds on 2026-09-01.
+    work = [f"arm_s{index}" for index in range(23)]
+    for total in (1, 3, 4, 6, 7):
+        pieces = [shard_filter(work, (index, total)) for index in range(total)]
+        flat = [item for piece in pieces for item in piece]
+        assert sorted(flat) == sorted(work), (total, len(flat))
+        assert len(flat) == len(set(flat)), total
+    print(f"sharding {len(work)} items over 1/3/4/6/7 shards: every split is "
+          f"an exact partition, no item lost or doubled")
+
     # 1. The arm lists must name real configs, or the sweep silently covers
     #    fewer arms than the table claims.
     for config in CONTROL + FRONTIER + RETIRED:
@@ -267,6 +318,7 @@ def main() -> None:
         for config in wanted:
             runs = sorted(r for r in epochs
                           if r.rsplit("_s", 1)[0] == config)
+            claimed = set(shard_filter(runs, shard))
             if not runs:
                 print(f"[{config}] no runs under {heldout.ROOT}; skipping",
                       flush=True)
@@ -279,10 +331,8 @@ def main() -> None:
                 # rows into its OWN file. Two processes appending to one CSV
                 # interleave partial lines under load, and a half-written row
                 # is worse than a missing one -- it parses.
-                if shard is not None:
-                    key = abs(hash((config, seed))) % shard[1]
-                    if key != shard[0]:
-                        continue
+                if run not in claimed:
+                    continue
                 model, mean, std = load_model(run, config, epochs, data)
                 if model is None:
                     continue
@@ -310,7 +360,7 @@ def main() -> None:
                         "oracle": oracle[item["name"]][:2],
                         "shuffled": anisotropic.shuffled_field(
                             item["label"].shape,
-                            seed=abs(hash((run, item["name"]))) % 2**31)}
+                            seed=stable_seed(run, item["name"]))}
                     got = fields.get((seed, item["name"]))
                     if got is not None:
                         sources["predicted"] = got
