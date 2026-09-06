@@ -44,6 +44,30 @@ measured 2026-09-06. HRF because that is where the room is -- 5.8% of its
 centreline sits below p=0.01 and 40.8% of that is in runs of 20 px or more,
 whole vessels never seen, against DRIVE's 1.4% and 5.3%.
 
+WHAT THE FIRST RUN CORRECTED, 2026-09-06. Two things, both mine:
+
+  1. HRF's ceiling is 0.794, not the 0.978 extrapolated from link_ceiling's
+     DRIVE measurement. The TRUE mask scores 0.794 against its own skeleton
+     and the renderer reproduces exactly that, so this is the ground truth's
+     own fragmentation, not a defect. HRF's headroom is therefore 0.708 ->
+     0.794, about NINE points, not the twenty-seven claimed before this ran.
+     DRIVE's is 0.930 -> 0.982, about five.
+  2. The "clears the bar up to sigma = 0.75 px" line the first run printed was
+     an artefact of a foreground cut this file chose (1.10x), not a property
+     of the representation. ERL is FLAT in sigma -- 0.982 on DRIVE and 0.794
+     on HRF from sigma 0 through 2.0 -- and the only cost of noise is paint:
+     1.15x at sigma 1, 1.41x at sigma 2. So the report prints the paint curve
+     and lets a reader apply their own budget.
+
+THE LIMIT OF THIS FILE, which is the important part. Gaussian displacement
+noise models a head that points roughly right everywhere. The failure this
+whole line is chasing is a head that sees NOTHING on a vessel -- 40.8% of
+HRF's invisible centreline is in runs of 20 px or more. That is field
+dropout, not field jitter, and no jitter model can price it. So this file can
+say the DECODER is safe and the renderer is faithful; it CANNOT say whether
+flux supervision makes a network see vessels it currently misses. That is a
+claim about training dynamics and only training can test it.
+
   python exp/flux_ceiling.py --selftest
   python exp/flux_ceiling.py --report
 
@@ -248,23 +272,15 @@ def report() -> None:
                           for v, r in row))
         print(f"    (* = painted more than {FG_LIMIT:.2f}x the true mask; "
               f"those cells bought ERL with paint and do not count)")
+        # The sigma=0 column IS the ceiling: the true mask's own score
+        # against its own skeleton. Saying so stops a reader treating it as a
+        # defect of the renderer -- it is the ground truth's fragmentation.
         if bar:
-            over = [s for s in SIGMAS if best[s] >= bar]
-            edge = max(over) if over else None
-            print(f"\n    Best over radii, against the {bar:.3f} bar:")
-            print("      " + "  ".join(
-                f"s={s}:{'PASS' if best[s] >= bar else 'fail'}"
-                for s in SIGMAS))
-            if edge is None:
-                print("      clears the bar at NO sigma -- the representation "
-                      "cannot reach\n      what the current arm already does, "
-                      "and is not worth building")
-            else:
-                print(f"      clears the bar up to sigma = {edge} px.")
-                print(f"      A flux head must predict the displacement to "
-                      f"within about {edge} px\n      for this to be worth "
-                      f"training. Judge that against what a\n      network "
-                      f"plausibly achieves before writing the head.")
+            print(f"\n    ERL is flat in sigma; what noise costs is PAINT.")
+            print(f"    The bar {bar:.3f} is what the current arm gets, and")
+            print(f"    the sigma=0 column is the ceiling -- the true mask's")
+            print(f"    own score against its own skeleton, so the headroom")
+            print(f"    is that column minus the bar, not one minus the bar.")
         print()
 
 
