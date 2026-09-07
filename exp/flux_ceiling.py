@@ -84,7 +84,7 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 import cross_dataset
 import drive
 import erl
-import erl_length
+import flux
 
 # DeepFlux uses a context band of 7 px around the skeleton on natural images.
 # Retinal vessels are 4.00 px wide at the median on DRIVE, STARE and HRF, so
@@ -98,34 +98,21 @@ HRF_BAR = 0.708
 DRIVE_BAR = 0.930
 
 
+# The target, decode and render live in exp/flux.py -- one definition, so
+# this file and the training head cannot quietly disagree about what the
+# representation IS. Only `corrupt` below is specific to pricing it.
 def flux_target(skel: np.ndarray, radius: float):
-    """(displacement field, band) -- the exact target a flux head would learn.
-
-    For every pixel within `radius` of the skeleton, the displacement to its
-    nearest skeleton pixel. This is DeepFlux's representation kept in pixels
-    rather than normalised, because the magnitude is what makes the decode a
-    vote rather than a search.
-    """
-    dist, (near_y, near_x) = ndimage.distance_transform_edt(
-        ~skel, return_indices=True)
-    rows, cols = np.indices(skel.shape)
-    return (near_y - rows, near_x - cols), (dist <= radius)
+    """(displacement, band), from the canonical definition in flux.py."""
+    return flux.target(skel, radius)
 
 
 def decode(displacement, band: np.ndarray, shape, votes: int = 1):
-    """Recover the centreline: every banded pixel votes for where it points.
+    """flux.decode, with this file's (dy, dx)-tuple calling convention."""
+    return flux.decode(displacement[0], displacement[1], band, votes)
 
-    A pixel is called centreline when at least `votes` pixels point at it.
-    Rounding is what makes this robust: a displacement wrong by less than half
-    a pixel lands on the same target.
-    """
-    delta_y, delta_x = displacement
-    rows, cols = np.indices(shape)
-    target_y = np.clip(np.rint(rows + delta_y), 0, shape[0] - 1).astype(int)
-    target_x = np.clip(np.rint(cols + delta_x), 0, shape[1] - 1).astype(int)
-    flat = np.bincount((target_y * shape[1] + target_x)[band],
-                       minlength=shape[0] * shape[1])
-    return flat.reshape(shape) >= votes
+
+def render(centreline: np.ndarray, radius_map: np.ndarray) -> np.ndarray:
+    return flux.render(centreline, radius_map)
 
 
 def corrupt(displacement, band, sigma: float, seed: int):
