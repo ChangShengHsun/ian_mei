@@ -25,6 +25,7 @@ from skimage.morphology import skeletonize
 sys.path.insert(0, str(Path(__file__).resolve().parent))
 import augment
 import direction
+import flux
 import drive
 import propagate
 import snake
@@ -239,6 +240,16 @@ def uses_liot(config_name: str) -> bool:
 # term, so it is a weight this repo already uses rather than a new number
 # tuned on a result. PRE-REGISTERED 2026-08-27, before the first _dir run.
 DIRECTION_WEIGHT = 0.5
+# Deliberately the same as DIRECTION_WEIGHT. D1 is the honest baseline for
+# this line -- an auxiliary geometry head that learned its target and did not
+# help -- so the flux head is given the same budget and differs from D1 in
+# WHAT the geometry is, not in how loudly it is asked for.
+FLUX_WEIGHT = 0.5
+# 5 px, not DeepFlux's 7. flux_ceiling measured the decode as robust at both,
+# and flux.py documents that the target is ambiguous where a pixel is
+# equidistant from two centrelines -- those ties sit at the outer edge of the
+# band, so the narrower radius has fewer of them.
+FLUX_RADIUS = 5.0
 
 
 def uses_direction(config_name: str) -> bool:
@@ -251,6 +262,18 @@ def uses_direction(config_name: str) -> bool:
     as the arm it is named after.
     """
     return "dir" in config_name.split("_")
+
+
+def uses_flux(config_name: str) -> bool:
+    """Whether this config carries a flux head (geometry as an OUTPUT).
+
+    `_flux` adds a second 1x1 head predicting the displacement to the nearest
+    centreline pixel, and a loss term on it. Everything else -- backbone,
+    segmentation loss, augmentation -- is the arm it is named after, so the
+    comparison isolates the head. See exp/flux.py for the representation and
+    stage-report/flux_novelty_check.md for the prior art.
+    """
+    return "flux" in config_name.split("_")
 
 
 _WIDTH_CACHE: dict = {}
@@ -412,7 +435,8 @@ def build_model(config_name: str) -> "TinyUNet":
                     propagation=(propagation_geometry(config_name)
                                  if uses_propagation(config_name)
                                  else None),
-                    shuffle=uses_shuffled_direction(config_name)).to(DEVICE)
+                    shuffle=uses_shuffled_direction(config_name),
+                    flux=uses_flux(config_name)).to(DEVICE)
 
 
 class TinyUNet(nn.Module):
@@ -432,7 +456,8 @@ class TinyUNet(nn.Module):
     def __init__(self, base: int = 16, blurpool: bool = False,
                  in_channels: int = 1, depth: int = 3,
                  direction: bool = False, propagation: tuple | None = None,
-                 shuffle: bool = False, snake_shape: dict | None = None):
+                 shuffle: bool = False, snake_shape: dict | None = None,
+                 flux: bool = False):
         super().__init__()
         self.depth = depth
         channels = [base * 2 ** level for level in range(depth)]
@@ -453,6 +478,11 @@ class TinyUNet(nn.Module):
         # because a vessel tangent is an axis and a single angle tears at the
         # wrap-around. See exp/direction.py for why, and for the test.
         self.dir_head = nn.Conv2d(base, 2, 1) if direction else None
+        # The flux head. Two channels, like dir_head, but the target is a
+        # DISPLACEMENT in pixels rather than an axis: (dy, dx) to the nearest
+        # centreline pixel. Unnormalised on purpose -- the magnitude is what
+        # lets the centreline be decoded by voting instead of searched for.
+        self.flux_head = nn.Conv2d(base, 2, 1) if flux else None
         # D-B. Between the trunk and the head, driven by dir_head's own
         # output, so a wrong field costs segmentation accuracy directly.
         self.propagation = (propagate.OrientedPropagation(*propagation)
@@ -499,6 +529,18 @@ class TinyUNet(nn.Module):
         # analysis script that calls model(image) then scores the real thing
         # rather than the pre-propagation logits.
         return self.forward_direction(x)[0]
+
+    def forward_flux(self, x: torch.Tensor) -> tuple:
+        """(segmentation logits, flux field). Training and flux decoding only.
+
+        Both come off the SAME trunk features, which is the whole point: the
+        head cannot answer the geometry question from anything the
+        segmentation head did not also see.
+        """
+        if self.flux_head is None:
+            raise ValueError("this model was built without a flux head")
+        shared = self.features(x)
+        return self.head(shared), self.flux_head(shared)
 
     def forward_direction(self, x: torch.Tensor) -> tuple:
         """(segmentation logits, tangent field). Training and D1 only."""
@@ -838,6 +880,13 @@ for _base, _extra in (("A_dice", None), ("H_aug", None),
     for _weight in CENTRELINE_WEIGHTS:
         CONFIGS[f"{_base}_clw{_weight}"] = (False, _extra)
 
+# The flux arms. Same three bases the centreline sweep uses plus the best
+# clw arm, so `_flux` can be read against BOTH its own namesake (does the head
+# help at all?) and against clw (does geometry-as-output beat
+# geometry-as-loss-weight, which is the published baseline?).
+for _base in ("A_dice", "H_aug", "H_aug_clw16", "K_focal_aug"):
+    CONFIGS[f"{_base}_flux"] = CONFIGS[_base]
+
 # D-C, the redesign of D-B. Three arms at each length, so curvature and
 # direction are each isolated by a control trained the same way:
 #
@@ -924,6 +973,24 @@ def direction_loss(field, target) -> torch.Tensor:
     return (error * weight).sum() / total
 
 
+def flux_loss(field, target) -> torch.Tensor:
+    """L1 on the displacement, inside the band only.
+
+    `target` is (dy, dx, band) in one tensor so the loss cannot be handed the
+    field without the mask that says where it means anything -- the same
+    packing direction_loss uses for its coherence weight.
+
+    L1 rather than L2: the target is a displacement in pixels and its
+    distribution has a hard edge at the band radius, where a squared penalty
+    would let a handful of far pixels dominate the gradient.
+    """
+    band = target[:, 2:3]
+    total = band.sum()
+    if total == 0:
+        return field.sum() * 0.0
+    return ((field - target[:, :2]).abs() * band).sum() / (2.0 * total)
+
+
 def centreline_loss(logits, target, skeleton, weight: float) -> torch.Tensor:
     """D-E. BCE with ground-truth centreline pixels weighted up.
 
@@ -992,8 +1059,16 @@ def stack_split(split: str, items: list | None = None) -> dict:
     # skeletonize on a 48 px crop, a million times a run, is not affordable.
     skeletons = np.stack([skeletonize(item["label"] > 0.5).astype(np.float32)
                           for item in items])
+    # The flux target, from the same skeletons D-E already uses. Three planes
+    # rather than one stacked array so the crop indexes it exactly the way it
+    # indexes every other plane -- a shape-specific index here is how a crop
+    # silently takes the wrong window.
+    _flux = [flux.target(s > 0.5, FLUX_RADIUS) for s in skeletons]
     return {"images": images, "labels": labels, "fovs": fovs, "dists": dists,
             "skel": skeletons,
+            "flux_y": np.stack([d[0] for (d, _) in _flux]),
+            "flux_x": np.stack([d[1] for (d, _) in _flux]),
+            "flux_band": np.stack([b.astype(np.float32) for (_, b) in _flux]),
             "dir_sin": np.stack([f[0] for f in fields]),
             "dir_cos": np.stack([f[1] for f in fields]),
             "dir_weight": np.stack([f[2] for f in fields]),
@@ -1037,7 +1112,7 @@ def liot_stats(data: dict) -> tuple[np.ndarray, np.ndarray]:
 def sample_batch(data: dict, rng: np.random.Generator, mean, std,
                  augments: tuple = (), inpainted: np.ndarray | None = None,
                  use_liot: bool = False, use_direction: bool = False,
-                 use_skeleton: bool = False):
+                 use_skeleton: bool = False, use_flux: bool = False):
     """One batch of random crops, optionally augmented.
 
     Order matters. CoLeTra reads from the inpainted copy of the SAME crop, so
@@ -1057,6 +1132,7 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
     height, width = data["images"].shape[1:]
     images, labels, dists = [], [], []
     sines, cosines, weights, skeletons = [], [], [], []
+    flux_ys, flux_xs, bands = [], [], []
     while len(images) < BATCH:
         index = rng.integers(len(data["images"]))
         top = rng.integers(height - size)
@@ -1074,6 +1150,11 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
         # carries these planes. An unconditional read makes D1's target a
         # requirement of every caller instead of of the one that asked.
         sine = cosine = weight = skeleton = None
+        flux_y = flux_x = band = None
+        if use_flux:
+            flux_y = data["flux_y"][index][window]
+            flux_x = data["flux_x"][index][window]
+            band = data["flux_band"][index][window]
         if use_skeleton:
             skeleton = data["skel"][index][window]
         if use_direction:
@@ -1096,6 +1177,13 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
             if use_direction:
                 weight, = augment.apply_dihedral(turns, flip, weight)
                 sine, cosine = direction.dihedral(turns, flip, sine, cosine)
+            if use_flux:
+                # A displacement field's VALUES move too. flux.dihedral does
+                # it and its selftest recomputes the target from the
+                # transformed skeleton to prove it; the band is a scalar and
+                # moves like the label.
+                band, = augment.apply_dihedral(turns, flip, band)
+                flux_y, flux_x = flux.dihedral(turns, flip, flux_y, flux_x)
         if "jitter" in augments:
             image = augment.jitter(image, rng)
         if use_liot:
@@ -1111,6 +1199,10 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
             weights.append(weight[inner, inner])
         if use_skeleton:
             skeletons.append(skeleton[inner, inner])
+        if use_flux:
+            flux_ys.append(flux_y[inner, inner])
+            flux_xs.append(flux_x[inner, inner])
+            bands.append(band[inner, inner])
     batch = np.stack(images)
     if batch.ndim == 3:
         batch = batch[:, None]
@@ -1131,9 +1223,15 @@ def sample_batch(data: dict, rng: np.random.Generator, mean, std,
     # for the wrong one would get a correctly shaped tensor of the wrong
     # quantity -- silent, and exactly the class of bug this repo keeps paying
     # for. test_direction.py pins all three shapes.
-    if not (use_direction or use_skeleton):
+    if not (use_direction or use_skeleton or use_flux):
         return out
     extras = {}
+    if use_flux:
+        # (dy, dx, band) together, so flux_loss cannot be handed the field
+        # without the mask that says where it means anything.
+        extras["flux"] = torch.from_numpy(np.stack(
+            [np.stack(flux_ys), np.stack(flux_xs),
+             np.stack(bands)], axis=1).astype(np.float32)).to(DEVICE)
     if use_direction:
         # (sin 2theta, cos 2theta, coherence) in one tensor, so the loss gets
         # its target and its weight together and cannot be handed one alone.
@@ -1260,6 +1358,7 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
     use_liot = uses_liot(config_name)
     use_direction = uses_direction(config_name)
     use_skeleton = uses_centreline_weight(config_name)
+    use_flux = uses_flux(config_name)
     skel_weight = centreline_weight(config_name) if use_skeleton else 0.0
     if use_liot:
         # The grey mean/std main() computed are meaningless for a byte-code
@@ -1351,18 +1450,25 @@ def train_one(run_name: str, train, val, mean: float, std: float) -> None:
         running = 0.0
         for _ in range(steps):
             optimiser.zero_grad()
-            if use_direction or use_skeleton:
+            if use_direction or use_skeleton or use_flux:
                 images, labels, dists, extras = sample_batch(
                     train, rng, mean, std, augments, inpainted, use_liot,
-                    use_direction, use_skeleton)
+                    use_direction, use_skeleton, use_flux)
                 if use_direction:
                     logits, predicted = model.forward_direction(images)
+                elif use_flux:
+                    logits, field = model.forward_flux(images)
                 else:
                     logits = model(images)
                 loss = compute_loss(logits, labels, dists, extra, images)
                 if use_direction:
                     loss = loss + DIRECTION_WEIGHT * direction_loss(
                         predicted, extras["field"])
+                if use_flux:
+                    # Added on top, like _clw and _dir, so a _flux arm differs
+                    # from its namesake in exactly this term.
+                    loss = loss + FLUX_WEIGHT * flux_loss(field,
+                                                          extras["flux"])
                 if use_skeleton:
                     # Replaces nothing: it is added on top of the arm's own
                     # loss, so _clw differs from its namesake in exactly this
