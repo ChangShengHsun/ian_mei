@@ -67,6 +67,22 @@ Betti_matching / Betti_error / clDice / ccDice，**無任何 run-length 函式**
 `erl_convention.bridged_run_length`。後者第一次執行就抓到「把 ERL 當比例、
 多除一次骨架長度」的錯——**ERL 是長度不是比例**。
 
+### 修訂 2026-09-20 —— 主張 1 的三個數字是 12 seeds 的，24 seeds 下都變了
+
+原文保留在上面。`exp/paper_figures.py` 為了畫論文的 Fig 2，從
+`exp/results/heldout/erl_spec*.csv` 的 **57600 列、24 seeds** 重算，
+並在 selftest 裡逐格斷言與 `erl_spec.txt` 相符。結果：
+
+| 量 | 原文（12 seeds） | 重算（24 seeds） |
+|---|---|---|
+| 光譜寬 | 38.6–42.0 點 | **38.4–41.8 點** |
+| Spearman ρ（參考格 vs `bridged/diameter/covered`） | −0.103 | **−0.224** |
+| 最大名次移動 | 7 名 | **8 名** |
+
+**方向沒有改變，而且兩個都變得更強**（相關更負、名次移動更大）。
+論文引用時用 24-seed 的數字，並註明 seed 數——`calibration` 那條教訓同樣適用：
+**沒有 seed 數的判決不算判決**。
+
 ### 主張 2 —— 光譜隨 coverage 縮放，不是常數
 
 `erl_spec_transfer.md` / `exp/erl_spec_transfer.py`。三個資料集 × **24 seeds** ×

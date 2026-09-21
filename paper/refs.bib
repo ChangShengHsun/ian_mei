@@ -1,0 +1,145 @@
+% ===========================================================================
+%  Bibliography.  Entries marked % VERIFY were written from memory and their
+%  volume/page/year fields must be checked against the publisher before
+%  submission.  Entries without that mark were taken from the repository's
+%  own literature checks (stage-report/metric_novelty_check.md, e0, stage_1),
+%  where they were recorded after reading the source.
+% ===========================================================================
+
+% --- the metric itself is NOT ours -----------------------------------------
+@article{januszewski2018ffn,
+  author  = {Januszewski, Micha{\l} and Kornfeld, J{\"o}rgen and Li, Peter H.
+             and Pope, Art and Blakely, Tim and Lindsey, Larry and
+             Maitin-Shepard, Jeremy and Tyka, Mike and Denk, Winfried and
+             Jain, Viren},
+  title   = {High-precision automated reconstruction of neurons with
+             flood-filling networks},
+  journal = {Nature Methods},
+  volume  = {15},          % VERIFY volume/pages
+  pages   = {605--610},
+  year    = {2018}
+}
+
+@misc{allenskeletonmetrics,
+  author = {{Allen Institute for Brain Science}},
+  title  = {segmentation-skeleton-metrics},
+  note   = {Software, version 5.9.5; run on retinal data in this work},
+  year   = {2025}          % VERIFY release year of 5.9.5
+}
+
+% --- the prior work that owns "conventions change the ranking" -------------
+@article{berger2024pitfalls,
+  author  = {Berger, Alexander H. and Lux, Laurin and Weers, Nico and
+             Menten, Martin J. and Rueckert, Daniel and Paetzold, Johannes C.},
+  title   = {Pitfalls of topology-aware image segmentation},
+  journal = {arXiv preprint arXiv:2412.14619},
+  year    = {2024}
+}
+
+@inproceedings{decroocq2025bench,
+  author    = {Decroocq, M{\'e}ghane and Poon, Carson and
+               Schlachter, Matthias and Skibbe, Henrik},
+  title     = {Benchmarking Evaluation Metrics for Tubular Structure
+               Segmentation in Biomedical Images},
+  booktitle = {ShapeMI, MICCAI Workshops},
+  series    = {LNCS},
+  volume    = {16171},
+  doi       = {10.1007/978-3-032-06774-6_7},
+  year      = {2025},
+  note      = {Best paper. Main text not read; the claim about its metric
+               list rests on its public code}
+}
+
+% --- the venue precedent for an audit paper in this field ------------------
+@article{kovacs2022baseline,
+  author  = {Kov{\'a}cs, Gy{\"o}rgy and Fazekas, Attila},
+  title   = {A new baseline for retinal vessel segmentation: Numerical
+             identification and correction of methodological inconsistencies
+             affecting 100+ papers},
+  journal = {Medical Image Analysis},
+  volume  = {75},
+  pages   = {102300},
+  year    = {2022}
+}
+
+% --- the connectivity metrics this paper is measured against ---------------
+@inproceedings{shit2021cldice,
+  author    = {Shit, Suprosanna and Paetzold, Johannes C. and Sekuboyina,
+               Anjany and Ezhov, Ivan and Unger, Alexander and Zhylka, Andrey
+               and Pluim, Josien P. W. and Bauer, Ulrich and Menze, Bjoern H.},
+  title     = {{clDice} -- A Novel Topology-Preserving Loss Function for
+               Tubular Structure Segmentation},
+  booktitle = {CVPR},
+  year      = {2021}
+}
+
+@inproceedings{shi2024cbdice,
+  author    = {Shi, Pengcheng and Hu, Jiesi and Yang, Yanwu and Gao, Zilve
+               and Liu, Wei and Ma, Ting},
+  title     = {Centerline Boundary Dice Loss for Vascular Segmentation},
+  booktitle = {MICCAI},
+  year      = {2024},
+  note      = {arXiv:2407.01517}
+}
+
+@inproceedings{kirchhoff2024skeleton,
+  author    = {Kirchhoff, Yannick and Rokuss, Maximilian R. and Roy, Saikat
+               and Kovacs, Balint and Ulrich, Constantin and Wald, Tassilo
+               and Zenk, Maximilian and Vollmuth, Philipp and Kleesiek, Jens
+               and Isensee, Fabian and Maier-Hein, Klaus},
+  title     = {Skeleton Recall Loss for Connectivity Conserving and Resource
+               Efficient Segmentation of Thin Tubular Structures},
+  booktitle = {ECCV},
+  year      = {2024},
+  note      = {arXiv:2404.03010; owns the centreline-weighted idea this
+               repository uses as its baseline, not as a contribution}
+}
+
+@inproceedings{stucki2023betti,
+  author    = {Stucki, Nico and Paetzold, Johannes C. and Shit, Suprosanna
+               and Menze, Bjoern and Bauer, Ulrich},
+  title     = {Topologically Faithful Image Segmentation via Induced Matching
+               of Persistence Barcodes},
+  booktitle = {ICML},
+  year      = {2023},
+  note      = {arXiv:2211.15272}
+}
+
+% --- datasets --------------------------------------------------------------
+@article{staal2004drive,
+  author  = {Staal, Joes and Abr{\`a}moff, Michael D. and Niemeijer, Meindert
+             and Viergever, Max A. and van Ginneken, Bram},
+  title   = {Ridge-based vessel segmentation in color images of the retina},
+  journal = {IEEE Transactions on Medical Imaging},
+  volume  = {23},          % VERIFY volume/number/pages
+  number  = {4},
+  pages   = {501--509},
+  year    = {2004}
+}
+
+@article{hoover2000stare,
+  author  = {Hoover, Adam and Kouznetsova, Valentina and Goldbaum, Michael},
+  title   = {Locating blood vessels in retinal images by piecewise threshold
+             probing of a matched filter response},
+  journal = {IEEE Transactions on Medical Imaging},
+  volume  = {19},          % VERIFY volume/number/pages
+  number  = {3},
+  pages   = {203--210},
+  year    = {2000}
+}
+
+@article{budai2013hrf,
+  author  = {Budai, Attila and Bock, R{\"u}diger and Maier, Andreas and
+             Hornegger, Joachim and Michelson, Georg},
+  title   = {Robust vessel segmentation in fundus images},
+  journal = {International Journal of Biomedical Imaging},
+  year    = {2013}         % VERIFY article number
+}
+
+@article{comin2025vessmap,
+  author  = {Comin, C{\'e}sar Henrique and others},   % VERIFY author list
+  title   = {{VessMAP}: a dataset for blood vessel segmentation},  % VERIFY title
+  journal = {PLOS ONE},
+  year    = {2025},
+  note    = {PMC12112280; recorded in exp/fetch_vessmap.py}
+}
