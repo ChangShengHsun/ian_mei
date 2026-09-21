@@ -267,13 +267,28 @@ def uses_direction(config_name: str) -> bool:
 def uses_flux(config_name: str) -> bool:
     """Whether this config carries a flux head (geometry as an OUTPUT).
 
-    `_flux` adds a second 1x1 head predicting the displacement to the nearest
+    `_flux` adds a 1x1 head predicting the displacement to the nearest
     centreline pixel, and a loss term on it. Everything else -- backbone,
     segmentation loss, augmentation -- is the arm it is named after, so the
     comparison isolates the head. See exp/flux.py for the representation and
     stage-report/flux_novelty_check.md for the prior art.
     """
-    return "flux" in config_name.split("_")
+    return bool(flux_channels(config_name))
+
+
+def flux_channels(config_name: str) -> int:
+    """How many channels this config's flux head has. 0 when it has none.
+
+    TWO families on purpose, and the older name is NOT reused. `_flux` is the
+    two-channel version trained 2026-09-07 and its 48 checkpoints are on
+    disk; build_model must keep producing the architecture they were saved
+    from, or an analysis script holding only a run name rebuilds the wrong
+    net. `_flux2` adds the band channel the readout needs.
+    """
+    parts = config_name.split("_")
+    if "flux2" in parts:
+        return 3
+    return 2 if "flux" in parts else 0
 
 
 _WIDTH_CACHE: dict = {}
@@ -436,7 +451,7 @@ def build_model(config_name: str) -> "TinyUNet":
                                  if uses_propagation(config_name)
                                  else None),
                     shuffle=uses_shuffled_direction(config_name),
-                    flux=uses_flux(config_name)).to(DEVICE)
+                    flux=flux_channels(config_name)).to(DEVICE)
 
 
 class TinyUNet(nn.Module):
@@ -457,7 +472,7 @@ class TinyUNet(nn.Module):
                  in_channels: int = 1, depth: int = 3,
                  direction: bool = False, propagation: tuple | None = None,
                  shuffle: bool = False, snake_shape: dict | None = None,
-                 flux: bool = False):
+                 flux: int = 0):
         super().__init__()
         self.depth = depth
         channels = [base * 2 ** level for level in range(depth)]
@@ -482,7 +497,19 @@ class TinyUNet(nn.Module):
         # DISPLACEMENT in pixels rather than an axis: (dy, dx) to the nearest
         # centreline pixel. Unnormalised on purpose -- the magnitude is what
         # lets the centreline be decoded by voting instead of searched for.
-        self.flux_head = nn.Conv2d(base, 2, 1) if flux else None
+        # THREE channels, not two. (dy, dx) is the displacement; the third
+        # is a logit for "am I inside the band at all".
+        #
+        # ADDED 2026-09-13, after the two-channel version made the readout
+        # impossible. The displacement is only supervised INSIDE the band, so
+        # outside it the head is free -- and measured, it emits the same
+        # thing: mean |flux| 2.09 outside against 2.24 inside, with 99.3% of
+        # non-band pixels under the radius. A magnitude threshold would admit
+        # 1.3x as many false voters as true ones and the vote decode would
+        # drown. Using the predicted MASK as the band instead would give the
+        # vessels the mask misses no voters at all, which is the one thing
+        # this line exists to fix. So the band has to be predicted.
+        self.flux_head = nn.Conv2d(base, flux, 1) if flux else None
         # D-B. Between the trunk and the head, driven by dir_head's own
         # output, so a wrong field costs segmentation accuracy directly.
         self.propagation = (propagate.OrientedPropagation(*propagation)
@@ -884,8 +911,12 @@ for _base, _extra in (("A_dice", None), ("H_aug", None),
 # clw arm, so `_flux` can be read against BOTH its own namesake (does the head
 # help at all?) and against clw (does geometry-as-output beat
 # geometry-as-loss-weight, which is the published baseline?).
+# `_flux` is the two-channel version trained 2026-09-07; its checkpoints are
+# on disk and build_model must keep producing the architecture they were saved
+# from, so the name is NOT reused. `_flux2` carries the band channel.
 for _base in ("A_dice", "H_aug", "H_aug_clw16", "K_focal_aug"):
     CONFIGS[f"{_base}_flux"] = CONFIGS[_base]
+    CONFIGS[f"{_base}_flux2"] = CONFIGS[_base]
 
 # D-C, the redesign of D-B. Three arms at each length, so curvature and
 # direction are each isolated by a control trained the same way:
@@ -974,21 +1005,34 @@ def direction_loss(field, target) -> torch.Tensor:
 
 
 def flux_loss(field, target) -> torch.Tensor:
-    """L1 on the displacement, inside the band only.
+    """L1 on the displacement inside the band, plus BCE on the band itself.
 
     `target` is (dy, dx, band) in one tensor so the loss cannot be handed the
     field without the mask that says where it means anything -- the same
     packing direction_loss uses for its coherence weight.
 
-    L1 rather than L2: the target is a displacement in pixels and its
+    L1 rather than L2 on the displacement: the target is in pixels and its
     distribution has a hard edge at the band radius, where a squared penalty
     would let a handful of far pixels dominate the gradient.
+
+    The band term is why `field` has three channels. Without it the decode
+    has no way to know which pixels are entitled to vote, and measurement on
+    the two-channel version showed the magnitude carries none of that
+    information (mean |flux| 2.09 outside the band against 2.24 inside).
     """
     band = target[:, 2:3]
+    # The two-channel family has no band logit; its loss is the displacement
+    # alone, exactly as it was trained on 2026-09-07. Keeping both paths in
+    # one function is what stops the older arms being re-scored under a loss
+    # they were never trained with.
+    inside = (F.binary_cross_entropy_with_logits(field[:, 2:3], band)
+              if field.shape[1] > 2 else None)
     total = band.sum()
     if total == 0:
-        return field.sum() * 0.0
-    return ((field - target[:, :2]).abs() * band).sum() / (2.0 * total)
+        return inside if inside is not None else field.sum() * 0.0
+    displacement = ((field[:, :2] - target[:, :2]).abs() * band).sum() / (
+        2.0 * total)
+    return displacement if inside is None else displacement + inside
 
 
 def centreline_loss(logits, target, skeleton, weight: float) -> torch.Tensor:
@@ -1282,6 +1326,32 @@ def predict_full(model: nn.Module, image: np.ndarray, mean, std) -> np.ndarray:
     prob = torch.sigmoid(model(tensor.to(DEVICE)))[0, 0].cpu().numpy()
     model.train()
     return prob[:height, :width]
+
+
+@torch.no_grad()
+def predict_flux_full(model: nn.Module, image: np.ndarray, mean,
+                      std) -> tuple:
+    """(probability, dy, dx) at full resolution, from a flux model.
+
+    Whole-image inference is not optional here: 565 is not a multiple of the
+    net's stride, so a bare forward() raises. predict_full has handled that
+    since E13b and this reuses its arithmetic rather than repeating it -- the
+    two must pad identically or the mask readout and the flux readout would
+    be scored on differently-aligned images.
+    """
+    if model.flux_head is None:
+        raise ValueError("this model was built without a flux head")
+    model.eval()
+    height, width = image.shape
+    stride = 2 ** (getattr(model, "depth", 3) - 1)
+    pad_h, pad_w = (-height) % stride, (-width) % stride
+    tensor = torch.from_numpy(((image[None] - mean) / std).astype(np.float32))
+    tensor = F.pad(tensor[None], (0, pad_w, 0, pad_h), mode="reflect")
+    logits, field = model.forward_flux(tensor.to(DEVICE))
+    model.train()
+    return (torch.sigmoid(logits)[0, 0].cpu().numpy()[:height, :width],
+            field[0, 0].cpu().numpy()[:height, :width],
+            field[0, 1].cpu().numpy()[:height, :width])
 
 
 def validate(model, val, mean, std) -> tuple[dict, list[dict]]:

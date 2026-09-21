@@ -35,15 +35,22 @@ def landing_rate(batch) -> tuple[float, int]:
 
 
 def main() -> None:
-    # 1. THE ARCHITECTURE. `_flux` adds a head and nothing else; its namesake
-    #    must not grow one, or the comparison stops isolating the head.
-    for name in sorted(c for c in train.CONFIGS if c.endswith("_flux")):
-        model = train.build_model(name)
-        assert model.flux_head is not None, name
-        base = name[: -len("_flux")]
-        assert train.build_model(base).flux_head is None, base
-    print(f"{len([c for c in train.CONFIGS if c.endswith('_flux')])} _flux "
-          f"configs build a flux head; their namesakes do not")
+    # 1. THE ARCHITECTURE, AND THE TWO FAMILIES. `_flux` is the two-channel
+    #    version whose 48 checkpoints are on disk; `_flux2` adds the band
+    #    channel. build_model must keep producing the architecture each name
+    #    was saved from -- reusing the older name would make every existing
+    #    checkpoint load into the wrong net.
+    for suffix, channels in (("_flux", 2), ("_flux2", 3)):
+        names = sorted(c for c in train.CONFIGS if c.endswith(suffix))
+        assert names, suffix
+        for name in names:
+            model = train.build_model(name)
+            assert model.flux_head is not None, name
+            assert model.flux_head.weight.shape[0] == channels, name
+            base = name[: -len(suffix)]
+            assert train.build_model(base).flux_head is None, base
+        print(f"{len(names)} {suffix} configs build a {channels}-channel "
+              f"head; their namesakes build none")
 
     # 2. THE STORED TARGET IS THE CANONICAL ONE. stack_split precomputes it;
     #    if it ever drifts from flux.target the head trains on one definition
@@ -101,6 +108,25 @@ def main() -> None:
         "the loss read a value outside the band"
     print("flux_loss: zero on the truth, positive on a zero field, and blind "
           "to anything outside the band")
+
+    # 5. THE BAND CHANNEL, which is why _flux2 exists. The two-channel head
+    #    left the region outside the band unsupervised, and measurement showed
+    #    it emits the same magnitudes there as inside (2.09 against 2.24, with
+    #    99.3% of non-band pixels under the radius) -- so no magnitude
+    #    threshold can recover the band and the vote decode has no voters it
+    #    can trust. The third channel must therefore actually be trained.
+    perfect = torch.cat([field[:, :2],
+                         torch.where(field[:, 2:3] > 0.5, 20.0, -20.0)], 1)
+    wrong_band = torch.cat([field[:, :2],
+                            torch.where(field[:, 2:3] > 0.5, -20.0, 20.0)], 1)
+    assert float(train.flux_loss(perfect, field)) < 1e-6
+    assert float(train.flux_loss(wrong_band, field)) > 5.0
+    # and the two-channel path must be untouched by the new term
+    assert float(train.flux_loss(field[:, :2], field)) == 0.0
+    print(f"the band channel is trained: a perfect one costs "
+          f"{float(train.flux_loss(perfect, field)):.2e}, an inverted one "
+          f"{float(train.flux_loss(wrong_band, field)):.1f}, and the "
+          f"two-channel path is unchanged")
     print("all checks passed")
 
 
