@@ -1,0 +1,31 @@
+\section{Introduction}
+\label{sec:intro}
+% BUDGET: about 3/4 of column 1.  Four paragraphs.
+%
+% P1  What the field measures now: Dice, clDice \cite{shit2021cldice},
+%     Betti errors, cbDice \cite{shi2024cbdice}.
+% P2  Why a run-length metric is different: it has a UNIT.  "You can trace
+%     1052 px before hitting an error" is a sentence a clinician can check.
+%     ERL comes from connectomics \cite{januszewski2018ffn}; state plainly
+%     that it is NOT ours.
+% P3  Two topology-metric surveys \cite{berger2024pitfalls, decroocq2025bench}
+%     do not list it -- so it is unused in this field, which is the opening.
+% P4  Contributions, as a list.  Be careful here: \cite{berger2024pitfalls}
+%     already published "conventions distort the ranking" on DRIVE, so the
+%     contribution is that it happens on ERL, along ERL's own axes.
+
+\TODO{introduction}
+% Budget: ~285 words of prose (3/4 column minus the contributions list).
+\FILL{2-4}
+
+\noindent\textbf{Contributions.}
+\begin{enumerate}
+  \item A constructed case set on which Dice ties to four decimals, clDice
+        ties inside the window a reader would call equivalent, and Betti-0
+        \emph{ranks the worse prediction better}; ERL separates them.
+  \item The first execution of the reference ERL implementation on retinal
+        data, which exposes an undocumented connectivity assumption and a
+        fragment length that depends on input order.
+  \item A specification: three under-specified axes, two further conditions,
+        and the rule that governs how much the choice costs.
+\end{enumerate}

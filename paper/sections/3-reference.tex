@@ -1,0 +1,30 @@
+\section{The metric does not transfer off the shelf}
+\label{sec:reference}
+% BUDGET: 3/4 column + Table 2.  This is the part nobody else has.
+%
+% Two defects, both found by RUNNING the reference package (version
+% \refVersion), not by reading it:
+%   (a) an undocumented connectivity assumption: their loop walks only the
+%       component containing the first node of each label.  Harmless in 3D
+%       connectomics, catastrophic here -- \refUnwalkedA\% of covered
+%       skeleton went unmeasured on one image.
+%   (b) fragment length is not well defined: a 3-px L corner reads
+%       \refCornerA{} or \refCornerB{} depending on the order its nodes were
+%       listed, because the walk keeps every diagonal of a DFS tree.
+% Also worth one sentence: the merge penalty, the most distinctive half of
+% the original metric, never fires here, because the retinal ground truth is
+% a single connected object.
+
+\TODO{section 3 prose}
+% Budget: ~300 words. Defect (a), defect (b), one sentence on the merge term.
+\FILL{9-11}
+
+\begin{table}[t]
+  \centering
+  \caption{Running \texttt{segmentation-skeleton-metrics} \refVersion{} on
+  DRIVE. Their loop measures only the component containing each label's
+  first node; the rest of the covered skeleton is silently dropped.
+  }
+  \label{tab:reference}
+  \input{tables/tab2_reference}
+\end{table}
